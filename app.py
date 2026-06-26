@@ -13,9 +13,10 @@ import pandas as pd
 
 from utils.matching import recommend, score_label, evaluate
 from utils.value_match import story_block_html, value_badge_html
+from utils.ui_components import recommendation_card_html
 from utils.match_display import keywords_html, apply_keyword_filter, MatchKeyword, analyze_pair, _theme
-from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject
-from utils.sheets import load_data, load_demo_data, set_matched, increment_reject
+from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, EDIT_LABELS
+from utils.sheets import load_data, load_demo_data, set_matched, increment_reject, update_profile_fields
 from utils.filters import (
     FILTER_FIELDS,
     field_options,
@@ -25,14 +26,12 @@ from utils.filters import (
     active_filter_labels,
     clear_all_filters,
 )
+from utils.date_filter import render_global_date_filter, apply_date_filter
+from utils.search_index import search_df, drop_search_index, ensure_search_index
+from utils.auth import ensure_authenticated, current_user, logout
 
 ROOT = Path(__file__).resolve().parent
 LOGO = ROOT / "assets" / "logo-mark.svg"
-
-G = "10px"  # 내부 간격
-PANEL = "14px"  # 패널 안쪽 여백
-SPACE = "20px"  # 상세 화면 여백
-
 
 LOGO_SVG_FALLBACK = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
   <rect width="48" height="48" rx="12" fill="#5B8DEF" fill-opacity="0.16"/>
@@ -61,308 +60,13 @@ st.set_page_config(
     page_title="단골팅",
     page_icon=str(LOGO),
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    f"""
-<style>
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-html,body,[class*="css"]{{font-family:Pretendard,-apple-system,sans-serif;-webkit-text-size-adjust:100%}}
+THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
+st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
 
-header[data-testid="stHeader"]{{
-  background:rgba(20,20,24,.96)!important;border-bottom:1px solid rgba(128,128,128,.12);
-}}
-section.main > div.block-container{{
-  padding:1.25rem 2rem 2rem!important;max-width:1280px;
-}}
-[data-testid="stToolbar"]{{display:none}}
-footer{{visibility:hidden;height:0}}
-
-/* Streamlit 기본 간격 */
-[data-testid="stVerticalBlock"] > div{{gap:{G}!important}}
-div[data-testid="stButton"]{{margin:0!important}}
-div[data-testid="stButton"] > button{{
-  padding:5px 12px!important;min-height:32px!important;font-size:.8rem!important;
-  border-radius:6px!important;
-}}
-div[data-testid="stButton"] > button[kind="primary"]{{
-  min-height:32px!important;padding:5px 14px!important;
-}}
-[data-testid="stTextInput"] input{{min-height:34px!important;font-size:.85rem!important;padding:6px 10px!important}}
-[data-testid="stRadio"] label{{font-size:.76rem!important;padding:3px 8px!important;min-height:28px!important}}
-.stTabs [data-baseweb="tab"]{{padding:6px 12px!important;font-size:.82rem!important;min-height:32px!important}}
-
-/* ── 작업 영역 2열 ── */
-div[data-testid="stHorizontalBlock"]{{gap:20px!important;align-items:flex-start!important}}
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child{{
-  flex:0 0 252px!important;max-width:252px!important;
-}}
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child{{
-  flex:1 1 auto!important;min-width:0!important;
-}}
-
-/* 패널 박스 */
-[data-testid="stVerticalBlockBorderWrapper"]{{
-  padding:{PANEL}!important;border-radius:10px!important;
-  background:rgba(255,255,255,.02)!important;
-  border:1px solid rgba(128,128,128,.14)!important;
-}}
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child [data-testid="stVerticalBlockBorderWrapper"]{{
-  padding:{PANEL} 18px {PANEL} 18px!important;
-}}
-
-.topbar{{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}}
-.topbar-brand{{display:flex;align-items:center;gap:10px;min-width:0}}
-.logo-mark{{width:38px;height:38px;flex-shrink:0;display:block}}
-.brand-text h1{{font-size:1.12rem;font-weight:700;margin:0;line-height:1.2}}
-.brand-sub{{font-size:.68rem;color:#888;font-weight:500;margin-top:1px}}
-.stats{{font-size:.76rem;color:#888;text-align:right}}
-.stats b{{font-weight:600;color:#ccc}}
-.sidebar-brand{{
-  display:flex;align-items:center;gap:8px;margin:-4px 0 10px;padding-bottom:10px;
-  border-bottom:1px solid rgba(128,128,128,.14);
-}}
-.sidebar-brand img{{width:28px;height:28px;flex-shrink:0}}
-.sidebar-brand span{{font-size:.92rem;font-weight:700;letter-spacing:-.02em}}
-
-/* ── 왼쪽 목록: 컴팩트 행 ── */
-.list-hdr{{font-size:.72rem;color:#888;margin:0 0 8px}}
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stButton"] > button{{
-  min-height:28px!important;padding:3px 6px!important;
-  font-size:.78rem!important;font-weight:600!important;text-align:left!important;
-  border:1px solid rgba(128,128,128,.12)!important;background:rgba(128,128,128,.04)!important;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}}
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child [data-testid="stVerticalBlockBorderWrapper"] .row-sub{{
-  font-size:.65rem;color:#777;line-height:1.35;margin:-2px 0 10px 4px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}}
-
-.compare-bar{{
-  font-size:.78rem;padding:8px 12px;margin-bottom:{G};
-  border:1px solid rgba(91,141,239,.25);border-radius:8px;
-  background:rgba(91,141,239,.06);
-}}
-.compare-score{{font-weight:600;color:#3D9970}}
-.slot-tag{{font-size:.65rem;padding:1px 5px;border-radius:3px;margin-right:4px}}
-.slot-1{{background:rgba(91,141,239,.2);color:#5B8DEF}}
-.slot-2{{background:rgba(155,89,182,.2);color:#9B59B6}}
-
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child [data-testid="stVerticalBlockBorderWrapper"]{{
-  padding:18px 24px 24px!important;
-}}
-
-.detail-panel{{padding:4px 2px 8px}}
-.profile-hero{{
-  padding:16px 18px 18px;margin-bottom:{SPACE};
-  border-radius:12px;border:1px solid rgba(128,128,128,.16);
-  background:rgba(255,255,255,.025);
-}}
-.profile-name-row{{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}}
-.profile-name{{margin:0;font-size:1.25rem;font-weight:700;line-height:1.3}}
-.dday-badge{{
-  font-size:.72rem;font-weight:700;color:#E8A0A0;
-  padding:3px 10px;border-radius:20px;
-  background:rgba(200,80,80,.15);border:1px solid rgba(200,80,80,.25);
-}}
-.profile-contact{{
-  font-size:.88rem;color:#7EB0FF;font-family:ui-monospace,monospace;
-  letter-spacing:.03em;margin-bottom:12px;
-}}
-.profile-chips{{display:flex;flex-wrap:wrap;gap:6px}}
-.profile-chips .chip{{padding:4px 10px;font-size:.72rem;margin:0}}
-
-.section-card{{
-  padding:16px 18px;margin-bottom:{SPACE};border-radius:12px;
-  border:1px solid rgba(128,128,128,.14);background:rgba(0,0,0,.12);
-}}
-.section-card.want{{border-left:3px solid #5B8DEF}}
-.section-card.have{{border-left:3px solid #3D9970}}
-.section-title{{
-  font-size:.72rem;font-weight:700;color:#999;text-transform:uppercase;
-  letter-spacing:.06em;margin:0 0 14px;
-}}
-.meta-grid{{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin-bottom:14px;
-}}
-.meta-item{{
-  padding:10px 12px;border-radius:8px;background:rgba(128,128,128,.06);
-  border:1px solid rgba(128,128,128,.08);
-}}
-.meta-lbl{{display:block;font-size:.62rem;color:#777;margin-bottom:4px;font-weight:600}}
-.meta-val{{display:block;font-size:.8rem;color:#ddd;line-height:1.45;word-break:keep-all}}
-.text-block{{padding-top:4px;border-top:1px solid rgba(128,128,128,.1)}}
-.text-block .meta-lbl{{margin-top:10px}}
-.text-body{{font-size:.82rem;color:#bbb;line-height:1.65;margin:6px 0 0;word-break:keep-all}}
-
-.detail-hdr-row{{margin-bottom:14px}}
-.detail-acts div[data-testid="stButton"] > button{{
-  min-height:30px!important;padding:4px 12px!important;font-size:.74rem!important;
-  min-width:64px!important;
-}}
-
-.rec-section{{margin-top:8px}}
-.rec-section-title{{
-  font-size:.78rem;font-weight:700;color:#999;margin:0 0 14px;
-  padding-bottom:8px;border-bottom:1px solid rgba(128,128,128,.12);
-}}
-.rec-card{{
-  padding:16px 18px;margin-bottom:14px;border-radius:12px;
-  border:1px solid rgba(128,128,128,.14);background:rgba(255,255,255,.02);
-}}
-.rec-card.mutual{{border-color:rgba(61,153,112,.35);background:rgba(61,153,112,.04)}}
-.rec-top{{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}}
-.rec-name{{font-weight:700;font-size:.95rem;color:#eee}}
-.rec-score{{
-  font-size:.74rem;color:#5B8DEF;font-weight:600;white-space:nowrap;
-  padding:4px 10px;border-radius:20px;background:rgba(91,141,239,.12);
-}}
-.rec-score.mutual{{color:#5DDBA4;background:rgba(61,153,112,.15)}}
-.rec-kw{{margin:12px 0}}
-.rec-foot{{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(128,128,128,.1)}}
-.rec-foot .kw-tip{{margin:0;font-size:.65rem;color:#666}}
-.rec-foot div[data-testid="stButton"] > button{{
-  min-height:32px!important;padding:5px 18px!important;font-size:.78rem!important;
-}}
-.kw-row{{gap:7px!important;margin:0}}
-.kw-yes{{padding:4px 10px;font-size:.72rem;border-radius:6px}}
-.kw-no{{padding:4px 10px;font-size:.72rem;border-radius:6px}}
-.kw-filter-row{{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}}
-.kw-filter-row div[data-testid="stButton"] > button{{
-  min-height:26px!important;padding:2px 10px!important;font-size:.65rem!important;
-  border-color:rgba(61,153,112,.35)!important;color:#5DDBA4!important;
-}}
-
-.value-badge{{
-  font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;
-}}
-.value-high{{background:rgba(61,153,112,.2);color:#5DDBA4;border:1px solid rgba(61,153,112,.4)}}
-.value-mid{{background:rgba(232,168,56,.15);color:#E8C868;border:1px solid rgba(232,168,56,.35)}}
-.value-caution{{background:rgba(200,120,80,.12);color:#E8A878;border:1px solid rgba(200,120,80,.3)}}
-.value-low{{background:rgba(200,80,80,.15);color:#E89090;border:1px solid rgba(200,80,80,.35)}}
-
-.story-block{{
-  margin:14px 0 0;padding:14px 16px;border-radius:10px;line-height:1.65;
-  border:1px solid rgba(128,128,128,.14);background:rgba(0,0,0,.12);
-}}
-.story-block.value-high{{border-left:3px solid #3D9970}}
-.story-block.value-mid{{border-left:3px solid #E8C868}}
-.story-block.value-caution{{border-left:3px solid #E8A878}}
-.story-block.value-low{{border-left:3px solid #C85050}}
-.story-head{{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}}
-.story-rank{{
-  font-size:.68rem;font-weight:700;color:#5B8DEF;padding:2px 8px;border-radius:4px;
-  background:rgba(91,141,239,.12);
-}}
-.story-tier{{font-size:.68rem;font-weight:700;color:#999}}
-.story-title{{font-size:.78rem;font-weight:700;color:#ddd}}
-.story-body{{font-size:.8rem;color:#aaa;margin:0 0 10px;line-height:1.65}}
-.value-breakdown{{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}}
-.bd-item{{
-  font-size:.65rem;color:#888;padding:3px 8px;border-radius:4px;
-  background:rgba(128,128,128,.08);border:1px solid rgba(128,128,128,.1);
-}}
-.bd-item b{{color:#aaa;margin-right:4px}}
-.rec-top .value-badge{{flex-shrink:0}}
-.compare-value{{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;
-}}
-
-.chips{{font-size:.72rem;line-height:1.6;margin-bottom:{G}}}
-.chip{{display:inline-block;padding:1px 6px;border-radius:3px;margin-right:3px;background:rgba(128,128,128,.12)}}
-.chip-r{{color:#C85050;background:rgba(200,80,80,.12)}}
-.chip-g{{color:#3D9970;background:rgba(61,153,112,.12)}}
-.chip-w{{color:#E8A838;background:rgba(232,168,56,.14)}}
-
-.box{{
-  font-size:.78rem;line-height:1.55;border:1px solid rgba(128,128,128,.15);
-  border-radius:8px;padding:10px 12px;margin-bottom:{G};
-  word-break:keep-all;overflow-wrap:break-word;
-}}
-.box-want{{border-left:3px solid #5B8DEF}}
-.box-lbl{{font-size:.68rem;color:#888;font-weight:600;margin-bottom:4px}}
-.box p{{margin:0 0 4px}}
-
-.mob-back{{display:none}}
-.empty-hint{{font-size:.78rem;color:#777;padding:12px 4px;line-height:1.6}}
-
-.kw-tip{{font-size:.68rem;color:#777;margin:2px 0 6px}}
-.filter-bar{{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  font-size:.74rem;padding:6px 10px;margin-bottom:{G};
-  border-radius:6px;background:rgba(91,141,239,.08);border:1px solid rgba(91,141,239,.2);
-}}
-.active-filters{{
-  display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px;
-  padding:6px 10px;border-radius:6px;background:rgba(128,128,128,.06);
-  border:1px solid rgba(128,128,128,.12);
-}}
-.flt-chip{{
-  font-size:.68rem;padding:2px 8px;border-radius:4px;
-  background:rgba(91,141,239,.14);border:1px solid rgba(91,141,239,.28);color:#aac4ff;
-}}
-.flt-chip-kw{{background:rgba(61,153,112,.14);border-color:rgba(61,153,112,.35);color:#5DDBA4}}
-[data-testid="stExpander"] summary{{font-size:.82rem!important}}
-div[data-testid="stMultiSelect"] [data-baseweb="tag"]{{font-size:.72rem!important}}
-
-/* ── 완료 목록 ── */
-.done-toolbar{{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}}
-.done-count{{font-size:.78rem;color:#888}}
-.done-count b{{color:#3D9970;font-weight:600}}
-.done-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px}}
-.done-card{{
-  border:1px solid rgba(61,153,112,.28);border-radius:10px;
-  background:rgba(61,153,112,.04);padding:12px 14px;
-}}
-.done-head{{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}}
-.done-names{{font-size:.92rem;font-weight:700}}
-.done-names .link-icon{{color:#3D9970;margin:0 6px;font-weight:400}}
-.done-score{{font-size:.72rem;color:#3D9970;font-weight:600;white-space:nowrap}}
-.done-body{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
-.done-person{{
-  border:1px solid rgba(128,128,128,.14);border-radius:8px;
-  padding:8px 10px;background:rgba(0,0,0,.15);min-width:0;
-}}
-.done-person.missing{{opacity:.55;border-style:dashed}}
-.done-pname{{font-size:.82rem;font-weight:600;margin-bottom:4px}}
-.done-pmeta{{font-size:.68rem;color:#888;line-height:1.45;margin-bottom:4px}}
-.done-contact{{
-  font-size:.76rem;color:#5B8DEF;font-family:ui-monospace,monospace;
-  margin:4px 0 6px;letter-spacing:.02em;
-}}
-.done-lbl{{font-size:.62rem;color:#666;font-weight:600;margin:4px 0 2px}}
-.done-txt{{font-size:.7rem;color:#aaa;line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-}}
-.done-kws{{margin-top:8px;padding-top:8px;border-top:1px solid rgba(128,128,128,.12)}}
-.done-empty{{font-size:.82rem;color:#777;padding:24px 8px;text-align:center}}
-
-@media (max-width:768px){{
-  section.main > div.block-container{{
-    padding:calc(3.5rem + env(safe-area-inset-top,0)) 1rem 1.25rem!important;
-  }}
-  div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
-  div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child{{
-    flex:1 1 100%!important;max-width:100%!important;min-width:100%!important;
-  }}
-  div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child div[data-testid="stButton"] > button{{
-    min-height:36px!important;
-  }}
-  .done-grid{{grid-template-columns:1fr}}
-  .done-body{{grid-template-columns:1fr}}
-  .meta-grid{{grid-template-columns:1fr}}
-  .rec-top{{flex-direction:column;gap:8px}}
-  .profile-hero{{padding:14px}}
-  .section-card{{padding:14px}}
-  .mob-back{{display:block;margin-bottom:{G}}}
-  div[data-testid="stButton"] > button{{min-height:36px!important}}
-  [data-testid="stTextInput"] input{{font-size:16px!important;min-height:40px!important}}
-}}
-</style>
-""",
-    unsafe_allow_html=True,
-)
+ensure_authenticated(logo_data_uri())
 
 for k, v in [("df", None), ("selected", []), ("demo_mode", True), ("load_ver", 0), ("flash", ""), ("chip_filter", None)]:
     if k not in st.session_state:
@@ -380,9 +84,14 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.caption("설정")
+    st.caption(f"접속: {current_user()}")
+    if st.button("로그아웃", use_container_width=True):
+        logout()
+        st.rerun()
     demo_mode = st.toggle("데모 데이터", value=st.session_state["demo_mode"])
     st.session_state["demo_mode"] = demo_mode
     if not demo_mode:
+        st.caption("시트 연동 중 · 변경은 새로고침으로 불러옴")
         sheet_url = st.text_input("시트 주소", value=DEFAULT_SHEET_URL, label_visibility="collapsed")
         ws_name = st.text_input("시트 탭", value=DEFAULT_WORKSHEET, label_visibility="collapsed")
     else:
@@ -401,7 +110,7 @@ def _load(url: str, ws: str, _ver: int) -> pd.DataFrame:
 
 def get_df() -> pd.DataFrame:
     if st.session_state["df"] is not None:
-        return st.session_state["df"]
+        return ensure_search_index(st.session_state["df"])
     if demo_mode:
         df = load_demo_data()
     elif sheet_url:
@@ -412,8 +121,8 @@ def get_df() -> pd.DataFrame:
             return pd.DataFrame()
     else:
         return pd.DataFrame()
-    st.session_state["df"] = df
-    return df
+    st.session_state["df"] = ensure_search_index(df)
+    return st.session_state["df"]
 
 
 def is_matched(row) -> bool:
@@ -469,6 +178,38 @@ def sort_list_df(frame: pd.DataFrame, sort_by: str) -> pd.DataFrame:
     return frame
 
 
+def render_search_bar(
+    key: str,
+    placeholder: str,
+    *,
+    label: str = "검색",
+    show_hint: bool = True,
+) -> str:
+    """검색 입력 + ✕ 지우기."""
+    st.markdown('<span class="search-bar-anchor"></span>', unsafe_allow_html=True)
+    c_input, c_clear = st.columns([15, 1], gap="small")
+    with c_input:
+        q = st.text_input(label, placeholder=placeholder, label_visibility="collapsed", key=key)
+    with c_clear:
+        has_text = bool(str(st.session_state.get(key, "")).strip())
+        if st.button(
+            "✕",
+            key=f"{key}_x",
+            disabled=not has_text,
+            help="검색 지우기",
+            use_container_width=True,
+        ):
+            st.session_state[key] = ""
+            st.rerun()
+    q = str(q or "").strip()
+    if show_hint and q:
+        st.markdown(
+            f'<p class="search-live-hint">검색 중: <b>{html_lib.escape(q)}</b></p>',
+            unsafe_allow_html=True,
+        )
+    return q
+
+
 def render_field_filter_panel(frame: pd.DataFrame) -> None:
     """설문 필드별 multiselect 필터."""
     sel = collect_filter_selections()
@@ -502,9 +243,11 @@ def render_field_filter_panel(frame: pd.DataFrame) -> None:
 
         _, btn = st.columns([5, 1])
         with btn:
+            st.markdown('<div class="filter-clear-row">', unsafe_allow_html=True)
             if st.button("필터 초기화", key="flt_clr", use_container_width=True):
                 clear_all_filters()
                 st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_active_filter_bar(selections: dict[str, list[str]], chip: dict | None) -> None:
@@ -517,13 +260,12 @@ def render_active_filter_bar(selections: dict[str, list[str]], chip: dict | None
         f'<span class="flt-chip{" flt-chip-kw" if c.startswith("키워드") else ""}">{html_lib.escape(c)}</span>'
         for c in chips
     )
-    c1, c2 = st.columns([8, 1])
-    with c1:
-        st.markdown(f'<div class="active-filters">{parts}</div>', unsafe_allow_html=True)
-    with c2:
-        if st.button("해제", key="flt_bar_clr", use_container_width=True):
-            clear_all_filters()
-            st.rerun()
+    st.markdown(f'<div class="active-filters">{parts}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="active-filter-actions">', unsafe_allow_html=True)
+    if st.button("필터 해제", key="flt_bar_clr", use_container_width=False):
+        clear_all_filters()
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def fmt_contact(c) -> str:
@@ -648,12 +390,13 @@ def do_match(a: int, b: int) -> None:
     df.loc[a, "matched"], df.loc[a, "matched_w"] = "TRUE", nb
     df.loc[b, "matched"], df.loc[b, "matched_w"] = "TRUE", na
     st.session_state["df"] = df
+    _refresh_df_index()
     st.session_state["flash"] = f"{na} ↔ {nb} 매칭 완료"
     st.session_state["selected"] = []
 
 
 def toggle_select(idx: int) -> None:
-    sel: list = st.session_state["selected"]
+    sel: list = list(st.session_state.get("selected", []))
     if idx in sel:
         sel.remove(idx)
     elif len(sel) < 2:
@@ -663,16 +406,8 @@ def toggle_select(idx: int) -> None:
     st.session_state["selected"] = sel
 
 
-def search_df(frame: pd.DataFrame, query: str) -> pd.DataFrame:
-    q = query.strip().lower()
-    if not q:
-        return frame
-    cols = ["name", "job", "region", "have", "want", "w_job", "values", "gender", "depth"]
-    mask = pd.Series(False, index=frame.index)
-    for col in cols:
-        if col in frame.columns:
-            mask |= frame[col].astype(str).str.lower().str.contains(q, na=False, regex=False)
-    return frame[mask]
+def _refresh_df_index() -> None:
+    st.session_state["df"] = ensure_search_index(drop_search_index(st.session_state["df"]))
 
 
 def filter_by_status(frame: pd.DataFrame, status: str) -> pd.DataFrame:
@@ -694,49 +429,105 @@ def filter_by_status(frame: pd.DataFrame, status: str) -> pd.DataFrame:
     return frame
 
 
-def render_list_row(idx: int, row, selected: list) -> None:
-    """컴팩트 목록 행 — 이름만 버튼, 메타는 한 줄."""
+def build_list_blocks(frame: pd.DataFrame) -> list[tuple]:
+    """완료 매칭은 상대와 한 덩어리로 묶음."""
+    name_to_idx = {str(frame.loc[i, "name"]).strip(): i for i in frame.index}
+    seen: set = set()
+    blocks: list[tuple] = []
+    for idx in frame.index:
+        if idx in seen:
+            continue
+        row = frame.loc[idx]
+        if is_matched(row):
+            partner = str(row.get("matched_w", "")).strip()
+            pidx = name_to_idx.get(partner)
+            if pidx is not None and pidx in frame.index and pidx not in seen:
+                seen.add(idx)
+                seen.add(pidx)
+                blocks.append(("pair", idx, pidx))
+                continue
+        seen.add(idx)
+        blocks.append(("single", idx))
+    return blocks
+
+
+def _list_row_meta_html(row, *, in_pair: bool = False) -> str:
+    region = html_lib.escape(str(row.get("region", "")))
+    job = html_lib.escape(sjob(row.get("job", "")))
+    dday = html_lib.escape(str(row.get("dday", "")))
+    status = "" if (in_pair and is_matched(row)) else chip(row)
+    return (
+        f'<div class="list-row-inner">'
+        f'<div class="list-row-tags">{status}'
+        f'<span class="chip chip-r">{dday}</span></div>'
+        f'<div class="list-row-meta">{region} · {job}</div>'
+        f"</div>"
+    )
+
+
+def _render_list_row_content(idx: int, row, selected: list, *, in_pair: bool = False) -> None:
     nm = str(row.get("name", ""))
     prefix = ""
     if idx in selected:
         prefix = "① " if selected.index(idx) == 0 else "② "
-    if is_matched(row):
-        nm = f"{nm} ✓"
-    elif is_closed(row):
-        nm = f"{nm} ·종료"
-    elif is_rejected(row):
-        nm = f"{nm} ·거절"
-    sub = (
-        f'{chip(row)} '
-        f'<span class="chip chip-r">{row.get("dday", "")}</span> '
-        f'{row.get("region", "")} · {sjob(row.get("job", ""))}'
-    )
+
     if st.button(f"{prefix}{nm}", key=f"p{idx}", use_container_width=True):
         toggle_select(idx)
         st.rerun()
-    st.markdown(f'<div class="row-sub">{sub}</div>', unsafe_allow_html=True)
+    st.markdown(_list_row_meta_html(row, in_pair=in_pair), unsafe_allow_html=True)
 
 
-def render_match_keywords(kws: list[MatchKeyword], prefix: str, clickable: bool = True) -> None:
+def render_list_row(idx: int, row, selected: list) -> None:
+    """목록 카드 — 이름 + 상태/D-day/메타 (테두리 안)."""
+    with st.container(border=True):
+        if idx in selected:
+            n = selected.index(idx) + 1
+            st.markdown(f'<div class="sel-bar sel-{n}"></div>', unsafe_allow_html=True)
+        _render_list_row_content(idx, row, selected)
+
+
+def render_match_pair(idx_a: int, idx_b: int, row_a, row_b, selected: list) -> None:
+    """매칭 완료 2명을 한 테두리로 묶음."""
+    na = html_lib.escape(str(row_a.get("name", "")))
+    nb = html_lib.escape(str(row_b.get("name", "")))
+    with st.container(border=True):
+        st.markdown(
+            f'<div class="pair-head"><span class="chip chip-g">완료</span>'
+            f'<span class="pair-names">{na} ↔ {nb}</span></div>',
+            unsafe_allow_html=True,
+        )
+        _render_list_row_content(idx_a, row_a, selected, in_pair=True)
+        st.markdown('<div class="pair-divider"></div>', unsafe_allow_html=True)
+        _render_list_row_content(idx_b, row_b, selected, in_pair=True)
+
+
+def render_match_keywords(
+    kws: list[MatchKeyword], prefix: str, clickable: bool = True, show_chips: bool = True
+) -> None:
     """일치 항목 키워드 — 컴팩트 필터 pill."""
-    st.markdown(f'<div class="rec-kw">{keywords_html(kws)}</div>', unsafe_allow_html=True)
+    if show_chips:
+        st.markdown(f'<div class="rec-kw">{keywords_html(kws)}</div>', unsafe_allow_html=True)
     if not clickable:
         return
     matched = [k for k in kws if k.matched and k.keyword not in ("—", "")]
     if not matched:
         return
-    st.markdown('<div class="kw-filter-row">', unsafe_allow_html=True)
-    cols = st.columns(min(len(matched), 4))
-    for i, kw in enumerate(matched[:4]):
-        with cols[i % len(cols)]:
-            if st.button(kw.label, key=f"kw{prefix}{kw.key}{i}"):
-                st.session_state["chip_filter"] = {
-                    "field": kw.filter_field,
-                    "value": kw.filter_value,
-                    "label": f"{kw.label}: {kw.keyword}",
-                }
-                st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    for chunk_start in range(0, len(matched), 4):
+        chunk = matched[chunk_start : chunk_start + 4]
+        cols = st.columns(len(chunk))
+        for i, kw in enumerate(chunk):
+            with cols[i]:
+                if st.button(
+                    kw.label,
+                    key=f"kw{prefix}{kw.key}{chunk_start + i}",
+                    use_container_width=True,
+                ):
+                    st.session_state["chip_filter"] = {
+                        "field": kw.filter_field,
+                        "value": kw.filter_value,
+                        "label": f"{kw.label}: {kw.keyword}",
+                    }
+                    st.rerun()
 
 
 def _meta_item(label: str, value: str) -> str:
@@ -760,10 +551,11 @@ def profile_hero_html(row) -> str:
     )
     return (
         f'<div class="profile-hero">'
-        f'<div class="profile-name-row">'
-        f'<h2 class="profile-name">{html_lib.escape(str(row.get("name", "")))}</h2>'
+        f'<div class="profile-top">'
+        f'<div><h2 class="profile-name">{html_lib.escape(str(row.get("name", "")))}</h2>'
+        f'<div class="profile-contact">{contact}</div></div>'
         f'<span class="dday-badge">{dday}</span></div>'
-        f'<div class="profile-contact">{contact}</div>{chips}</div>'
+        f"{chips}</div>"
     )
 
 
@@ -772,7 +564,7 @@ def profile_sections_html(row) -> str:
     have_txt = html_lib.escape(str(row.get("have", "—")))
     return (
         f'<div class="section-card want">'
-        f'<div class="section-title">원하는 조건</div>'
+        f'<div class="section-title"><span class="ico">□</span> 원하는 것 요약</div>'
         f'<div class="meta-grid">'
         f'{_meta_item("희망 직군", sjob(str(row.get("w_job", ""))))}'
         f'{_meta_item("희망 지역", row.get("w_region", "무관"))}'
@@ -784,8 +576,22 @@ def profile_sections_html(row) -> str:
         f'<div class="text-block"><span class="meta-lbl">원하는 것</span>'
         f'<p class="text-body">{want_txt}</p></div></div>'
         f'<div class="section-card have">'
-        f'<div class="section-title">제공 가치</div>'
+        f'<div class="section-title have-ico"><span class="ico">◇</span> 제공 가치</div>'
         f'<p class="text-body">{have_txt}</p></div>'
+    )
+
+
+def _rec_meta_html(row) -> str:
+    parts = [
+        str(row.get("region", "")),
+        sjob(str(row.get("job", ""))),
+        syears(str(row.get("years", ""))),
+        str(row.get("gender", "")),
+    ]
+    return "".join(
+        f'<span class="rec-meta-chip">{html_lib.escape(p)}</span>'
+        for p in parts
+        if p and p.strip() and p.strip() != "—"
     )
 
 
@@ -795,25 +601,24 @@ def render_person(idx: int, slot: int, show_recommend: bool = True) -> None:
 
     st.markdown('<div class="detail-panel">', unsafe_allow_html=True)
 
-    act_l, act_sp, act_r = st.columns([6, 3, 1])
-    with act_l:
+    tb_title, tb_actions = st.columns([5, 2])
+    with tb_title:
         st.markdown(
             f'<p class="detail-hdr" style="margin:0;font-size:.78rem;color:#888">'
             f'<span class="slot-tag slot-{slot}">{tag}</span> 프로필</p>',
             unsafe_allow_html=True,
         )
-    with act_r:
-        btn1, btn2 = st.columns(2)
-        with btn1:
-            if not is_matched(row) and not is_closed(row):
-                if st.button("거절", key=f"r{idx}s{slot}"):
-                    do_reject(idx)
-                    st.rerun()
-        with btn2:
-            if st.button("닫기", key=f"x{idx}s{slot}"):
-                sel = [i for i in st.session_state["selected"] if i != idx]
-                st.session_state["selected"] = sel
+    with tb_actions:
+        st.markdown('<div class="profile-actions">', unsafe_allow_html=True)
+        if not is_matched(row) and not is_closed(row):
+            if st.button("거절", key=f"r{idx}s{slot}", use_container_width=True):
+                do_reject(idx)
                 st.rerun()
+        if st.button("닫기", key=f"x{idx}s{slot}", use_container_width=True):
+            sel = [i for i in st.session_state["selected"] if i != idx]
+            st.session_state["selected"] = sel
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(profile_hero_html(row), unsafe_allow_html=True)
 
@@ -823,35 +628,27 @@ def render_person(idx: int, slot: int, show_recommend: bool = True) -> None:
         st.error("매칭 종료 (거절 2회)")
 
     st.markdown(profile_sections_html(row), unsafe_allow_html=True)
+    render_profile_editor(idx, slot)
 
     if show_recommend and not is_matched(row) and not is_closed(row):
-        st.markdown('<div class="rec-section"><div class="rec-section-title">추천 상대</div>', unsafe_allow_html=True)
+        st.markdown('<div class="rec-section-title">추천 상대</div>', unsafe_allow_html=True)
         for rank, cand in enumerate(recommend(idx, df, 3), 1):
             cr = df.loc[cand.idx]
-            cn = html_lib.escape(str(cr.get("name", "")))
+            cn = str(cr.get("name", ""))
             vm = cand.value
-            card_cls = "rec-card mutual" if cand.mutual else "rec-card"
-            badge = value_badge_html(vm) if vm else ""
-            st.markdown(
-                f'<div class="{card_cls}">'
-                f'<div class="rec-top">'
-                f'<span class="rec-name">{cn}</span>'
-                f'<span>{badge}</span>'
-                f"</div>",
-                unsafe_allow_html=True,
-            )
             if vm:
-                st.markdown(story_block_html(vm, rank), unsafe_allow_html=True)
-            render_match_keywords(cand.keywords, f"r{idx}{cand.idx}", clickable=True)
-            ft_l, ft_r = st.columns([4, 1])
-            with ft_l:
-                st.markdown('<span class="kw-tip">키워드 클릭 → 목록 필터</span>', unsafe_allow_html=True)
-            with ft_r:
-                if st.button("매칭 확정", key=f"m{idx}{cand.idx}s{slot}", type="primary"):
-                    do_match(idx, cand.idx)
-                    st.rerun()
+                st.markdown(
+                    recommendation_card_html(
+                        cn, vm, rank, keywords_html(cand.keywords), _rec_meta_html(cr)
+                    ),
+                    unsafe_allow_html=True,
+                )
+            render_match_keywords(cand.keywords, f"r{idx}{cand.idx}", clickable=True, show_chips=False)
+            st.markdown('<div class="rec-btn-row">', unsafe_allow_html=True)
+            if st.button("매칭 확정", key=f"m{idx}{cand.idx}s{slot}", type="primary", use_container_width=True):
+                do_match(idx, cand.idx)
+                st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -861,6 +658,93 @@ def do_reject(i: int) -> None:
     cur = parse_reject(df.loc[i, "reject"])
     df.loc[i, "reject"] = increment_reject(sheet_url, i, cur, ws_name) if not demo_mode else cur + 1
     st.session_state["df"] = df
+    _refresh_df_index()
+
+
+def save_profile(idx: int, updates: dict[str, object]) -> None:
+    """앱 편집 → session_state + 구글 시트 반영."""
+    frame = st.session_state["df"]
+    for key, val in updates.items():
+        frame.loc[idx, key] = val
+    if str(updates.get("matched", "")).strip().upper() != "TRUE":
+        frame.loc[idx, "matched_w"] = ""
+    st.session_state["df"] = frame
+    _refresh_df_index()
+    if not demo_mode and sheet_url:
+        update_profile_fields(sheet_url, idx, updates, ws_name)
+
+
+def _cell_str(row, key: str) -> str:
+    v = row.get(key, "")
+    if pd.isna(v):
+        return ""
+    return str(v)
+
+
+def render_profile_editor(idx: int, slot: int) -> None:
+    """프로필 필드 편집 — 저장 시 구글 시트에 반영."""
+    row = df.loc[idx]
+    with st.expander("프로필 편집", expanded=False):
+        with st.form(f"edit_{idx}_{slot}"):
+            c1, c2 = st.columns(2)
+            with c1:
+                name = st.text_input(EDIT_LABELS["name"], _cell_str(row, "name"))
+                gender = st.text_input(EDIT_LABELS["gender"], _cell_str(row, "gender"))
+                contact = st.text_input(EDIT_LABELS["contact"], _cell_str(row, "contact"))
+                job = st.text_input(EDIT_LABELS["job"], _cell_str(row, "job"))
+                region = st.text_input(EDIT_LABELS["region"], _cell_str(row, "region"))
+                years = st.text_input(EDIT_LABELS["years"], _cell_str(row, "years"))
+                dday = st.text_input(EDIT_LABELS["dday"], _cell_str(row, "dday"))
+            with c2:
+                w_job = st.text_input(EDIT_LABELS["w_job"], _cell_str(row, "w_job"))
+                w_region = st.text_input(EDIT_LABELS["w_region"], _cell_str(row, "w_region"))
+                w_gender = st.text_input(EDIT_LABELS["w_gender"], _cell_str(row, "w_gender"))
+                w_years = st.text_input(EDIT_LABELS["w_years"], _cell_str(row, "w_years"))
+                depth = st.text_input(EDIT_LABELS["depth"], _cell_str(row, "depth"))
+                values = st.text_input(EDIT_LABELS["values"], _cell_str(row, "values"))
+                reject_n = st.number_input(
+                    EDIT_LABELS["reject"],
+                    min_value=0,
+                    max_value=99,
+                    value=int(parse_reject(row.get("reject", 0))),
+                    step=1,
+                )
+                matched_on = st.checkbox(
+                    EDIT_LABELS["matched"],
+                    value=is_matched(row),
+                )
+            have = st.text_area(EDIT_LABELS["have"], _cell_str(row, "have"), height=80)
+            want = st.text_area(EDIT_LABELS["want"], _cell_str(row, "want"), height=80)
+
+            if st.form_submit_button("시트에 저장", type="primary", use_container_width=True):
+                updates = {
+                    "name": name,
+                    "gender": gender,
+                    "contact": contact,
+                    "job": job,
+                    "region": region,
+                    "years": years,
+                    "dday": dday,
+                    "w_job": w_job,
+                    "w_region": w_region,
+                    "w_gender": w_gender,
+                    "w_years": w_years,
+                    "depth": depth,
+                    "values": values,
+                    "reject": reject_n,
+                    "matched": "TRUE" if matched_on else "",
+                    "have": have,
+                    "want": want,
+                }
+                try:
+                    save_profile(idx, updates)
+                    where = "데모 데이터" if demo_mode else "구글 시트"
+                    st.session_state["flash"] = f"{name} 프로필 저장 완료 ({where})"
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"저장 실패: {e}")
+        if demo_mode:
+            st.caption("데모 모드: 시트에는 반영되지 않고 이 세션에만 저장됩니다.")
 
 
 df = get_df()
@@ -879,7 +763,8 @@ st.markdown(
     f'<div class="topbar">'
     f'<div class="topbar-brand">'
     f'<img class="logo-mark" src="{_logo}" alt="단골팅 로고"/>'
-    f'<div class="brand-text"><h1>단골팅</h1><div class="brand-sub">매칭 관리</div></div>'
+    f'<div class="brand-text"><h1>단골팅 · 프로필 관리</h1>'
+    f'<div class="brand-sub">매칭 작업실</div></div>'
     f'</div>'
     f'<div class="stats">전체 <b>{n}</b> · 대기 <b>{w}</b> · 거절 <b>{r}</b> · 완료 <b>{m}</b> · 종료 <b>{c}</b></div>'
     f'</div>',
@@ -892,23 +777,25 @@ if st.session_state.get("flash"):
 tab1, tab2, tab3 = st.tabs(["매칭 작업", "완료 목록", "원본 데이터"])
 
 with tab1:
-    q = st.text_input(
-        "검색",
-        placeholder="이름 · 직군 · 지역 · 제공가치 · 원하는 것 검색",
-        label_visibility="collapsed",
-        key="sq",
-    )
+    date_from, date_to = render_global_date_filter(df)
 
     render_field_filter_panel(df)
     field_sel = collect_filter_selections()
     cf = st.session_state.get("chip_filter")
     render_active_filter_bar(field_sel, cf)
 
-    left, right = st.columns([22, 78], gap="large")
     selected: list = [i for i in st.session_state.get("selected", []) if i in df.index]
+
+    q = render_search_bar(
+        "sq",
+        "이름 · 직군 · 지역 · 제공가치 · 원하는 것 — 입력 즉시 필터",
+    )
+
+    left, right = st.columns([22, 78], gap="large")
 
     with left:
         with st.container(border=True):
+            st.markdown('<p class="panel-lbl">상태</p>', unsafe_allow_html=True)
             fs = st.radio(
                 "상태",
                 ["전체", "대기", "거절", "완료", "종료"],
@@ -916,6 +803,7 @@ with tab1:
                 label_visibility="collapsed",
                 key="fs",
             )
+            st.markdown('<p class="panel-lbl sort-lbl">정렬</p>', unsafe_allow_html=True)
             sort_by = st.selectbox(
                 "정렬",
                 ["D-day 임박순", "D-day 여유순", "이름순", "신청순"],
@@ -924,7 +812,9 @@ with tab1:
                 key="list_sort",
             )
 
-            fdf = filter_by_status(df.copy(), fs) if fs != "전체" else df.copy()
+            fdf = df.copy()
+            fdf = apply_date_filter(fdf, date_from, date_to)
+            fdf = filter_by_status(fdf, fs) if fs != "전체" else fdf
             fdf = apply_field_filters(fdf, field_sel)
             fdf = apply_keyword_filter(fdf, cf)
             fdf = search_df(fdf, q)
@@ -932,10 +822,16 @@ with tab1:
                 fdf = sort_list_df(fdf, sort_by)
 
             sel_hint = f" · 선택 {len(selected)}/2" if selected else ""
-            st.markdown(f'<div class="list-hdr">{len(fdf)}명{sel_hint}</div>', unsafe_allow_html=True)
+            st.markdown('<div class="list-divider"></div>', unsafe_allow_html=True)
+            st.markdown(f'<p class="list-hdr">{len(fdf)}명{sel_hint}</p>', unsafe_allow_html=True)
 
-            for idx, row in fdf.iterrows():
-                render_list_row(idx, row, selected)
+            for block in build_list_blocks(fdf):
+                if block[0] == "pair":
+                    ia, ib = block[1], block[2]
+                    render_match_pair(ia, ib, fdf.loc[ia], fdf.loc[ib], selected)
+                else:
+                    idx = block[1]
+                    render_list_row(idx, fdf.loc[idx], selected)
 
             if selected:
                 if st.button("선택 초기화", key="clr_all", use_container_width=True):
@@ -985,15 +881,23 @@ with tab1:
                     not is_matched(ra) and not is_closed(ra)
                     and not is_matched(rb) and not is_closed(rb)
                 )
-                if can_match and st.button(f"{ra['name']} ↔ {rb['name']} 매칭 확정", type="primary", use_container_width=True):
+                if can_match and st.button(
+                    f"{ra['name']} ↔ {rb['name']} 매칭 확정",
+                    type="primary",
+                    use_container_width=True,
+                ):
                     do_match(a, b)
                     st.rerun()
 
                 col_a, col_b = st.columns(2, gap="medium")
                 with col_a:
+                    st.markdown('<div class="compare-person">', unsafe_allow_html=True)
                     render_person(a, 1, show_recommend=False)
+                    st.markdown("</div>", unsafe_allow_html=True)
                 with col_b:
+                    st.markdown('<div class="compare-person">', unsafe_allow_html=True)
                     render_person(b, 2, show_recommend=False)
+                    st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
     pairs = collect_matched_pairs(df)

@@ -276,11 +276,21 @@ def breakdown_html(b: dict[str, int]) -> str:
         "values": "가치관",
         "locale": "지역·성별",
     }
-    parts = [
-        f'<span class="bd-item"><b>{labels[k]}</b> {v}%</span>'
-        for k, v in b.items()
-    ]
-    return f'<div class="value-breakdown">{"".join(parts)}</div>'
+    rows = []
+    for key, val in b.items():
+        tone = "fill-hi" if val >= 70 else "fill-md" if val >= 40 else "fill-lo"
+        rows.append(
+            f'<div class="prog-row">'
+            f'<span class="prog-lbl">{labels.get(key, key)}</span>'
+            f'<div class="prog-track"><div class="prog-fill {tone}" style="width:{val}%"></div></div>'
+            f'<span class="prog-pct">{val}%</span></div>'
+        )
+    return f'<div class="prog-block">{"".join(rows)}</div>'
+
+
+def value_badge_html(vm: ValueMatchResult) -> str:
+    cls = pct_badge_class(vm.tier)
+    return f'<span class="fit-badge {cls}">가치 적합 {vm.pct}%</span>'
 
 
 def story_block_html(vm: ValueMatchResult, rank: int | None = None) -> str:
@@ -301,8 +311,3 @@ def story_block_html(vm: ValueMatchResult, rank: int | None = None) -> str:
         f'<p class="story-body">{story}</p>'
         f'{breakdown_html(vm.breakdown)}</div>'
     )
-
-
-def value_badge_html(vm: ValueMatchResult) -> str:
-    cls = pct_badge_class(vm.tier)
-    return f'<span class="value-badge {cls}">가치 매칭 {vm.pct}%</span>'

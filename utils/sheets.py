@@ -9,7 +9,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-from utils.columns import COL, normalize_dataframe, DEFAULT_WORKSHEET
+from utils.columns import COL, EDIT_COL, normalize_dataframe, DEFAULT_WORKSHEET, parse_reject
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -65,7 +65,7 @@ def update_cell(sheet_url: str, row: int, col: int, value, worksheet_name: str =
 
 
 def set_matched(sheet_url: str, row: int, matched_with: str, worksheet_name: str = DEFAULT_WORKSHEET) -> None:
-    """매칭 완료: V열(매칭 여부)=TRUE. matched_with는 앱 session_state에 보관."""
+    """매칭 완료: W열(매칭 여부)=TRUE. matched_with는 앱 session_state에 보관."""
     update_cell(sheet_url, row, COL["matched"], "TRUE", worksheet_name)
 
 
@@ -75,10 +75,32 @@ def increment_reject(sheet_url: str, row: int, current_count: int, worksheet_nam
     return new_count
 
 
+def update_profile_fields(
+    sheet_url: str,
+    row: int,
+    fields: dict[str, object],
+    worksheet_name: str = DEFAULT_WORKSHEET,
+) -> None:
+    """프로필 필드 여러 개를 시트에 반영."""
+    ws = _get_worksheet(sheet_url, worksheet_name)
+    cells: list[dict] = []
+    for key, value in fields.items():
+        col = EDIT_COL.get(key)
+        if col is None:
+            continue
+        if key == "reject":
+            value = parse_reject(value)
+        elif key == "matched":
+            value = "TRUE" if str(value).strip().upper() in ("TRUE", "1", "YES", "완료") else ""
+        cells.append({"range": gspread.utils.rowcol_to_a1(row, col), "values": [[value]]})
+    if cells:
+        ws.batch_update(cells, value_input_option="USER_ENTERED")
+
+
 from utils.demo_data import DEMO_DATA
 
 
 def load_demo_data() -> pd.DataFrame:
     df = pd.DataFrame(DEMO_DATA)
     df.index = df["_row"]
-    return df
+    return normalize_dataframe(df)

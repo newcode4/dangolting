@@ -24,6 +24,7 @@ CN: dict[str, str] = {
     "want":     "이번 매칭을 통해 상대방에게 '가장 해결받고 싶은 현재 나의 문제'는 무엇인가요?",
     "note":     "추가적으로 하고 싶은 말",
     "dday":     "남은 D-day",
+    "paid":     "입금확인",
     "matched":  "매칭 여부",
     "reject":   "매칭횟수",      # 거절 누적 카운트로 사용
     "matched_w": "_매칭상대",     # 가상 컬럼 (세션/매칭 시 기록)
@@ -47,10 +48,52 @@ COL: dict[str, int] = {
     "values":       13,
     "depth":        14,
     "want":         15,
-    "dday":         20,
-    "reject_count": 21,   # 매칭횟수
-    "matched":      22,   # 매칭 여부
-    "refund":       23,   # 환불 여부
+    "dday":         20,   # T: 남은 D-day
+    "paid":         21,   # U: 입금확인
+    "reject_count": 22,   # V: 매칭횟수
+    "matched":      23,   # W: 매칭 여부
+    "refund":       24,   # X: 환불 여부
+}
+
+# 논리 키 → 시트 열 (앱에서 편집 가능한 필드)
+EDIT_COL: dict[str, int] = {
+    "name":     COL["name"],
+    "gender":   COL["gender"],
+    "contact":  COL["contact"],
+    "job":      COL["job"],
+    "region":   COL["region"],
+    "years":    COL["years"],
+    "have":     COL["have"],
+    "w_region": COL["want_region"],
+    "w_gender": COL["want_gender"],
+    "w_job":    COL["want_job"],
+    "w_years":  COL["want_years"],
+    "values":   COL["values"],
+    "depth":    COL["depth"],
+    "want":     15,
+    "dday":     COL["dday"],
+    "reject":   COL["reject_count"],
+    "matched":  COL["matched"],
+}
+
+EDIT_LABELS: dict[str, str] = {
+    "name": "성함",
+    "gender": "성별",
+    "contact": "연락처",
+    "job": "직군",
+    "region": "지역",
+    "years": "연차",
+    "have": "제공가치",
+    "w_region": "희망 지역",
+    "w_gender": "희망 성별",
+    "w_job": "희망 직군",
+    "w_years": "희망 연차",
+    "values": "가치관",
+    "depth": "협업 깊이",
+    "want": "원하는 것",
+    "dday": "D-day",
+    "reject": "매칭횟수(거절)",
+    "matched": "매칭 여부",
 }
 
 DEFAULT_SHEET_URL = (
@@ -82,7 +125,41 @@ def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df["reject"] = df["reject"].apply(parse_reject)
 
-    return df
+    if "paid" in df.columns:
+        df["paid"] = df["paid"].apply(parse_checkbox)
+    if "refund" in df.columns:
+        df["refund"] = df["refund"].apply(parse_checkbox)
+
+    return apply_eligibility_filter(df)
+
+
+def parse_checkbox(val) -> bool:
+    """시트 체크박스 → bool (입금확인, 환불 여부 등)."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return False
+    if isinstance(val, bool):
+        return val
+    s = str(val).strip().upper()
+    if s in ("", "FALSE", "0", "NO", "N"):
+        return False
+    if s in ("TRUE", "1", "YES", "Y", "예", "네", "✓", "✔"):
+        return True
+    try:
+        return bool(int(float(val)))
+    except (ValueError, TypeError):
+        return False
+
+
+def apply_eligibility_filter(df: pd.DataFrame) -> pd.DataFrame:
+    """입금 확인된 사람만, 환불 처리된 사람은 제외."""
+    if df.empty:
+        return df
+    mask = pd.Series(True, index=df.index)
+    if "paid" in df.columns:
+        mask &= df["paid"]
+    if "refund" in df.columns:
+        mask &= ~df["refund"]
+    return df[mask].copy()
 
 
 def parse_reject(val) -> int:

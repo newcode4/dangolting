@@ -85,6 +85,9 @@ def active_filter_labels(selections: dict[str, list[str]]) -> list[str]:
 def clear_all_filters() -> None:
     import streamlit as st
 
+    from utils.date_filter import reset_date_filter
+
     for key in FILTER_KEYS:
         st.session_state[f"flt_{key}"] = []
     st.session_state["chip_filter"] = None
+    reset_date_filter()

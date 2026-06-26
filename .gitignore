@@ -1,5 +1,6 @@
 credentials.json
 .streamlit/secrets.toml
+data/users.json
 json/
 __pycache__/
 *.pyc
