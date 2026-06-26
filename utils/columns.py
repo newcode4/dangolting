@@ -3,8 +3,9 @@
 """
 from __future__ import annotations
 
-import pandas as pd
+from datetime import datetime
 
+import pandas as pd
 # 논리 키 → 실제 시트 헤더 (strip 후 비교)
 CN: dict[str, str] = {
     "ts":       "시간",
@@ -28,6 +29,7 @@ CN: dict[str, str] = {
     "matched":  "매칭 여부",
     "reject":   "매칭횟수",      # 거절 누적 카운트로 사용
     "matched_w": "_매칭상대",     # 가상 컬럼 (세션/매칭 시 기록)
+    "matched_at": "매칭일",
     "refund":   "환불 여부",
 }
 
@@ -52,6 +54,7 @@ COL: dict[str, int] = {
     "paid":         21,   # U: 입금확인
     "reject_count": 22,   # V: 매칭횟수
     "matched":      23,   # W: 매칭 여부
+    "matched_at":   25,   # Y: 매칭일
     "refund":       24,   # X: 환불 여부
 }
 
@@ -102,8 +105,44 @@ DEFAULT_SHEET_URL = (
 )
 DEFAULT_WORKSHEET = "시트1"
 
+# normalize 후 반드시 존재해야 하는 논리 컬럼 (시트에 없어도 기본값)
+COLUMN_DEFAULTS: dict[str, object] = {
+    "ts": "",
+    "name": "",
+    "gender": "",
+    "contact": "",
+    "job": "",
+    "region": "",
+    "years": "",
+    "have": "",
+    "w_region": "",
+    "w_gender": "",
+    "w_job": "",
+    "w_years": "",
+    "values": "",
+    "depth": "",
+    "want": "",
+    "note": "",
+    "dday": "",
+    "paid": False,
+    "matched": "",
+    "reject": 0,
+    "matched_w": "",
+    "matched_at": "",
+    "refund": False,
+}
 
-def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+
+def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """논리 키 누락 시 기본값으로 채움 — KeyError 재발 방지."""
+    df = df.copy()
+    for key, default in COLUMN_DEFAULTS.items():
+        if key not in df.columns:
+            df[key] = default
+    return df
+
+
+def normalize_dataframe(df: pd.DataFrame, *, apply_eligibility: bool = True) -> pd.DataFrame:
     """헤더 공백 제거 + 논리 키 컬럼으로 정규화."""
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
@@ -116,13 +155,9 @@ def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             rename[header] = key
 
     df = df.rename(columns=rename)
+    df = ensure_columns(df)
 
-    if "matched_w" not in df.columns:
-        df["matched_w"] = ""
-
-    if "reject" not in df.columns:
-        df["reject"] = 0
-    else:
+    if "reject" in df.columns:
         df["reject"] = df["reject"].apply(parse_reject)
 
     if "paid" in df.columns:
@@ -130,7 +165,9 @@ def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     if "refund" in df.columns:
         df["refund"] = df["refund"].apply(parse_checkbox)
 
-    return apply_eligibility_filter(df)
+    if apply_eligibility:
+        return apply_eligibility_filter(df)
+    return df
 
 
 def parse_checkbox(val) -> bool:
@@ -150,6 +187,16 @@ def parse_checkbox(val) -> bool:
         return False
 
 
+def parse_reject(val) -> int:
+    s = str(val).strip().upper()
+    if s in ("TRUE", "FALSE", "", "NAN", "NONE"):
+        return 0
+    try:
+        return int(float(val))
+    except (ValueError, TypeError):
+        return 0
+
+
 def apply_eligibility_filter(df: pd.DataFrame) -> pd.DataFrame:
     """입금 확인된 사람만, 환불 처리된 사람은 제외."""
     if df.empty:
@@ -162,14 +209,16 @@ def apply_eligibility_filter(df: pd.DataFrame) -> pd.DataFrame:
     return df[mask].copy()
 
 
-def parse_reject(val) -> int:
-    s = str(val).strip().upper()
-    if s in ("TRUE", "FALSE", "", "NAN", "NONE"):
-        return 0
-    try:
-        return int(float(val))
-    except (ValueError, TypeError):
-        return 0
+def now_matched_at() -> str:
+    """매칭 확정 시각 문자열."""
+    return datetime.now().strftime("%Y. %m. %d %H:%M")
+
+
+def format_matched_at(val) -> str:
+    s = str(val or "").strip()
+    if not s or s.lower() in ("nan", "none", ""):
+        return ""
+    return s
 
 
 def col(df: pd.DataFrame, key: str):

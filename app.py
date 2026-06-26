@@ -5,17 +5,19 @@ from __future__ import annotations
 
 import html as html_lib
 import re
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import quote
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 
 from utils.matching import recommend, score_label, evaluate
 from utils.value_match import story_block_html, value_badge_html
 from utils.ui_components import recommendation_card_html
 from utils.match_display import keywords_html, apply_keyword_filter, MatchKeyword, analyze_pair, _theme
-from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, EDIT_LABELS
+from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, EDIT_LABELS, now_matched_at, format_matched_at
 from utils.sheets import load_data, load_demo_data, set_matched, increment_reject, update_profile_fields
 from utils.filters import (
     FILTER_FIELDS,
@@ -28,10 +30,23 @@ from utils.filters import (
 )
 from utils.date_filter import render_global_date_filter, apply_date_filter
 from utils.search_index import search_df, drop_search_index, ensure_search_index
+from utils.data_loader import expected_data_source, should_reload_df
 from utils.auth import ensure_authenticated, current_user, logout
+from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
+from utils.telegram_notify import (
+    telegram_enabled,
+    telegram_config_status,
+    poll_interval_seconds,
+    run_applicant_watch,
+    send_test_notification,
+    reset_notify_baseline,
+)
 
 ROOT = Path(__file__).resolve().parent
 LOGO = ROOT / "assets" / "logo-mark.svg"
+
+setup_logging()
+install_excepthook()
 
 LOGO_SVG_FALLBACK = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
   <rect width="48" height="48" rx="12" fill="#5B8DEF" fill-opacity="0.16"/>
@@ -56,6 +71,24 @@ def logo_data_uri() -> str:
     return "data:image/svg+xml," + quote(_read_logo_svg())
 
 
+def ensure_sidebar_visible() -> None:
+    """접힌 사이드바를 자동으로 다시 펼침 (CSS 보조)."""
+    components.html(
+        """<script>
+        (function () {
+          const doc = window.parent.document;
+          const sb = doc.querySelector('[data-testid="stSidebar"]');
+          if (!sb || sb.getAttribute('aria-expanded') !== 'false') return;
+          const btn = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button')
+            || doc.querySelector('[data-testid="collapsedControl"] button');
+          if (btn) btn.click();
+        })();
+        </script>""",
+        height=0,
+        width=0,
+    )
+
+
 st.set_page_config(
     page_title="단골팅",
     page_icon=str(LOGO),
@@ -67,13 +100,99 @@ THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
 st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
 
 ensure_authenticated(logo_data_uri())
+ensure_sidebar_visible()
 
-for k, v in [("df", None), ("selected", []), ("demo_mode", True), ("load_ver", 0), ("flash", ""), ("chip_filter", None)]:
+for k, v in [
+    ("df", None), ("selected", []), ("demo_mode", True), ("load_ver", 0), ("flash", ""),
+    ("chip_filter", None), ("mob_view", "list"), ("focus_settings", False),
+    ("sheet_url", DEFAULT_SHEET_URL), ("ws_name", DEFAULT_WORKSHEET), ("_df_source", None),
+]:
     if k not in st.session_state:
         st.session_state[k] = v
 # 이전 버전 호환
 if st.session_state.get("selected_idx") is not None and not st.session_state["selected"]:
     st.session_state["selected"] = [st.session_state.pop("selected_idx")]
+
+
+def _refresh_data() -> None:
+    st.session_state["load_ver"] += 1
+    st.session_state["df"] = None
+    st.session_state.pop("_df_source", None)
+    st.session_state["selected"] = []
+    st.session_state["mob_view"] = "list"
+
+
+# eligibility 버그 등으로 빈 df가 session에 남은 경우 자동 복구
+if (
+    st.session_state.get("demo_mode", True)
+    and st.session_state.get("df") is not None
+    and st.session_state["df"].empty
+):
+    _refresh_data()
+
+
+def render_telegram_controls(*, key_prefix: str) -> None:
+    st.caption(f"📱 텔레그램 — {telegram_config_status()}")
+    if telegram_enabled():
+        tg1, tg2 = st.columns(2)
+        with tg1:
+            if st.button("알림 테스트", key=f"{key_prefix}tg_test", use_container_width=True):
+                if send_test_notification():
+                    st.toast("테스트 알림을 보냈습니다")
+                else:
+                    st.error("발송 실패 — bot_token · chat_id · 봇 /start 확인")
+        with tg2:
+            if st.button("기준선", key=f"{key_prefix}tg_reset", use_container_width=True, help="지금까지 신청은 알림 제외"):
+                if not st.session_state["demo_mode"] and st.session_state["sheet_url"]:
+                    reset_notify_baseline(st.session_state["sheet_url"], st.session_state["ws_name"])
+                    st.toast("알림 기준선을 현재 시트로 맞췄습니다")
+                else:
+                    st.info("데모 끄고 실제 시트 연동 후 사용하세요")
+    else:
+        st.caption("`data/telegram.toml.example` → `data/telegram.toml` 복사 후 token · chat_id 입력")
+        st.caption("또는 `.streamlit/secrets.toml`의 [telegram] 섹션 (template 파일은 읽히지 않음)")
+
+
+def render_settings_panel(*, key_prefix: str) -> None:
+    st.caption(f"접속: {current_user()}")
+    if st.button("로그아웃", key=f"{key_prefix}logout", use_container_width=True):
+        logout()
+        st.rerun()
+
+    prev_demo = st.session_state.get("demo_mode")
+    demo_on = st.toggle("데모 데이터", value=st.session_state["demo_mode"], key=f"{key_prefix}demo")
+    if prev_demo is not None and prev_demo != demo_on:
+        _refresh_data()
+    st.session_state["demo_mode"] = demo_on
+
+    if not demo_on:
+        st.caption("시트 연동 중 · 변경은 새로고침으로 불러옴")
+        st.session_state["sheet_url"] = st.text_input(
+            "시트 주소",
+            value=st.session_state["sheet_url"],
+            key=f"{key_prefix}sheet_url",
+            label_visibility="collapsed",
+        )
+        st.session_state["ws_name"] = st.text_input(
+            "시트 탭",
+            value=st.session_state["ws_name"],
+            key=f"{key_prefix}ws_name",
+            label_visibility="collapsed",
+        )
+    else:
+        st.session_state["sheet_url"] = ""
+        st.session_state["ws_name"] = DEFAULT_WORKSHEET
+
+    if st.button("새로고침", key=f"{key_prefix}refresh", use_container_width=True):
+        _refresh_data()
+        st.rerun()
+
+    render_telegram_controls(key_prefix=key_prefix)
+
+    with st.expander("오류 로그 (최근)", expanded=False):
+        st.caption(f"파일: data/logs/app.log")
+        st.code(tail_log(60), language="log")
+
 
 with st.sidebar:
     _logo = logo_data_uri()
@@ -84,23 +203,27 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.caption("설정")
-    st.caption(f"접속: {current_user()}")
-    if st.button("로그아웃", use_container_width=True):
-        logout()
-        st.rerun()
-    demo_mode = st.toggle("데모 데이터", value=st.session_state["demo_mode"])
-    st.session_state["demo_mode"] = demo_mode
-    if not demo_mode:
-        st.caption("시트 연동 중 · 변경은 새로고침으로 불러옴")
-        sheet_url = st.text_input("시트 주소", value=DEFAULT_SHEET_URL, label_visibility="collapsed")
-        ws_name = st.text_input("시트 탭", value=DEFAULT_WORKSHEET, label_visibility="collapsed")
-    else:
-        sheet_url, ws_name = "", ""
-    if st.button("새로고침", use_container_width=True):
-        st.session_state["load_ver"] += 1
-        st.session_state["df"] = None
-        st.session_state["selected"] = []
-        st.rerun()
+    render_settings_panel(key_prefix="side_")
+
+demo_mode = st.session_state["demo_mode"]
+sheet_url = st.session_state.get("sheet_url", "")
+ws_name = st.session_state.get("ws_name", DEFAULT_WORKSHEET)
+
+if telegram_enabled():
+    _poll = poll_interval_seconds()
+
+    @st.fragment(run_every=timedelta(seconds=_poll))
+    def applicant_telegram_watch() -> None:
+        try:
+            url = st.session_state.get("sheet_url", "")
+            ws = st.session_state.get("ws_name", DEFAULT_WORKSHEET)
+            if not st.session_state.get("demo_mode") and url:
+                run_applicant_watch(url, ws)
+        except Exception as exc:
+            log_exception(exc, where="telegram.fragment")
+
+    if not demo_mode and sheet_url:
+        applicant_telegram_watch()
 
 
 @st.cache_data(ttl=60)
@@ -109,18 +232,28 @@ def _load(url: str, ws: str, _ver: int) -> pd.DataFrame:
 
 
 def get_df() -> pd.DataFrame:
-    if st.session_state["df"] is not None:
-        return ensure_search_index(st.session_state["df"])
+    source = expected_data_source(demo_mode=demo_mode, sheet_url=sheet_url)
+    cached = st.session_state.get("df")
+    if not should_reload_df(
+        cached=cached,
+        demo_mode=demo_mode,
+        data_source=st.session_state.get("_df_source"),
+        expected_source=source,
+    ):
+        return ensure_search_index(cached)
+
     if demo_mode:
         df = load_demo_data()
     elif sheet_url:
         try:
             df = _load(sheet_url, ws_name, st.session_state["load_ver"])
         except Exception as e:
-            st.error(str(e))
+            ui_error(e, where="시트 로드", streamlit_module=st)
             return pd.DataFrame()
     else:
         return pd.DataFrame()
+
+    st.session_state["_df_source"] = source
     st.session_state["df"] = ensure_search_index(df)
     return st.session_state["df"]
 
@@ -311,8 +444,10 @@ def collect_matched_pairs(frame: pd.DataFrame) -> list[dict]:
             "score": score, "mutual": mutual, "keywords": kws,
             "value": vm,
             "ts": str(row_a.get("ts", "")),
+            "matched_at": format_matched_at(row_a.get("matched_at"))
+            or (format_matched_at(row_b.get("matched_at")) if row_b is not None else ""),
         })
-    pairs.sort(key=lambda p: p["ts"], reverse=True)
+    pairs.sort(key=lambda p: p.get("matched_at") or p["ts"], reverse=True)
     return pairs
 
 
@@ -367,13 +502,15 @@ def render_done_card(pair: dict) -> str:
     story = story_block_html(vm) if vm else ""
     kw_html = keywords_html(pair["keywords"]) if pair["keywords"] else ""
     kw_block = f'<div class="done-kws">{kw_html}</div>' if kw_html else ""
+    ma = html_lib.escape(pair.get("matched_at", ""))
+    date_line = f'<div class="done-date">매칭일 {ma}</div>' if ma else ""
     return (
         f'<div class="done-card">'
         f'<div class="done-head">'
         f'<span class="done-names">{html_lib.escape(pair["name_a"])}'
         f'<span class="link-icon">↔</span>{html_lib.escape(pair["name_b"])}</span>'
         f'<span class="done-score">{badge}</span>'
-        f'</div>{story}'
+        f'</div>{date_line}{story}'
         f'<div class="done-body">'
         f'{person_done_html(pair["row_a"])}'
         f'{person_done_html(pair["row_b"], pair["name_b"])}'
@@ -384,14 +521,15 @@ def render_done_card(pair: dict) -> str:
 def do_match(a: int, b: int) -> None:
     df = st.session_state["df"]
     na, nb = df.loc[a, "name"], df.loc[b, "name"]
+    at = now_matched_at()
     if not demo_mode:
-        set_matched(sheet_url, a, nb, ws_name)
-        set_matched(sheet_url, b, na, ws_name)
-    df.loc[a, "matched"], df.loc[a, "matched_w"] = "TRUE", nb
-    df.loc[b, "matched"], df.loc[b, "matched_w"] = "TRUE", na
+        set_matched(sheet_url, a, nb, at, ws_name)
+        set_matched(sheet_url, b, na, at, ws_name)
+    df.loc[a, "matched"], df.loc[a, "matched_w"], df.loc[a, "matched_at"] = "TRUE", nb, at
+    df.loc[b, "matched"], df.loc[b, "matched_w"], df.loc[b, "matched_at"] = "TRUE", na, at
     st.session_state["df"] = df
     _refresh_df_index()
-    st.session_state["flash"] = f"{na} ↔ {nb} 매칭 완료"
+    st.session_state["flash"] = f"{na} ↔ {nb} 매칭 완료 ({at})"
     st.session_state["selected"] = []
 
 
@@ -404,6 +542,134 @@ def toggle_select(idx: int) -> None:
     else:
         sel[1] = idx  # 2명 선택 중이면 두 번째 슬롯 교체
     st.session_state["selected"] = sel
+    if sel:
+        st.session_state["mob_view"] = "detail"
+
+
+def render_mobile_action_bar(has_selection: bool) -> None:
+    """상단 — 계정 · 설정 · 목록/상세 · 새로고침."""
+    st.markdown('<span class="mob-action-bar-anchor"></span>', unsafe_allow_html=True)
+    if has_selection:
+        c_user, c_set, c_list, c_view, c_ref = st.columns([2.2, 0.65, 1, 1, 0.65], gap="small")
+    else:
+        c_user, c_set, c_ref = st.columns([3.5, 1.2, 0.65], gap="small")
+        c_list = c_view = None
+
+    with c_user:
+        st.markdown(
+            f'<p class="mob-user"><span class="mob-user-lbl">접속</span>{html_lib.escape(str(current_user() or ""))}</p>',
+            unsafe_allow_html=True,
+        )
+    with c_set:
+        if st.button(
+            "설정",
+            key="mob_settings",
+            help="설정 · 텔레그램 (설정·알림 탭)",
+            use_container_width=True,
+            type="primary" if st.session_state.get("focus_settings") else "secondary",
+        ):
+            st.session_state["focus_settings"] = True
+            st.rerun()
+    if has_selection and c_list is not None and c_view is not None:
+        view = st.session_state.get("mob_view", "detail")
+        with c_list:
+            if st.button(
+                "목록",
+                key="mob_go_list",
+                use_container_width=True,
+                type="primary" if view == "list" else "secondary",
+            ):
+                st.session_state["mob_view"] = "list"
+                st.rerun()
+        with c_view:
+            lbl = "비교" if len(st.session_state.get("selected", [])) >= 2 else "상세"
+            if st.button(
+                lbl,
+                key="mob_go_detail",
+                use_container_width=True,
+                type="primary" if view == "detail" else "secondary",
+            ):
+                st.session_state["mob_view"] = "detail"
+                st.rerun()
+    with c_ref:
+        if st.button("↻", key="mob_refresh", help="새로고침", use_container_width=True):
+            _refresh_data()
+            st.rerun()
+
+
+def render_compare_panel(a: int, b: int) -> None:
+    """2명 비교 — 요약 + 탭으로 프로필 전환."""
+    ra, rb = df.loc[a], df.loc[b]
+    pair = evaluate(ra, rb)
+    vm = pair.value
+    kws_ab = analyze_pair(ra, rb)
+    kws_ba = analyze_pair(rb, ra)
+    badge = value_badge_html(vm) if vm else ""
+    na = html_lib.escape(str(ra.get("name", "")))
+    nb = html_lib.escape(str(rb.get("name", "")))
+
+    st.markdown(
+        f'<div class="compare-hero">'
+        f'<div class="compare-names">{na} <span class="cmp-vs">↔</span> {nb}</div>'
+        f'<div class="compare-value">{badge}'
+        f'<span class="compare-score">{score_label(pair.score, pair.mutual)}</span></div>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+    if vm:
+        st.markdown(story_block_html(vm), unsafe_allow_html=True)
+
+    st.markdown('<div class="compare-kw-block">', unsafe_allow_html=True)
+
+    st.markdown(
+        f'<div class="compare-section">'
+        f'<div class="compare-section-title">'
+        f'<span class="compare-section-who">{na}</span>'
+        f'<span class="compare-section-arrow">→</span>'
+        f'<span class="compare-section-who">{nb}</span>'
+        f'<span class="compare-section-sub">기준 일치</span>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+    render_match_keywords(kws_ab, f"cmp{a}{b}", clickable=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown(
+        f'<div class="compare-section compare-section-gap">'
+        f'<div class="compare-section-title">'
+        f'<span class="compare-section-who">{nb}</span>'
+        f'<span class="compare-section-arrow">→</span>'
+        f'<span class="compare-section-who">{na}</span>'
+        f'<span class="compare-section-sub">기준 일치</span>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+    render_match_keywords(kws_ba, f"cmp{b}{a}", clickable=True)
+    st.markdown("</div></div>", unsafe_allow_html=True)
+
+    can_match = (
+        not is_matched(ra) and not is_closed(ra)
+        and not is_matched(rb) and not is_closed(rb)
+    )
+    if can_match:
+        st.markdown('<div class="compare-match-row">', unsafe_allow_html=True)
+        if st.button(
+            f"{ra['name']} ↔ {rb['name']} 매칭 확정",
+            type="primary",
+            use_container_width=True,
+            key=f"match_{a}_{b}",
+        ):
+            do_match(a, b)
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="compare-tabs-wrap">', unsafe_allow_html=True)
+    tab_a, tab_b = st.tabs([f"① {ra['name']}", f"② {rb['name']}"])
+    with tab_a:
+        render_person(a, 1, show_recommend=False)
+    with tab_b:
+        render_person(b, 2, show_recommend=False)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _refresh_df_index() -> None:
@@ -490,9 +756,14 @@ def render_match_pair(idx_a: int, idx_b: int, row_a, row_b, selected: list) -> N
     """매칭 완료 2명을 한 테두리로 묶음."""
     na = html_lib.escape(str(row_a.get("name", "")))
     nb = html_lib.escape(str(row_b.get("name", "")))
+    ma = format_matched_at(row_a.get("matched_at")) or format_matched_at(row_b.get("matched_at"))
+    date_chip = (
+        f'<span class="chip chip-date">{html_lib.escape(ma)}</span>' if ma else ""
+    )
     with st.container(border=True):
         st.markdown(
             f'<div class="pair-head"><span class="chip chip-g">완료</span>'
+            f'{date_chip}'
             f'<span class="pair-names">{na} ↔ {nb}</span></div>',
             unsafe_allow_html=True,
         )
@@ -541,8 +812,16 @@ def _meta_item(label: str, value: str) -> str:
 def profile_hero_html(row) -> str:
     dday = html_lib.escape(str(row.get("dday", "")))
     contact = html_lib.escape(fmt_contact(row.get("contact", "")))
+    extra_chips = ""
+    if is_matched(row):
+        ma = format_matched_at(row.get("matched_at"))
+        if ma:
+            extra_chips += f'<span class="chip chip-date">{html_lib.escape(ma)}</span>'
+        partner = str(row.get("matched_w", "")).strip()
+        if partner:
+            extra_chips += f'<span class="chip chip-g">↔ {html_lib.escape(partner)}</span>'
     chips = (
-        f'<div class="profile-chips">{chip(row)}'
+        f'<div class="profile-chips">{chip(row)}{extra_chips}'
         f'<span class="chip">{html_lib.escape(str(row.get("gender", "")))}</span>'
         f'<span class="chip">{html_lib.escape(str(row.get("region", "")))}</span>'
         f'<span class="chip">{html_lib.escape(sjob(row.get("job", "")))}</span>'
@@ -595,35 +874,58 @@ def _rec_meta_html(row) -> str:
     )
 
 
-def render_person(idx: int, slot: int, show_recommend: bool = True) -> None:
+def render_detail_toolbar(idx: int, slot: int, *, include_back: bool = False) -> None:
+    """프로필 상단 — 목록 · 라벨 · 거절 · 닫기 한 줄."""
     row = df.loc[idx]
     tag = "①" if slot == 1 else "②"
+    can_reject = not is_matched(row) and not is_closed(row)
 
-    st.markdown('<div class="detail-panel">', unsafe_allow_html=True)
+    st.markdown('<span class="detail-toolbar-anchor"></span>', unsafe_allow_html=True)
+    if include_back:
+        c_back, c_lbl, c_rej, c_close = st.columns([1.4, 4.2, 1.1, 1.1], gap="small")
+        with c_back:
+            if st.button("← 목록", key=f"back_{idx}_{slot}", use_container_width=True):
+                st.session_state["selected"] = []
+                st.session_state["mob_view"] = "list"
+                st.rerun()
+    else:
+        c_lbl, c_rej, c_close = st.columns([5.6, 1.1, 1.1], gap="small")
 
-    tb_title, tb_actions = st.columns([5, 2])
-    with tb_title:
+    with c_lbl:
         st.markdown(
-            f'<p class="detail-hdr" style="margin:0;font-size:.78rem;color:#888">'
+            f'<p class="detail-toolbar-title">'
             f'<span class="slot-tag slot-{slot}">{tag}</span> 프로필</p>',
             unsafe_allow_html=True,
         )
-    with tb_actions:
-        st.markdown('<div class="profile-actions">', unsafe_allow_html=True)
-        if not is_matched(row) and not is_closed(row):
+    with c_rej:
+        if can_reject:
             if st.button("거절", key=f"r{idx}s{slot}", use_container_width=True):
                 do_reject(idx)
                 st.rerun()
+    with c_close:
         if st.button("닫기", key=f"x{idx}s{slot}", use_container_width=True):
-            sel = [i for i in st.session_state["selected"] if i != idx]
+            sel = [i for i in st.session_state.get("selected", []) if i != idx]
             st.session_state["selected"] = sel
+            if not sel:
+                st.session_state["mob_view"] = "list"
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+
+
+def render_person(idx: int, slot: int, show_recommend: bool = True, *, include_back: bool = False) -> None:
+    row = df.loc[idx]
+
+    st.markdown('<div class="detail-panel">', unsafe_allow_html=True)
+    render_detail_toolbar(idx, slot, include_back=include_back)
 
     st.markdown(profile_hero_html(row), unsafe_allow_html=True)
 
     if is_matched(row):
-        st.success(f"매칭 완료 — {row.get('matched_w', '')}")
+        ma = format_matched_at(row.get("matched_at"))
+        partner = str(row.get("matched_w", "")).strip()
+        msg = f"매칭 완료 — {partner}" if partner else "매칭 완료"
+        if ma:
+            msg += f" · {ma}"
+        st.success(msg)
     elif is_closed(row):
         st.error("매칭 종료 (거절 2회)")
 
@@ -668,10 +970,18 @@ def save_profile(idx: int, updates: dict[str, object]) -> None:
         frame.loc[idx, key] = val
     if str(updates.get("matched", "")).strip().upper() != "TRUE":
         frame.loc[idx, "matched_w"] = ""
+        frame.loc[idx, "matched_at"] = ""
+    elif not str(frame.loc[idx, "matched_at"] or "").strip():
+        frame.loc[idx, "matched_at"] = now_matched_at()
     st.session_state["df"] = frame
     _refresh_df_index()
     if not demo_mode and sheet_url:
-        update_profile_fields(sheet_url, idx, updates, ws_name)
+        sheet_fields = dict(updates)
+        if str(updates.get("matched", "")).strip().upper() == "TRUE":
+            sheet_fields["matched_at"] = frame.loc[idx, "matched_at"]
+        else:
+            sheet_fields["matched_at"] = ""
+        update_profile_fields(sheet_url, idx, sheet_fields, ws_name)
 
 
 def _cell_str(row, key: str) -> str:
@@ -742,14 +1052,25 @@ def render_profile_editor(idx: int, slot: int) -> None:
                     st.session_state["flash"] = f"{name} 프로필 저장 완료 ({where})"
                     st.rerun()
                 except Exception as e:
-                    st.error(f"저장 실패: {e}")
+                    ui_error(e, where="프로필 저장", streamlit_module=st)
         if demo_mode:
             st.caption("데모 모드: 시트에는 반영되지 않고 이 세션에만 저장됩니다.")
 
 
 df = get_df()
 if df.empty:
-    st.info("데이터가 없습니다.")
+    if st.session_state.get("demo_mode", True):
+        st.warning("데모 데이터를 불러오지 못했습니다. **새로고침**을 눌러 보세요.")
+    elif not st.session_state.get("sheet_url"):
+        st.warning(
+            "시트 주소가 없습니다. **⚙ 설정**에서 「데모 데이터」를 켜거나 "
+            "구글 시트 URL을 입력하세요."
+        )
+    else:
+        st.warning(
+            "표시할 신청이 없습니다. 시트에 **입금확인**된 행만 보입니다. "
+            "U열(입금확인) 체크 · X열(환불) 미체크인지 확인하세요."
+        )
     st.stop()
 
 n = len(df)
@@ -759,6 +1080,9 @@ r = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(
 w = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(parse_reject).eq(0)).sum())
 
 _logo = logo_data_uri()
+render_mobile_action_bar(has_selection=bool(st.session_state.get("selected")))
+if st.session_state.get("focus_settings"):
+    st.info("**설정 · 알림** 탭에서 데모/시트 연동 · **텔레그램 알림 테스트**를 할 수 있습니다.")
 st.markdown(
     f'<div class="topbar">'
     f'<div class="topbar-brand">'
@@ -766,15 +1090,22 @@ st.markdown(
     f'<div class="brand-text"><h1>단골팅 · 프로필 관리</h1>'
     f'<div class="brand-sub">매칭 작업실</div></div>'
     f'</div>'
-    f'<div class="stats">전체 <b>{n}</b> · 대기 <b>{w}</b> · 거절 <b>{r}</b> · 완료 <b>{m}</b> · 종료 <b>{c}</b></div>'
-    f'</div>',
+    f'<div class="stats stats-chips">'
+    f'<span class="stat-chip">전체 <b>{n}</b></span>'
+    f'<span class="stat-chip wait">대기 <b>{w}</b></span>'
+    f'<span class="stat-chip warn">거절 <b>{r}</b></span>'
+    f'<span class="stat-chip ok">완료 <b>{m}</b></span>'
+    f'<span class="stat-chip end">종료 <b>{c}</b></span>'
+    f'<span class="stat-chip {"tg" if telegram_enabled() else "tg-off"}">'
+    f'텔레그램 <b>{"ON" if telegram_enabled() else "OFF"}</b></span>'
+    f'</div></div>',
     unsafe_allow_html=True,
 )
 if st.session_state.get("flash"):
     st.success(st.session_state["flash"])
     st.session_state["flash"] = ""
 
-tab1, tab2, tab3 = st.tabs(["매칭 작업", "완료 목록", "원본 데이터"])
+tab1, tab2, tab3, tab4 = st.tabs(["매칭 작업", "완료 목록", "원본 데이터", "설정 · 알림"])
 
 with tab1:
     date_from, date_to = render_global_date_filter(df)
@@ -785,15 +1116,23 @@ with tab1:
     render_active_filter_bar(field_sel, cf)
 
     selected: list = [i for i in st.session_state.get("selected", []) if i in df.index]
+    mob_view = st.session_state.get("mob_view", "list" if not selected else "detail")
+    if not selected:
+        st.session_state["mob_view"] = "list"
 
     q = render_search_bar(
         "sq",
         "이름 · 직군 · 지역 · 제공가치 · 원하는 것 — 입력 즉시 필터",
     )
 
+    list_marker = ""
+    if selected and mob_view == "list":
+        list_marker = '<span class="mob-show-list-only"></span>'
+    st.markdown('<span class="list-layout-anchor"></span>', unsafe_allow_html=True)
     left, right = st.columns([22, 78], gap="large")
 
     with left:
+        st.markdown(f'<span class="list-panel-col">{list_marker}</span>', unsafe_allow_html=True)
         with st.container(border=True):
             st.markdown('<p class="panel-lbl">상태</p>', unsafe_allow_html=True)
             fs = st.radio(
@@ -836,68 +1175,26 @@ with tab1:
             if selected:
                 if st.button("선택 초기화", key="clr_all", use_container_width=True):
                     st.session_state["selected"] = []
+                    st.session_state["mob_view"] = "list"
                     st.rerun()
 
     with right:
         with st.container(border=True):
-            st.markdown('<div class="mob-back">', unsafe_allow_html=True)
-            if st.button("← 목록", key="mob_back", use_container_width=True):
-                st.session_state["selected"] = []
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
-
             if not selected:
                 st.markdown(
                     '<p class="empty-hint">목록에서 1~2명을 선택하세요.<br>'
-                    '2명 선택 시 나란히 비교하고 서로 적합도를 확인할 수 있습니다.</p>',
+                    '2명 선택 시 비교 탭에서 나란히 확인할 수 있습니다.</p>',
                     unsafe_allow_html=True,
                 )
             elif len(selected) == 1:
-                render_person(selected[0], 1, show_recommend=True)
-                st.caption("한 명 더 선택하면 2명 비교 화면이 열립니다.")
+                if mob_view == "detail":
+                    st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
+                render_person(selected[0], 1, show_recommend=True, include_back=True)
+                st.caption("한 명 더 선택하면 비교 화면이 열립니다.")
             else:
-                a, b = selected[0], selected[1]
-                ra, rb = df.loc[a], df.loc[b]
-                pair = evaluate(ra, rb)
-                vm = pair.value
-                kws_ab = analyze_pair(ra, rb)
-                kws_ba = analyze_pair(rb, ra)
-                badge = value_badge_html(vm) if vm else ""
-                st.markdown(
-                    f'<div class="compare-bar">'
-                    f'<b>{ra["name"]}</b> ↔ <b>{rb["name"]}</b> '
-                    f'<div class="compare-value">{badge}'
-                    f'<span class="compare-score">{score_label(pair.score, pair.mutual)}</span>'
-                    f"</div></div>",
-                    unsafe_allow_html=True,
-                )
-                if vm:
-                    st.markdown(story_block_html(vm), unsafe_allow_html=True)
-                st.markdown('<div class="box-lbl">① 기준 일치</div>', unsafe_allow_html=True)
-                render_match_keywords(kws_ab, f"cmp{a}{b}", clickable=True)
-                st.markdown('<div class="box-lbl">② 기준 일치</div>', unsafe_allow_html=True)
-                render_match_keywords(kws_ba, f"cmp{b}{a}", clickable=True)
-                can_match = (
-                    not is_matched(ra) and not is_closed(ra)
-                    and not is_matched(rb) and not is_closed(rb)
-                )
-                if can_match and st.button(
-                    f"{ra['name']} ↔ {rb['name']} 매칭 확정",
-                    type="primary",
-                    use_container_width=True,
-                ):
-                    do_match(a, b)
-                    st.rerun()
-
-                col_a, col_b = st.columns(2, gap="medium")
-                with col_a:
-                    st.markdown('<div class="compare-person">', unsafe_allow_html=True)
-                    render_person(a, 1, show_recommend=False)
-                    st.markdown("</div>", unsafe_allow_html=True)
-                with col_b:
-                    st.markdown('<div class="compare-person">', unsafe_allow_html=True)
-                    render_person(b, 2, show_recommend=False)
-                    st.markdown("</div>", unsafe_allow_html=True)
+                if mob_view == "detail":
+                    st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
+                render_compare_panel(selected[0], selected[1])
 
 with tab2:
     pairs = collect_matched_pairs(df)
@@ -931,3 +1228,14 @@ with tab3:
     }
     cols = [c for c in labels if c in df.columns]
     st.dataframe(df[cols].rename(columns=labels), use_container_width=True, height=320)
+
+with tab4:
+    st.markdown("#### 연동 · 알림")
+    st.caption(
+        "왼쪽 Streamlit 사이드바가 안 보이면 **화면 왼쪽 가장자리 ▶** 를 눌러 펼치세요. "
+        "아래 설정은 사이드바와 동일합니다."
+    )
+    render_settings_panel(key_prefix="tab_")
+    demo_mode = st.session_state["demo_mode"]
+    sheet_url = st.session_state.get("sheet_url", "")
+    ws_name = st.session_state.get("ws_name", DEFAULT_WORKSHEET)

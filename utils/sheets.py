@@ -10,6 +10,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 from utils.columns import COL, EDIT_COL, normalize_dataframe, DEFAULT_WORKSHEET, parse_reject
+from utils.error_log import log_exception
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -48,15 +49,28 @@ def _get_worksheet(sheet_url: str, worksheet_name: str) -> gspread.Worksheet:
 
 
 def load_data(sheet_url: str, worksheet_name: str = DEFAULT_WORKSHEET) -> pd.DataFrame:
-    ws = _get_worksheet(sheet_url, worksheet_name)
-    records = ws.get_all_records(head=HEADER_ROW)
-    df = pd.DataFrame(records)
-    if df.empty:
-        return df
+    return load_data_raw(sheet_url, worksheet_name, apply_eligibility=True)
 
-    df.index = df.index + HEADER_ROW + 1
-    df["_row"] = df.index
-    return normalize_dataframe(df)
+
+def load_data_raw(
+    sheet_url: str,
+    worksheet_name: str = DEFAULT_WORKSHEET,
+    *,
+    apply_eligibility: bool = True,
+) -> pd.DataFrame:
+    try:
+        ws = _get_worksheet(sheet_url, worksheet_name)
+        records = ws.get_all_records(head=HEADER_ROW)
+        df = pd.DataFrame(records)
+        if df.empty:
+            return df
+
+        df.index = df.index + HEADER_ROW + 1
+        df["_row"] = df.index
+        return normalize_dataframe(df, apply_eligibility=apply_eligibility)
+    except Exception as exc:
+        log_exception(exc, where="sheets.load_data_raw", extra=f"{worksheet_name}")
+        raise
 
 
 def update_cell(sheet_url: str, row: int, col: int, value, worksheet_name: str = DEFAULT_WORKSHEET) -> None:
@@ -64,9 +78,20 @@ def update_cell(sheet_url: str, row: int, col: int, value, worksheet_name: str =
     ws.update_cell(row, col, value)
 
 
-def set_matched(sheet_url: str, row: int, matched_with: str, worksheet_name: str = DEFAULT_WORKSHEET) -> None:
-    """매칭 완료: W열(매칭 여부)=TRUE. matched_with는 앱 session_state에 보관."""
-    update_cell(sheet_url, row, COL["matched"], "TRUE", worksheet_name)
+def set_matched(
+    sheet_url: str,
+    row: int,
+    matched_with: str,
+    matched_at: str,
+    worksheet_name: str = DEFAULT_WORKSHEET,
+) -> None:
+    """매칭 완료: W열=TRUE, Y열=매칭일."""
+    ws = _get_worksheet(sheet_url, worksheet_name)
+    cells = [
+        {"range": gspread.utils.rowcol_to_a1(row, COL["matched"]), "values": [["TRUE"]]},
+        {"range": gspread.utils.rowcol_to_a1(row, COL["matched_at"]), "values": [[matched_at]]},
+    ]
+    ws.batch_update(cells, value_input_option="USER_ENTERED")
 
 
 def increment_reject(sheet_url: str, row: int, current_count: int, worksheet_name: str = DEFAULT_WORKSHEET) -> int:
@@ -85,7 +110,10 @@ def update_profile_fields(
     ws = _get_worksheet(sheet_url, worksheet_name)
     cells: list[dict] = []
     for key, value in fields.items():
-        col = EDIT_COL.get(key)
+        if key == "matched_at":
+            col = COL["matched_at"]
+        else:
+            col = EDIT_COL.get(key)
         if col is None:
             continue
         if key == "reject":
@@ -103,4 +131,5 @@ from utils.demo_data import DEMO_DATA
 def load_demo_data() -> pd.DataFrame:
     df = pd.DataFrame(DEMO_DATA)
     df.index = df["_row"]
-    return normalize_dataframe(df)
+    # 데모는 UI 확인용 — 입금/환불 eligibility 필터 적용하지 않음
+    return normalize_dataframe(df, apply_eligibility=False)

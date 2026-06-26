@@ -1,6 +1,9 @@
 credentials.json
 .streamlit/secrets.toml
 data/users.json
+data/telegram.toml
+data/telegram_notify_state.json
+data/logs/
 json/
 __pycache__/
 *.pyc

@@ -202,18 +202,23 @@ def score_from_keywords(items: list[MatchKeyword]) -> tuple[int, bool]:
 def keywords_html(items: list[MatchKeyword]) -> str:
     parts = []
     for it in items:
-        cls = "kw-yes" if it.matched else "kw-no"
+        cls = "kw-card kw-yes" if it.matched else "kw-card kw-no"
         if it.matched:
             if it.keyword in ("—", ""):
-                txt = f"✓ {it.label}"
+                detail = "일치"
             elif it.keyword == "맞음":
-                txt = f"✓ {it.label}"
+                detail = "맞음"
             else:
-                txt = f"✓ {it.label} · {it.keyword}"
+                detail = it.keyword
         else:
-            txt = f"· {it.label}"
-        parts.append(f'<span class="{cls}">{txt}</span>')
-    return f'<div class="kw-row">{"".join(parts)}</div>'
+            detail = "—"
+        parts.append(
+            f'<div class="{cls}">'
+            f'<span class="kw-lbl">{it.label}</span>'
+            f'<span class="kw-val">{detail}</span>'
+            f"</div>"
+        )
+    return f'<div class="kw-grid">{"".join(parts)}</div>'
 
 
 def apply_keyword_filter(frame: pd.DataFrame, flt: dict | None) -> pd.DataFrame:

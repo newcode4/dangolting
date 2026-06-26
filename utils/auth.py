@@ -13,9 +13,12 @@ from pathlib import Path
 import streamlit as st
 from extra_streamlit_components import CookieManager
 
+from utils.error_log import get_logger, log_exception
+
 ROOT = Path(__file__).resolve().parent.parent
 USERS_FILE = ROOT / "data" / "users.json"
 COOKIE_NAME = "dgt_auth"
+COOKIE_WIDGET_KEY = "dgt_cookie_mgr"
 TOKEN_DAYS = 30
 
 
@@ -92,7 +95,6 @@ def save_user_store(users: dict[str, dict]) -> bool:
 
 
 def signup_allowed() -> bool:
-    """공개 회원가입 허용 여부 — 기본값 거부."""
     return bool(_auth_cfg().get("allow_signup", False))
 
 
@@ -157,38 +159,80 @@ def parse_token(token: str) -> str | None:
         return None
 
 
-def get_cookie_manager() -> CookieManager:
-    """CookieManager는 위젯을 쓰므로 cache_resource 대신 session_state에 보관."""
-    if "dgt_cookie_mgr" not in st.session_state:
-        st.session_state.dgt_cookie_mgr = CookieManager(key="dgt_cookie_mgr")
-    return st.session_state.dgt_cookie_mgr
+def _new_cookie_manager() -> CookieManager:
+    """실행 1회당 CookieManager 1개 — session_state에 저장하지 않음."""
+    return CookieManager(key=COOKIE_WIDGET_KEY)
 
 
-def _read_auth_cookie() -> str | None:
-    cm = get_cookie_manager()
-    cookies = cm.get_all()
-    if cookies is None:
-        return None
+def _read_cookies_safe(cm: CookieManager) -> dict | None:
+    """None = 컴포넌트 아직 준비 안 됨. {} = 쿠키 없음."""
+    try:
+        if not hasattr(cm, "get_all"):
+            get_logger().warning("CookieManager.get_all 없음 — type=%s", type(cm).__name__)
+            return {}
+        raw = cm.get_all()
+        if raw is None:
+            return None
+        if isinstance(raw, dict):
+            return raw
+        get_logger().warning("CookieManager.get_all 비정상 반환 — type=%s", type(raw).__name__)
+        return {}
+    except AttributeError as exc:
+        log_exception(exc, where="auth.read_cookies")
+        return {}
+    except Exception as exc:
+        log_exception(exc, where="auth.read_cookies")
+        return {}
+
+
+def _token_from_cookies(cookies: dict) -> str | None:
     val = cookies.get(COOKIE_NAME)
     return str(val) if val else None
 
 
-def set_auth_cookie(username: str, remember: bool) -> None:
-    cm = get_cookie_manager()
-    if remember:
+def _try_cookie_login(cm: CookieManager) -> bool:
+    cookies = _read_cookies_safe(cm)
+    if cookies is None:
+        return False
+    token = _token_from_cookies(cookies)
+    if not token:
+        return False
+    user = parse_token(token)
+    if user:
+        st.session_state["auth_user"] = user
+        return True
+    _clear_auth_cookie_safe(cm)
+    return False
+
+
+def set_auth_cookie(username: str, remember: bool, *, cm: CookieManager | None = None) -> None:
+    if not remember:
+        if cm is not None:
+            _clear_auth_cookie_safe(cm)
+        return
+    try:
+        manager = cm or _new_cookie_manager()
         expires = datetime.now(timezone.utc) + timedelta(days=TOKEN_DAYS)
-        cm.set(COOKIE_NAME, make_token(username), expires_at=expires, key="dgt_set")
-    else:
-        cm.delete(COOKIE_NAME, key="dgt_del")
+        manager.set(COOKIE_NAME, make_token(username), expires_at=expires, key="dgt_set")
+    except Exception as exc:
+        log_exception(exc, where="auth.set_cookie")
+
+
+def _clear_auth_cookie_safe(cm: CookieManager | None = None) -> None:
+    try:
+        manager = cm or _new_cookie_manager()
+        manager.delete(COOKIE_NAME, key="dgt_logout")
+    except Exception as exc:
+        log_exception(exc, where="auth.clear_cookie")
 
 
 def clear_auth_cookie() -> None:
-    get_cookie_manager().delete(COOKIE_NAME, key="dgt_logout")
+    _clear_auth_cookie_safe()
 
 
 def logout() -> None:
     st.session_state.pop("auth_user", None)
-    st.session_state.pop("_auth_cookie_checked", None)
+    st.session_state.pop("_auth_cookie_tried", None)
     clear_auth_cookie()
 
 
@@ -196,21 +240,7 @@ def current_user() -> str | None:
     return st.session_state.get("auth_user")
 
 
-def _try_cookie_login() -> bool:
-    if st.session_state.get("auth_user"):
-        return True
-    token = _read_auth_cookie()
-    if not token:
-        return False
-    user = parse_token(token)
-    if user:
-        st.session_state.auth_user = user
-        return True
-    clear_auth_cookie()
-    return False
-
-
-def _render_login_form() -> None:
+def _render_login_form(*, cm: CookieManager) -> None:
     with st.form("login_form", clear_on_submit=False):
         uid = st.text_input("아이디", placeholder="아이디", autocomplete="username")
         pw = st.text_input(
@@ -219,8 +249,8 @@ def _render_login_form() -> None:
         remember = st.checkbox("자동 로그인", value=True)
         if st.form_submit_button("로그인", type="primary", use_container_width=True):
             if authenticate(uid, pw):
-                st.session_state.auth_user = uid.strip()
-                set_auth_cookie(uid.strip(), remember)
+                st.session_state["auth_user"] = uid.strip()
+                set_auth_cookie(uid.strip(), remember, cm=cm)
                 st.rerun()
             else:
                 st.error("아이디 또는 비밀번호가 올바르지 않습니다.")
@@ -288,6 +318,16 @@ def render_auth_page(logo_uri: str) -> None:
         unsafe_allow_html=True,
     )
 
+    cm = _new_cookie_manager()
+
+    # 쿠키 자동로그인 — 준비됐을 때만 시도. None이면 폼을 먼저 보여줌 (st.stop 금지).
+    if not st.session_state.get("_auth_cookie_tried"):
+        cookies = _read_cookies_safe(cm)
+        if cookies is not None:
+            st.session_state["_auth_cookie_tried"] = True
+            if _try_cookie_login(cm):
+                st.rerun()
+
     _sp, main, _sp2 = st.columns([2.2, 1.6, 2.2], gap="small")
 
     with main:
@@ -306,11 +346,11 @@ def render_auth_page(logo_uri: str) -> None:
             if signup_allowed():
                 tab_login, tab_signup = st.tabs(["로그인", "회원가입"])
                 with tab_login:
-                    _render_login_form()
+                    _render_login_form(cm=cm)
                 with tab_signup:
                     _render_signup_form()
             else:
-                _render_login_form()
+                _render_login_form(cm=cm)
                 st.markdown(
                     '<p class="auth-hint">접근 권한이 있는 관리자만 이용할 수 있습니다.<br>'
                     "계정은 운영자가 발급합니다.</p>",
@@ -319,26 +359,20 @@ def render_auth_page(logo_uri: str) -> None:
 
 
 def ensure_authenticated(logo_uri: str) -> None:
+    """앱 시작 시 session_state만 확인 — CookieManager는 로그인 페이지에서만 사용."""
     if "auth_user" not in st.session_state:
-        st.session_state.auth_user = None
+        st.session_state["auth_user"] = None
 
-    if st.session_state.auth_user:
-        return
-
-    if not st.session_state.get("_auth_cookie_checked"):
-        cookies = get_cookie_manager().get_all()
-        if cookies is None:
-            st.markdown(
-                '<p class="auth-loading">세션 확인 중…</p>',
-                unsafe_allow_html=True,
-            )
-            st.stop()
-        st.session_state._auth_cookie_checked = True
-        if _try_cookie_login():
-            st.rerun()
-
-    if st.session_state.auth_user:
+    if st.session_state.get("auth_user"):
         return
 
     render_auth_page(logo_uri)
     st.stop()
+
+
+def get_cookie_manager() -> CookieManager:
+    return _new_cookie_manager()
+
+
+def _safe_cookie_get_all() -> dict | None:
+    return _read_cookies_safe(_new_cookie_manager())

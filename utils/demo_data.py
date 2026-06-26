@@ -107,7 +107,7 @@ DEMO_DATA: list[dict] = [
             "VC/엔젤 관점의 피드백이 필요합니다."
         ),
         "note": "",
-        "dday": "D-7", "matched": "TRUE", "matched_w": "이준서", "reject": 0,
+        "dday": "D-7", "matched": "TRUE", "matched_w": "이준서", "matched_at": "2026. 06. 20 14:30", "reject": 0,
     },
     {
         "_row": 7, "ts": "2026. 6. 26 오후 8:33:52",

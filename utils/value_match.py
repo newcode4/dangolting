@@ -271,10 +271,10 @@ def pct_badge_class(tier: str) -> str:
 
 def breakdown_html(b: dict[str, int]) -> str:
     labels = {
-        "want_have": "Want↔Have",
-        "depth": "협업깊이",
+        "want_have": "원함 ↔ 제공",
+        "depth": "협업 깊이",
         "values": "가치관",
-        "locale": "지역·성별",
+        "locale": "지역 · 성향",
     }
     rows = []
     for key, val in b.items():

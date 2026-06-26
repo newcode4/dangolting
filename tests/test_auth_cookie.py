@@ -1,0 +1,87 @@
+"""CookieManager — 앱 시작 시 get_all 호출 금지 회귀 방지."""
+from __future__ import annotations
+
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+
+class _FakeCookieManager:
+    def __init__(self, key: str = ""):
+        self.key = key
+        self._cookies: dict | None = None
+
+    def get_all(self):
+        return self._cookies
+
+    def set(self, name, val, **kwargs):
+        if self._cookies is None:
+            self._cookies = {}
+        self._cookies[name] = val
+
+
+def test_ensure_authenticated_never_calls_get_all_directly():
+    """ensure_authenticated 본문에 get_cookie_manager().get_all() 패턴 없음."""
+    import inspect
+
+    from utils import auth
+
+    src = inspect.getsource(auth.ensure_authenticated)
+    assert "get_all()" not in src
+    assert "get_cookie_manager()" not in src
+
+
+def test_read_cookies_safe_handles_dict_without_get_all():
+    broken = {"not": "a manager"}
+
+    from utils.auth import _read_cookies_safe
+
+    with patch("utils.auth.get_logger"):
+        result = _read_cookies_safe(broken)  # type: ignore[arg-type]
+    assert result == {}
+
+
+def test_read_cookies_safe_none_means_not_ready():
+    cm = _FakeCookieManager()
+    cm._cookies = None
+
+    from utils.auth import _read_cookies_safe
+
+    assert _read_cookies_safe(cm) is None
+
+
+def test_render_auth_page_does_not_stop_while_cookies_loading():
+    """CookieManager 준비 전 st.stop()으로 로그인 버튼이 늦게 뜨는 회귀 방지."""
+    import inspect
+
+    from utils import auth
+
+    src = inspect.getsource(auth.render_auth_page)
+    assert "st.stop()" not in src
+    assert "auth-loading" not in src
+
+
+def test_try_cookie_login_sets_user():
+    cm = _FakeCookieManager()
+    from utils.auth import _try_cookie_login, make_token
+
+    cm._cookies = {"dgt_auth": make_token("admin")}
+
+    class _State(dict):
+        pass
+
+    fake_st = MagicMock()
+    fake_st.session_state = _State()
+
+    boot_users = load_user_store_with_admin()
+
+    with patch("utils.auth.st", fake_st), patch("utils.auth.load_user_store", return_value=boot_users):
+        assert _try_cookie_login(cm) is True
+        assert fake_st.session_state["auth_user"] == "admin"
+
+
+def load_user_store_with_admin():
+    from utils.auth import hash_password
+
+    salt, digest = hash_password("secret")
+    return {"admin": {"salt": salt, "hash": digest}}
