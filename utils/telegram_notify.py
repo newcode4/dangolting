@@ -15,6 +15,7 @@ import streamlit as st
 from utils.columns import cell, parse_checkbox
 from utils.error_log import log_exception
 from utils.sheets import load_data_raw
+from utils.columns import DEFAULT_WORKSHEET
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE_FILE = ROOT / "data" / "telegram_notify_state.json"
@@ -127,7 +128,7 @@ def _save_local_state(data: dict) -> None:
     STATE_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _load_sheet_state(sheet_url: str) -> int | None:
+def _load_sheet_state(sheet_url: str, ws_name: str) -> int | None:
     try:
         from utils.sheets import _get_client
 
@@ -137,15 +138,24 @@ def _load_sheet_state(sheet_url: str) -> int | None:
             meta = ss.worksheet(NOTIFY_WS)
         except Exception:
             meta = ss.add_worksheet(NOTIFY_WS, rows=10, cols=3)
-            meta.update("A1", [["0"]])
+            meta.update("A1:B1", [[ws_name.strip(), "0"]])
             return None
-        val = meta.acell("A1").value
-        return int(val) if val not in (None, "") else None
+        rows = meta.get_all_values()
+        target = ws_name.strip()
+        for row in rows:
+            if len(row) >= 2 and str(row[0]).strip() == target:
+                val = row[1]
+                return int(val) if val not in (None, "") else None
+        # 구버전: A1에 숫자만 있으면 기본 워크시트 기준선으로 간주
+        if rows and rows[0] and str(rows[0][0]).strip().isdigit():
+            if target == DEFAULT_WORKSHEET or target == "시트1":
+                return int(rows[0][0])
+        return None
     except Exception:
         return None
 
 
-def _save_sheet_state(sheet_url: str, last_row: int) -> None:
+def _save_sheet_state(sheet_url: str, ws_name: str, last_row: int) -> None:
     try:
         from utils.sheets import _get_client
 
@@ -155,14 +165,25 @@ def _save_sheet_state(sheet_url: str, last_row: int) -> None:
             meta = ss.worksheet(NOTIFY_WS)
         except Exception:
             meta = ss.add_worksheet(NOTIFY_WS, rows=10, cols=3)
-        meta.update("A1", [[str(last_row)]])
+        rows = meta.get_all_values()
+        target = ws_name.strip()
+        for i, row in enumerate(rows, start=1):
+            if row and str(row[0]).strip() == target:
+                meta.update(f"B{i}", [[str(last_row)]])
+                return
+        # 구버전 단일 셀(A1 숫자) → 마이그레이션
+        if rows and rows[0] and str(rows[0][0]).strip().isdigit():
+            meta.update("A1:B1", [[target, str(last_row)]])
+            return
+        next_row = len(rows) + 1
+        meta.update(f"A{next_row}:B{next_row}", [[target, str(last_row)]])
     except Exception:
         pass
 
 
 def load_last_notified_row(sheet_url: str, ws_name: str) -> int | None:
     key = _sheet_key(sheet_url, ws_name)
-    sheet_val = _load_sheet_state(sheet_url)
+    sheet_val = _load_sheet_state(sheet_url, ws_name)
     if sheet_val is not None:
         return sheet_val
     local = _load_local_state().get(key)
@@ -174,7 +195,7 @@ def save_last_notified_row(sheet_url: str, ws_name: str, last_row: int) -> None:
     data = _load_local_state()
     data[key] = last_row
     _save_local_state(data)
-    _save_sheet_state(sheet_url, last_row)
+    _save_sheet_state(sheet_url, ws_name, last_row)
 
 
 def send_telegram(text: str) -> bool:
@@ -253,11 +274,11 @@ def process_new_applicants(df: pd.DataFrame, sheet_url: str, ws_name: str) -> in
 
 
 def run_applicant_watch(sheet_url: str, ws_name: str) -> int:
-    """시트 재조회 후 신규 신청 알림 (캐시 없음)."""
+    """시트 재조회 후 신규 신청 알림 (캐시 없음). 입금 대기도 알림 대상."""
     if not telegram_enabled() or not sheet_url:
         return 0
     try:
-        df = load_data_raw(sheet_url, ws_name)
+        df = load_data_raw(sheet_url, ws_name, apply_eligibility=False)
         return process_new_applicants(df, sheet_url, ws_name)
     except Exception as exc:
         log_exception(exc, where="telegram.watch")
@@ -271,7 +292,7 @@ def send_test_notification() -> bool:
 def reset_notify_baseline(sheet_url: str, ws_name: str) -> None:
     """현재 시트 마지막 행을 기준선으로 — 이전 신청 알림 안 감."""
     try:
-        df = load_data_raw(sheet_url, ws_name)
+        df = load_data_raw(sheet_url, ws_name, apply_eligibility=False)
         last = int(df.index.max()) if not df.empty else 0
     except Exception:
         last = 0

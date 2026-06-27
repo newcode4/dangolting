@@ -134,7 +134,8 @@ if (
 def render_telegram_controls(*, key_prefix: str) -> None:
     st.caption(f"📱 텔레그램 — {telegram_config_status()}")
     if telegram_enabled():
-        tg1, tg2 = st.columns(2)
+        st.caption(f"신규 신청 폴링 · 약 {poll_interval_seconds() // 60}분 (앱 켜져 있을 때)")
+        tg1, tg2, tg3 = st.columns(3)
         with tg1:
             if st.button("알림 테스트", key=f"{key_prefix}tg_test", use_container_width=True):
                 if send_test_notification():
@@ -142,6 +143,15 @@ def render_telegram_controls(*, key_prefix: str) -> None:
                 else:
                     st.error("발송 실패 — bot_token · chat_id · 봇 /start 확인")
         with tg2:
+            if st.button("지금 확인", key=f"{key_prefix}tg_poll", use_container_width=True):
+                if st.session_state["demo_mode"] or not st.session_state.get("sheet_url"):
+                    st.info("데모 끄고 실제 시트 연동 후 사용하세요")
+                else:
+                    n = run_applicant_watch(
+                        st.session_state["sheet_url"], st.session_state["ws_name"]
+                    )
+                    st.toast(f"알림 {n}건 발송" if n else "새 신청 없음 (또는 이미 알림 보냄)")
+        with tg3:
             if st.button("기준선", key=f"{key_prefix}tg_reset", use_container_width=True, help="지금까지 신청은 알림 제외"):
                 if not st.session_state["demo_mode"] and st.session_state["sheet_url"]:
                     reset_notify_baseline(st.session_state["sheet_url"], st.session_state["ws_name"])
@@ -211,6 +221,13 @@ ws_name = st.session_state.get("ws_name", DEFAULT_WORKSHEET)
 
 if telegram_enabled():
     _poll = poll_interval_seconds()
+
+    if not demo_mode and sheet_url and not st.session_state.get("_tg_boot_watch"):
+        st.session_state["_tg_boot_watch"] = True
+        try:
+            run_applicant_watch(sheet_url, ws_name)
+        except Exception as exc:
+            log_exception(exc, where="telegram.boot")
 
     @st.fragment(run_every=timedelta(seconds=_poll))
     def applicant_telegram_watch() -> None:

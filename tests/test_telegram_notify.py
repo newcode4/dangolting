@@ -1,9 +1,11 @@
-"""텔레그램 신규 신청 메시지 포맷."""
+"""텔레그램 신규 신청 메시지 포맷·감지."""
 from __future__ import annotations
+
+from unittest.mock import patch
 
 import pandas as pd
 
-from utils.telegram_notify import format_applicant_message
+from utils.telegram_notify import format_applicant_message, process_new_applicants
 
 
 def test_format_applicant_message():
@@ -20,3 +22,25 @@ def test_format_applicant_message():
     assert "이주환" in msg
     assert "입금 대기" in msg
     assert "🆕" in msg
+
+
+def test_process_new_applicants_notifies_unpaid_row():
+    """입금 대기(paid=False) 신규 행도 알림 대상."""
+    df = pd.DataFrame(
+        [{"name": "신규", "job": "창업", "region": "서울", "ts": "now", "paid": False}],
+        index=[5],
+    )
+    sent: list[int] = []
+
+    def fake_send(_text: str) -> bool:
+        sent.append(1)
+        return True
+
+    with patch("utils.telegram_notify.telegram_enabled", return_value=True), patch(
+        "utils.telegram_notify.send_telegram", side_effect=fake_send
+    ), patch("utils.telegram_notify.load_last_notified_row", return_value=4), patch(
+        "utils.telegram_notify.save_last_notified_row"
+    ):
+        n = process_new_applicants(df, "http://sheet", "ws")
+    assert n == 1
+    assert len(sent) == 1
