@@ -1,7 +1,7 @@
-# 이 파일을 복사 → data/telegram.toml 로 저장 후 값을 채우세요.
-# secrets.toml.template 은 Streamlit이 읽지 않습니다!
+# Streamlit 앱용 — 알림은 시트 Apps Script가 담당 (enabled=false 권장)
+# Apps Script token은 setupTelegram()으로 시트에 저장
 
-bot_token = "여기에_BotFather_토큰"
-chat_id = "여기에_본인_숫자_id"
-enabled = true
+bot_token = ""
+chat_id = ""
+enabled = false
 poll_seconds = 120

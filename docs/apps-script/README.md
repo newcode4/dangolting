@@ -1,28 +1,26 @@
-# Apps Script — 3단계만
+# Apps Script — 알림 전용 (Streamlit enabled=false)
 
-| # | 함수 | 하는 일 |
-|---|------|---------|
-| 1 | `setupTelegram` | token · chat_id 저장 |
-| 2 | **`installTriggers`** | ★ **알림 켜기** (폼·입금) |
-| 3 | `testTelegramPing` | 텔레그램 테스트 |
+| 알림 | 시점 |
+|------|------|
+| 🆕 새 신청 | 폼 제출 즉시 |
+| 💰 입금 확인 | U열 체크 |
+| 📋 입금 대기 묶음 | **매일 12:00** (신청 3시간+ & 미입금) |
 
-**`installTriggers`를 안 하면 폼 제출해도 알림 없음.**
+## 설치
 
-`onFormSubmit`은 직접 누르는 버튼이 아닙니다. `installTriggers()`가 백그라운드 트리거로 등록합니다.
+1. `setupTelegram`
+2. **`installTriggers`** ★ (위 3가지 트리거 한 번에)
+3. `testTelegramPing` · `testUnpaidDigest`
 
-## 실행 방법
+## 설정 변경 (Code.gs 상단)
 
-1. 스프레드시트 → **확장 프로그램 → Apps Script**
-2. `Code.gs` 붙여넣기 → 저장
-3. 상단 함수 드롭다운에서 함수 선택 → **실행**
-4. 시트 **새로고침** → 메뉴 **단골팅 알림** (2번부터 여기서도 가능)
+```javascript
+const UNPAID_MIN_HOURS = 3;  // N시간 지난 사람만 점심 알림
+const DIGEST_HOUR = 12;      // 점심 몇 시 (한국)
+```
 
-## 폼 테스트
+코드 수정 후 **`installTriggers` 다시 실행**.
 
-- 구글 **폼**으로 제출 (시트에 연결된 그 폼)
-- 또는 `testLastRowNotify` — 마지막 행 내용으로 알림
+## Streamlit
 
-## 주의
-
-- Apps Script는 **응답이 쌓이는 그 스프레드시트**에 붙여야 함
-- Streamlit Reboot **불필요**
+`data/telegram.toml` → `enabled = false` (중복·2분 지연 방지)

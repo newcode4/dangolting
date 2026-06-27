@@ -151,8 +151,7 @@ def _saved_ws_name() -> str:
 def render_telegram_controls(*, key_prefix: str) -> None:
     st.caption(f"📱 텔레그램 — {telegram_config_status()}")
     if telegram_enabled():
-        st.caption(f"신규 신청 폴링 · 약 {poll_interval_seconds() // 60}분 (앱 켜져 있을 때)")
-        st.caption("U열 **입금 체크** 알림은 앱이 못 봅니다 → **설정 · 알림** 탭 Apps Script 안내")
+        st.caption(f"앱 폴링 · 약 {poll_interval_seconds() // 60}분 (권장: Apps Script만 사용 시 enabled=false)")
         stacked = key_prefix.startswith("side_")
 
         def _btn_test() -> None:
@@ -196,8 +195,8 @@ def render_telegram_controls(*, key_prefix: str) -> None:
                     _btn_baseline()
             st.caption("기준선 — 지금까지 신청은 알림에서 제외")
     else:
-        st.caption("`data/telegram.toml.example` → `data/telegram.toml` 복사 후 token · chat_id 입력")
-        st.caption("또는 `.streamlit/secrets.toml`의 [telegram] 섹션 (template 파일은 읽히지 않음)")
+        st.caption("알림: **시트 Apps Script** — 새 신청 즉시 · U열 입금 · **매일 12시** 입금대기 묶음")
+        st.caption("설정 · 알림 탭 → Code.gs · `installTriggers` 실행")
 
 
 def render_settings_panel(*, key_prefix: str) -> None:
@@ -362,17 +361,15 @@ def render_apps_script_guide() -> None:
         "Streamlit 앱은 **새 행**만 (~2분, 앱 켜져 있을 때). "
         "**입금 체크(U열)**·**폼 제출 즉시 알림**은 Apps Script가 담당합니다."
     )
-    with st.expander("📋 설치 3단계 (트리거 UI ❌)", expanded=True):
+    with st.expander("📋 Apps Script 3단계", expanded=True):
         st.markdown(
-            "**1.** `setupTelegram` 실행 → token · chat_id  \n"
-            "**2.** `installTriggers` 실행 ★ **이게 onFormSubmit/onEdit 트리거**  \n"
-            "**3.** `testTelegramPing` 실행 → 텔레그램 확인  \n\n"
-            "폼 테스트: 구글 폼 제출 **또는** `testLastRowNotify` 실행  \n"
-            "시트 **새로고침** 후 상단 메뉴 **단골팅 알림**에서도 실행 가능"
+            "**1.** `setupTelegram` → token · chat_id  \n"
+            "**2.** `installTriggers` ★ — 즉시 알림 + **매일 12시 입금대기**  \n"
+            "**3.** `testTelegramPing` · `testUnpaidDigest` (묶음 테스트)"
         )
-        st.warning(
-            "**installTriggers를 안 하면** 폼을 아무리 제출해도 알림이 없습니다. "
-            "onFormSubmit은 버튼이 아니라 **installTriggers가 자동으로 켜 주는 기능**입니다."
+        st.caption(
+            "입금대기 묶음: U열 미체크 + 신청 **3시간+** 지난 사람만 · "
+            "시간 변경은 Code.gs 상단 `DIGEST_HOUR` · `UNPAID_MIN_HOURS`"
         )
     gs_path = ROOT / "docs" / "apps-script" / "Code.gs"
     if gs_path.is_file():

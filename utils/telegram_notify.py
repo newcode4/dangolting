@@ -84,6 +84,8 @@ def telegram_enabled() -> bool:
 
 def telegram_config_status() -> str:
     cfg = _tg_cfg()
+    if cfg.get("enabled") is False:
+        return "앱 OFF · 알림은 시트 Apps Script"
     token = str(cfg.get("bot_token", "")).strip()
     chat_id = str(cfg.get("chat_id", "")).strip()
     if TELEGRAM_FILE.is_file() and _is_real_value(token, chat_id):
