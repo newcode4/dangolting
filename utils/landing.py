@@ -83,6 +83,54 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <span>미매칭 전액 환불</span>
   </div>
 
+  <section class="hook-panel section--alt reveal">
+    <div class="hook-head reveal-item">
+      <span class="hook-kicker">↓ 스크롤하면 숫자가 살아납니다</span>
+      <h2>혼자면 <em>100</em> — 결이 맞으면 <em>300</em></h2>
+      <p>막연한 인맥이 아니라, <strong>주고받을 한 사람</strong>이 있을 때 궤적이 달라집니다.</p>
+    </div>
+
+    <div class="hook-flow reveal-item">
+      <div class="hook-step">
+        <div class="hook-step-num"><span class="count" data-count="80000" data-suffix="+">0</span></div>
+        <div class="hook-step-lbl">평생 스쳐가는 인연</div>
+      </div>
+      <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
+      <div class="hook-step hook-step--mid">
+        <div class="hook-step-num"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
+        <div class="hook-step-lbl">1년에 새로 만나는<br/>결이 맞는 사람</div>
+      </div>
+      <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
+      <div class="hook-step hook-step--hot">
+        <div class="hook-step-num"><span class="count" data-count="3" data-suffix="배">0</span></div>
+        <div class="hook-step-lbl">혼자 100일 때<br/>함께면 300</div>
+      </div>
+    </div>
+
+    <div class="hook-bars reveal-item">
+      <div class="hook-bar-row">
+        <div class="hook-bar-meta">
+          <span class="hook-bar-title">혼자 헤매는 시간</span>
+          <span class="hook-bar-val">100%</span>
+        </div>
+        <div class="hook-bar-track"><div class="hook-bar-fill hook-bar-fill--solo" data-fill="100"></div></div>
+      </div>
+      <div class="hook-bar-connector"><span class="hook-bar-arrow-icon">↓</span> 단골 한 명이면</div>
+      <div class="hook-bar-row hook-bar-row--up">
+        <div class="hook-bar-meta">
+          <span class="hook-bar-title">함께 달릴 때 속도</span>
+          <span class="hook-bar-val hook-bar-val--hot"><span class="count" data-count="300" data-suffix="%">0</span></span>
+        </div>
+        <div class="hook-bar-track"><div class="hook-bar-fill hook-bar-fill--duo" data-fill="100"></div></div>
+      </div>
+    </div>
+
+    <a href="#process" class="hook-cta reveal-item">
+      <span>어떻게 연결되나요?</span>
+      <span class="hook-cta-arrow">→</span>
+    </a>
+  </section>
+
   <section class="section section--alt reveal">
     <div class="framing-head reveal-item">
       <h2>우리는 평생 몇 명을 만날까요?<br/>그중 <em>결이 맞는 사람</em>은요?</h2>
@@ -93,15 +141,15 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     </div>
     <div class="stat-grid">
       <div class="stat reveal-item">
-        <div class="big">수만 명</div>
+        <div class="big"><span class="count" data-count="80000" data-suffix="+">0</span></div>
         <div class="cap">평생 스쳐가는 사람<br/><b>그러나 대부분 한 번뿐</b></div>
       </div>
       <div class="stat reveal-item">
-        <div class="big">1~2명</div>
+        <div class="big"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
         <div class="cap">1년에 새로 만나는<br/><b>진짜 결이 맞는 사람</b></div>
       </div>
       <div class="stat reveal-item">
-        <div class="big">3배</div>
+        <div class="big"><span class="count" data-count="3" data-suffix="배">0</span></div>
         <div class="cap">혼자 100을 할 때<br/><b>맞는 단골과는 300</b></div>
       </div>
     </div>
@@ -488,6 +536,18 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       doc.documentElement.style.overflowY = "auto";
       doc.body.style.height = "auto";
       doc.body.style.overflowY = "auto";
+      ["stMainBlockContainer", "stAppViewBlockContainer", "stVerticalBlock", "stElementContainer"].forEach(function (tid) {{
+        doc.querySelectorAll('[data-testid="' + tid + '"]').forEach(function (node) {{
+          node.style.padding = "0";
+          node.style.paddingTop = "0";
+          node.style.marginTop = "0";
+        }});
+      }});
+      doc.querySelectorAll(".block-container").forEach(function (node) {{
+        node.style.padding = "0";
+        node.style.paddingTop = "0";
+        node.style.marginTop = "0";
+      }});
       syncFrameHeight();
     }} catch (e) {{}}
   }}
@@ -539,12 +599,88 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     var scroller = setupScrollTriggerProxy() || document.documentElement;
 
     if (reduced) {{
-      gsap.set(".reveal-item, .hero-inner > *", {{ clearProps: "all", opacity: 1, y: 0 }});
+      gsap.set(".reveal-item, .hero-inner > *, .count", {{ clearProps: "all", opacity: 1, y: 0 }});
+      document.querySelectorAll(".count").forEach(function (el) {{
+        el.textContent = (el.getAttribute("data-prefix") || "") + (el.getAttribute("data-count") || "") + (el.getAttribute("data-suffix") || "");
+      }});
+      document.querySelectorAll(".hook-bar-fill").forEach(function (el) {{
+        el.style.width = (el.getAttribute("data-fill") || "0") + "%";
+      }});
       syncFrameHeight();
       return;
     }}
 
-    gsap.set(".reveal-item", {{ opacity: 0, y: 28 }});
+    function initHookCounters() {{
+      document.querySelectorAll(".count").forEach(function (el) {{
+        var end = parseFloat(el.getAttribute("data-count") || "0");
+        var suffix = el.getAttribute("data-suffix") || "";
+        var prefix = el.getAttribute("data-prefix") || "";
+        var obj = {{ val: 0 }};
+        var tween = gsap.to(obj, {{
+          val: end,
+          duration: 1.6,
+          ease: "power2.out",
+          paused: true,
+          onUpdate: function () {{
+            var v = end >= 1000 ? Math.round(obj.val).toLocaleString("ko-KR") : Math.round(obj.val);
+            el.textContent = prefix + v + suffix;
+          }}
+        }});
+        ScrollTrigger.create({{
+          scroller: scroller,
+          trigger: el.closest(".hook-panel, .stat-grid, .hook-bars") || el,
+          start: "top 84%",
+          onEnter: function () {{ obj.val = 0; tween.restart(); }},
+          onEnterBack: function () {{ obj.val = 0; tween.restart(); }},
+          onLeaveBack: function () {{
+            gsap.set(obj, {{ val: 0 }});
+            el.textContent = prefix + "0" + suffix;
+          }}
+        }});
+      }});
+    }}
+
+    function initHookBars() {{
+      document.querySelectorAll(".hook-bar-fill").forEach(function (fill) {{
+        var pct = fill.getAttribute("data-fill") || "0";
+        gsap.fromTo(
+          fill,
+          {{ width: "0%" }},
+          {{
+            width: pct + "%",
+            ease: "none",
+            scrollTrigger: {{
+              scroller: scroller,
+              trigger: fill.closest(".hook-bars"),
+              start: "top 85%",
+              end: "top 35%",
+              scrub: 0.4
+            }}
+          }}
+        );
+      }});
+      gsap.utils.toArray(".hook-arrow span").forEach(function (arrow) {{
+        gsap.fromTo(
+          arrow,
+          {{ x: -6, opacity: 0.35 }},
+          {{
+            x: 6,
+            opacity: 1,
+            ease: "none",
+            scrollTrigger: {{
+              scroller: scroller,
+              trigger: arrow.closest(".hook-flow"),
+              start: "top 80%",
+              end: "top 45%",
+              scrub: 0.35
+            }}
+          }}
+        );
+      }});
+    }}
+
+    initHookCounters();
+    initHookBars();
 
     gsap.from(".hero-glow", {{
       scale: 0.88,
@@ -594,7 +730,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       onLeaveBack: revealOut
     }});
 
-    gsap.utils.toArray(".section.reveal, .cta-band.reveal").forEach(function (section) {{
+    gsap.utils.toArray(".section.reveal, .cta-band.reveal, .hook-panel.reveal").forEach(function (section) {{
       gsap.fromTo(
         section,
         {{ opacity: 0.88, y: 20 }},

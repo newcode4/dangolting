@@ -1,4 +1,4 @@
-/* ── Streamlit 셸: 랜딩 (전체 너비 · 단일 스크롤) ── */
+/* ── Streamlit 셸: 랜딩 (1080px · 단일 스크롤) ── */
 body.dgt-landing [data-testid="stSidebar"],
 body.dgt-landing [data-testid="stSidebarCollapsedControl"],
 body.dgt-landing header[data-testid="stHeader"],
@@ -30,14 +30,17 @@ body.dgt-landing [data-testid="stHtml"] {
   min-height: 0 !important;
   max-height: none !important;
   overflow: visible !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
 }
 
 body.dgt-landing .main .block-container,
-body.dgt-landing [data-testid="stAppViewBlockContainer"] {
-  max-width: 100% !important;
+body.dgt-landing [data-testid="stAppViewBlockContainer"],
+body.dgt-landing [data-testid="stMainBlockContainer"] {
+  max-width: 1080px !important;
   width: 100% !important;
   padding: 0 !important;
-  margin: 0 !important;
+  margin: 0 auto !important;
 }
 
 body.dgt-landing .main,
@@ -75,7 +78,7 @@ body.dgt-landing iframe {
 }
 
 .lnd-footer-nav {
-  max-width: 100%;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 16px 24px 24px;
   text-align: center;

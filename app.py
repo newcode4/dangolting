@@ -117,9 +117,6 @@ def _crm_beacon_gate() -> None:
 
 _crm_beacon_gate()
 
-THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
-st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
-
 
 def _public_entry_gate(logo_uri: str) -> None:
     """공개 URL → 랜딩만. 관리자 URL(?p=…) → 로그인·대시보드."""
@@ -141,6 +138,10 @@ def _public_entry_gate(logo_uri: str) -> None:
 
 
 _public_entry_gate(logo_data_uri())
+
+THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
+st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
+
 ensure_sidebar_visible()
 
 for k, v in [
