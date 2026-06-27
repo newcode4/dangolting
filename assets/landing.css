@@ -1,38 +1,100 @@
-/* ── 공개 랜딩 (모바일 퍼스트 · max 400px) ── */
-body:has(.dgt-landing-root) [data-testid="stSidebar"],
-body:has(.dgt-landing-root) [data-testid="stSidebarCollapsedControl"],
-body:has(.dgt-landing-root) header[data-testid="stHeader"],
-body:has(.dgt-landing-root) [data-testid="stToolbar"],
-body:has(.dgt-landing-root) [data-testid="stDecoration"],
-body:has(.dgt-landing-root) #MainMenu,
-body:has(.dgt-landing-root) footer {
+/* ── Streamlit 셸: 랜딩 (전체 너비 · 단일 스크롤) ── */
+body.dgt-landing [data-testid="stSidebar"],
+body.dgt-landing [data-testid="stSidebarCollapsedControl"],
+body.dgt-landing header[data-testid="stHeader"],
+body.dgt-landing [data-testid="stToolbar"],
+body.dgt-landing [data-testid="stDecoration"],
+body.dgt-landing #MainMenu,
+body.dgt-landing footer {
   display: none !important;
 }
-body:has(.dgt-landing-root) .main .block-container {
-  max-width: 400px !important;
+
+/* Streamlit 내부 스크롤·뷰포트 고정 해제 → 브라우저 단일 스크롤 */
+body.dgt-landing,
+html:has(body.dgt-landing) {
+  height: auto !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body.dgt-landing [data-testid="stApp"],
+body.dgt-landing [data-testid="stAppViewContainer"],
+body.dgt-landing section[data-testid="stMain"],
+body.dgt-landing [data-testid="stMainBlockContainer"],
+body.dgt-landing [data-testid="stVerticalBlock"],
+body.dgt-landing [data-testid="stElementContainer"],
+body.dgt-landing [data-testid="stHtml"] {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+body.dgt-landing .main .block-container,
+body.dgt-landing [data-testid="stAppViewBlockContainer"] {
+  max-width: 100% !important;
   width: 100% !important;
-  padding: 0 12px 32px !important;
-  margin: 0 auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
-body:has(.dgt-landing-root) .main {
-  background: #f7f4ef !important;
+
+body.dgt-landing .main,
+body.dgt-landing [data-testid="stAppViewContainer"] {
+  background: #080b12 !important;
+  padding: 0 !important;
 }
-body:has(.dgt-landing-root) iframe {
+
+body.dgt-landing section.main,
+body.dgt-landing section[data-testid="stMain"] {
+  padding: 0 !important;
+}
+
+/* 부모는 스크롤 허용 — iframe 높이만큼 자연스럽게 늘어남 (중첩 스크롤 금지) */
+body.dgt-landing,
+body.dgt-landing [data-testid="stAppViewContainer"],
+body.dgt-landing .main,
+body.dgt-landing .main .block-container,
+body.dgt-landing [data-testid="stVerticalBlock"],
+body.dgt-landing [data-testid="stAppViewBlockContainer"] {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  gap: 0 !important;
+}
+
+body.dgt-landing iframe {
   width: 100% !important;
   border: none !important;
   display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #080b12 !important;
+  overflow: hidden !important;
 }
-body:has(.dgt-landing-root) [data-testid="stVerticalBlock"] {
-  gap: 0 !important;
-}
-.lnd-admin-link {
-  max-width: 400px;
-  margin: 12px auto 0;
+
+.lnd-footer-nav {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px 24px 24px;
   text-align: center;
+  background: #080b12;
 }
-.lnd-admin-link div[data-testid="stButton"] > button {
-  font-size: 0.78rem !important;
-  color: #8a7968 !important;
-  background: transparent !important;
-  border: 1px solid #ddd5c8 !important;
+
+.lnd-footer-nav--preview div[data-testid="stLinkButton"] > a {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #94a3b8 !important;
+  background: #141b2d !important;
+  border: 1px solid rgba(59,130,246,0.2) !important;
+  border-radius: 999px !important;
+  padding: 10px 16px !important;
+  text-decoration: none !important;
+}
+
+.lnd-footer-nav--preview [data-testid="stCaptionContainer"] p {
+  color: #64748b !important;
+  font-size: 0.72rem !important;
+  margin-top: 8px !important;
 }

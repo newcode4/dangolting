@@ -20,7 +20,7 @@ DEMO_DATA: list[dict] = [
             "초기 미팅 스크립트가 필요합니다. 이론보다 현장 경험담을 원해요."
         ),
         "note": "주 1회 저녁 온라인 미팅 가능. 경기 남부 거주.",
-        "dday": "D-14", "matched": "FALSE", "matched_w": "", "reject": 0,
+        "dday": "D-14", "paid": False, "refund": False, "matched": "FALSE", "matched_w": "", "reject": 0,
     },
     {
         "_row": 3, "ts": "2026. 6. 26 오후 8:11:32",
@@ -42,7 +42,7 @@ DEMO_DATA: list[dict] = [
             "영업은 잘하는데 전략 문서 퀄리티가 약한 편이에요."
         ),
         "note": "강남 오프라인 미팅 선호. 점심 미팅 가능.",
-        "dday": "D-14", "matched": "FALSE", "matched_w": "", "reject": 0,
+        "dday": "D-14", "paid": True, "refund": False, "matched": "FALSE", "matched_w": "", "reject": 0,
     },
     {
         "_row": 4, "ts": "2026. 6. 26 오후 8:18:05",
@@ -63,7 +63,7 @@ DEMO_DATA: list[dict] = [
             "마케팅은 할 수 있는데 사업 방향성 점검이 어려워요."
         ),
         "note": "공동 프로젝트 3개월 단위로 진행 희망.",
-        "dday": "D-10", "matched": "FALSE", "matched_w": "", "reject": 0,
+        "dday": "D-10", "paid": True, "refund": False, "matched": "FALSE", "matched_w": "", "reject": 0,
     },
     {
         "_row": 5, "ts": "2026. 6. 26 오후 8:22:41",
@@ -85,7 +85,7 @@ DEMO_DATA: list[dict] = [
             "제품은 있지만 유입 채널이 단일해서 확장이 막혀 있어요."
         ),
         "note": "에쿼티 또는 현금 리테이너 모두 논의 가능.",
-        "dday": "D-10", "matched": "FALSE", "matched_w": "", "reject": 0,
+        "dday": "D-10", "paid": True, "refund": False, "matched": "FALSE", "matched_w": "", "reject": 0,
     },
     {
         "_row": 6, "ts": "2026. 6. 26 오후 8:28:17",
@@ -107,7 +107,7 @@ DEMO_DATA: list[dict] = [
             "VC/엔젤 관점의 피드백이 필요합니다."
         ),
         "note": "",
-        "dday": "D-7", "matched": "TRUE", "matched_w": "이준서", "matched_at": "2026. 06. 20 14:30", "reject": 0,
+        "dday": "D-7", "paid": True, "refund": False, "matched": "TRUE", "matched_w": "이준서", "matched_at": "2026. 06. 20 14:30", "reject": 0,
     },
     {
         "_row": 7, "ts": "2026. 6. 26 오후 8:33:52",
@@ -128,7 +128,7 @@ DEMO_DATA: list[dict] = [
             "코드는 짤 수 있는데 GTM이 막막해요."
         ),
         "note": "기술 자문 30분 카페 미팅도 OK.",
-        "dday": "D-14", "matched": "FALSE", "matched_w": "", "reject": 1,
+        "dday": "D-14", "paid": True, "refund": False, "matched": "FALSE", "matched_w": "", "reject": 1,
     },
     {
         "_row": 8, "ts": "2026. 6. 26 오후 8:38:09",
@@ -150,7 +150,7 @@ DEMO_DATA: list[dict] = [
             "시장 검증 데이터를 보고 재무 구조를 같이 짜고 싶어요."
         ),
         "note": "",
-        "dday": "D-7", "matched": "FALSE", "matched_w": "", "reject": 2,
+        "dday": "D-7", "paid": True, "refund": False, "matched": "FALSE", "matched_w": "", "reject": 2,
     },
     {
         "_row": 9, "ts": "2026. 6. 26 오후 8:42:33",
@@ -172,6 +172,6 @@ DEMO_DATA: list[dict] = [
             "스케일업 HR 실무 인사이트 교류를 원합니다."
         ),
         "note": "투자 검토 목적 아닌 순수 네트워킹.",
-        "dday": "D-12", "matched": "FALSE", "matched_w": "", "reject": 0,
+        "dday": "D-12", "paid": True, "refund": True, "matched": "FALSE", "matched_w": "", "reject": 0,
     },
 ]

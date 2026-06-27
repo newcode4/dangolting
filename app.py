@@ -34,8 +34,10 @@ from utils.data_loader import expected_data_source, should_reload_df
 from utils.sheet_prefs import active_sheet_config, load_sheet_prefs, save_sheet_prefs
 from utils.auth import ensure_authenticated, current_user, logout
 from utils.landing import render_landing_page
+from utils.admin_route import admin_entry_path, is_admin_route, is_landing_preview_route, landing_preview_path
 from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
 from utils.unpaid import unpaid_applicants
+from utils.crm_ui import render_crm_tab
 from utils.telegram_notify import (
     telegram_enabled,
     telegram_config_status,
@@ -99,31 +101,43 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+def _crm_beacon_gate() -> None:
+    """랜딩 이벤트 수집 (?evt=page_view · img beacon)."""
+    from utils.crm_events import ALLOWED_EVENTS, record_event
+
+    evt = st.query_params.get("evt", "").strip()
+    if not evt or evt not in ALLOWED_EVENTS:
+        return
+    vid = st.query_params.get("vid", "").strip()[:64]
+    record_event(evt, visitor_id=vid)
+    components.html("", height=0, width=0)
+    st.stop()
+
+
+_crm_beacon_gate()
+
 THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
 st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
 
 
 def _public_entry_gate(logo_uri: str) -> None:
-    """미로그인 → 랜딩. 관리자 로그인 선택 시 로그인 화면."""
+    """공개 URL → 랜딩만. 관리자 URL(?p=…) → 로그인·대시보드."""
     if "auth_user" not in st.session_state:
         st.session_state["auth_user"] = None
-    if "admin_login" not in st.session_state:
-        st.session_state["admin_login"] = False
 
-    if st.session_state.get("auth_user"):
-        return
-
-    if not st.session_state.get("admin_login"):
+    if is_landing_preview_route():
         render_landing_page(logo_uri)
         st.stop()
 
-    if st.button("← 랜딩으로", key="back_to_landing"):
-        st.session_state["admin_login"] = False
-        st.rerun()
-
-    ensure_authenticated(logo_uri)
-    if not st.session_state.get("auth_user"):
+    if not is_admin_route():
+        render_landing_page(logo_uri)
         st.stop()
+
+    if not st.session_state.get("auth_user"):
+        ensure_authenticated(logo_uri)
+        if not st.session_state.get("auth_user"):
+            st.stop()
 
 
 _public_entry_gate(logo_data_uri())
@@ -225,6 +239,12 @@ def render_telegram_controls(*, key_prefix: str) -> None:
 
 
 def render_settings_panel(*, key_prefix: str) -> None:
+    preview = landing_preview_path()
+    st.markdown(
+        f'<a class="admin-landing-link" href="{preview}" target="_blank" rel="noopener">'
+        f"공개 랜딩 보기 ↗</a>",
+        unsafe_allow_html=True,
+    )
     st.caption(f"접속: {current_user()}")
     if st.button("로그아웃", key=f"{key_prefix}logout", use_container_width=True):
         logout()
@@ -405,6 +425,19 @@ def render_apps_script_guide() -> None:
             mime="text/plain",
             key="dl_apps_script",
         )
+
+
+def get_crm_raw_df() -> pd.DataFrame:
+    """CRM용 — 입금·환불 필터 없이 전체 신청."""
+    if demo_mode:
+        return load_demo_data()
+    if not sheet_url:
+        return pd.DataFrame()
+    try:
+        return _load_raw(sheet_url, ws_name, st.session_state["load_ver"])
+    except Exception as exc:
+        log_exception(exc, where="crm.load_raw")
+        return pd.DataFrame()
 
 
 def get_df() -> pd.DataFrame:
@@ -1234,7 +1267,10 @@ def render_profile_editor(idx: int, slot: int) -> None:
 
 
 df = get_df()
-if df.empty:
+crm_raw = get_crm_raw_df()
+df_empty = df.empty
+
+if df_empty:
     if st.session_state.get("demo_mode", True):
         st.warning("데모 데이터를 불러오지 못했습니다. **새로고침**을 눌러 보세요.")
     elif not _saved_sheet_url():
@@ -1244,16 +1280,15 @@ if df.empty:
         )
     else:
         st.warning(
-            "표시할 신청이 없습니다. 시트에 **입금확인**된 행만 보입니다. "
-            "V열(입금확인) 체크 · Y열(환불) 미체크인지 확인하세요."
+            "매칭 작업 탭: **입금확인**된 신청만 표시됩니다. "
+            "CRM 탭에서 입금 대기·전체 퍼널을 확인하세요."
         )
-    st.stop()
 
-n = len(df)
-m = int(df["matched"].astype(str).str.upper().eq("TRUE").sum())
-c = int(df["reject"].apply(parse_reject).ge(2).sum())
-r = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(parse_reject).eq(1)).sum())
-w = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(parse_reject).eq(0)).sum())
+n = len(df) if not df_empty else 0
+m = int(df["matched"].astype(str).str.upper().eq("TRUE").sum()) if not df_empty else 0
+c = int(df["reject"].apply(parse_reject).ge(2).sum()) if not df_empty else 0
+r = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(parse_reject).eq(1)).sum()) if not df_empty else 0
+w = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(parse_reject).eq(0)).sum()) if not df_empty else 0
 
 _logo = logo_data_uri()
 render_mobile_action_bar(has_selection=bool(st.session_state.get("selected")))
@@ -1281,129 +1316,142 @@ if st.session_state.get("flash"):
     st.success(st.session_state["flash"])
     st.session_state["flash"] = ""
 
-tab1, tab2, tab3, tab4 = st.tabs(["매칭 작업", "완료 목록", "원본 데이터", "설정 · 알림"])
+tab_crm, tab1, tab2, tab3, tab4 = st.tabs(["CRM · 퍼널", "매칭 작업", "완료 목록", "원본 데이터", "설정 · 알림"])
+
+with tab_crm:
+    render_crm_tab(raw_df=crm_raw, demo_mode=demo_mode)
 
 with tab1:
-    date_from, date_to = render_global_date_filter(df)
+    if df_empty:
+        st.info("입금 확인된 신청이 없습니다. **CRM · 퍼널** 탭에서 입금 대기 목록을 확인하세요.")
+    else:
+        date_from, date_to = render_global_date_filter(df)
 
-    render_field_filter_panel(df)
-    field_sel = collect_filter_selections()
-    cf = st.session_state.get("chip_filter")
-    render_active_filter_bar(field_sel, cf)
+        render_field_filter_panel(df)
+        field_sel = collect_filter_selections()
+        cf = st.session_state.get("chip_filter")
+        render_active_filter_bar(field_sel, cf)
 
-    selected: list = [i for i in st.session_state.get("selected", []) if i in df.index]
-    mob_view = st.session_state.get("mob_view", "list" if not selected else "detail")
-    if not selected:
-        st.session_state["mob_view"] = "list"
+        selected: list = [i for i in st.session_state.get("selected", []) if i in df.index]
+        mob_view = st.session_state.get("mob_view", "list" if not selected else "detail")
+        if not selected:
+            st.session_state["mob_view"] = "list"
 
-    q = render_search_bar(
-        "sq",
-        "이름 · 직군 · 지역 · 제공가치 · 원하는 것 — 입력 즉시 필터",
-    )
+        q = render_search_bar(
+            "sq",
+            "이름 · 직군 · 지역 · 제공가치 · 원하는 것 — 입력 즉시 필터",
+        )
 
-    list_marker = ""
-    if selected and mob_view == "list":
-        list_marker = '<span class="mob-show-list-only"></span>'
-    st.markdown('<span class="list-layout-anchor"></span>', unsafe_allow_html=True)
-    left, right = st.columns([22, 78], gap="large")
+        list_marker = ""
+        if selected and mob_view == "list":
+            list_marker = '<span class="mob-show-list-only"></span>'
+        st.markdown('<span class="list-layout-anchor"></span>', unsafe_allow_html=True)
+        left, right = st.columns([22, 78], gap="large")
 
-    with left:
-        st.markdown(f'<span class="list-panel-col">{list_marker}</span>', unsafe_allow_html=True)
-        with st.container(border=True):
-            st.markdown('<p class="panel-lbl">상태</p>', unsafe_allow_html=True)
-            fs = st.radio(
-                "상태",
-                ["전체", "대기", "거절", "완료", "종료"],
-                horizontal=True,
-                label_visibility="collapsed",
-                key="fs",
-            )
-            st.markdown('<p class="panel-lbl sort-lbl">정렬</p>', unsafe_allow_html=True)
-            sort_by = st.selectbox(
-                "정렬",
-                ["D-day 임박순", "D-day 여유순", "이름순", "신청순"],
-                index=0,
-                label_visibility="collapsed",
-                key="list_sort",
-            )
-
-            fdf = df.copy()
-            fdf = apply_date_filter(fdf, date_from, date_to)
-            fdf = filter_by_status(fdf, fs) if fs != "전체" else fdf
-            fdf = apply_field_filters(fdf, field_sel)
-            fdf = apply_keyword_filter(fdf, cf)
-            fdf = search_df(fdf, q)
-            if sort_by != "신청순":
-                fdf = sort_list_df(fdf, sort_by)
-
-            sel_hint = f" · 선택 {len(selected)}/2" if selected else ""
-            st.markdown('<div class="list-divider"></div>', unsafe_allow_html=True)
-            st.markdown(f'<p class="list-hdr">{len(fdf)}명{sel_hint}</p>', unsafe_allow_html=True)
-
-            for block in build_list_blocks(fdf):
-                if block[0] == "pair":
-                    ia, ib = block[1], block[2]
-                    render_match_pair(ia, ib, fdf.loc[ia], fdf.loc[ib], selected)
-                else:
-                    idx = block[1]
-                    render_list_row(idx, fdf.loc[idx], selected)
-
-            if selected:
-                if st.button("선택 초기화", key="clr_all", use_container_width=True):
-                    st.session_state["selected"] = []
-                    st.session_state["mob_view"] = "list"
-                    st.rerun()
-
-    with right:
-        with st.container(border=True):
-            if not selected:
-                st.markdown(
-                    '<p class="empty-hint">목록에서 1~2명을 선택하세요.<br>'
-                    '2명 선택 시 비교 탭에서 나란히 확인할 수 있습니다.</p>',
-                    unsafe_allow_html=True,
+        with left:
+            st.markdown(f'<span class="list-panel-col">{list_marker}</span>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown('<p class="panel-lbl">상태</p>', unsafe_allow_html=True)
+                fs = st.radio(
+                    "상태",
+                    ["전체", "대기", "거절", "완료", "종료"],
+                    horizontal=True,
+                    label_visibility="collapsed",
+                    key="fs",
                 )
-            elif len(selected) == 1:
-                if mob_view == "detail":
-                    st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
-                render_person(selected[0], 1, show_recommend=True, include_back=True)
-                st.caption("한 명 더 선택하면 비교 화면이 열립니다.")
-            else:
-                if mob_view == "detail":
-                    st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
-                render_compare_panel(selected[0], selected[1])
+                st.markdown('<p class="panel-lbl sort-lbl">정렬</p>', unsafe_allow_html=True)
+                sort_by = st.selectbox(
+                    "정렬",
+                    ["D-day 임박순", "D-day 여유순", "이름순", "신청순"],
+                    index=0,
+                    label_visibility="collapsed",
+                    key="list_sort",
+                )
+
+                fdf = df.copy()
+                fdf = apply_date_filter(fdf, date_from, date_to)
+                fdf = filter_by_status(fdf, fs) if fs != "전체" else fdf
+                fdf = apply_field_filters(fdf, field_sel)
+                fdf = apply_keyword_filter(fdf, cf)
+                fdf = search_df(fdf, q)
+                if sort_by != "신청순":
+                    fdf = sort_list_df(fdf, sort_by)
+
+                sel_hint = f" · 선택 {len(selected)}/2" if selected else ""
+                st.markdown('<div class="list-divider"></div>', unsafe_allow_html=True)
+                st.markdown(f'<p class="list-hdr">{len(fdf)}명{sel_hint}</p>', unsafe_allow_html=True)
+
+                for block in build_list_blocks(fdf):
+                    if block[0] == "pair":
+                        ia, ib = block[1], block[2]
+                        render_match_pair(ia, ib, fdf.loc[ia], fdf.loc[ib], selected)
+                    else:
+                        idx = block[1]
+                        render_list_row(idx, fdf.loc[idx], selected)
+
+                if selected:
+                    if st.button("선택 초기화", key="clr_all", use_container_width=True):
+                        st.session_state["selected"] = []
+                        st.session_state["mob_view"] = "list"
+                        st.rerun()
+
+        with right:
+            with st.container(border=True):
+                if not selected:
+                    st.markdown(
+                        '<p class="empty-hint">목록에서 1~2명을 선택하세요.<br>'
+                        '2명 선택 시 비교 탭에서 나란히 확인할 수 있습니다.</p>',
+                        unsafe_allow_html=True,
+                    )
+                elif len(selected) == 1:
+                    if mob_view == "detail":
+                        st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
+                    render_person(selected[0], 1, show_recommend=True, include_back=True)
+                    st.caption("한 명 더 선택하면 비교 화면이 열립니다.")
+                else:
+                    if mob_view == "detail":
+                        st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
+                    render_compare_panel(selected[0], selected[1])
 
 with tab2:
-    pairs = collect_matched_pairs(df)
-    st.markdown(
-        f'<div class="done-toolbar">'
-        f'<span class="done-count">완료 매칭 <b>{len(pairs)}</b>쌍</span></div>',
-        unsafe_allow_html=True,
-    )
-    q_done = st.text_input(
-        "완료 검색",
-        placeholder="이름 · 직군 · 지역 · 연락처 검색",
-        label_visibility="collapsed",
-        key="done_q",
-    )
-    pairs = filter_pairs(pairs, q_done)
-
-    if not pairs:
+    if df_empty:
+        st.info("완료 매칭 목록이 없습니다.")
+    else:
+        pairs = collect_matched_pairs(df)
         st.markdown(
-            '<p class="done-empty">완료된 매칭이 없습니다.</p>',
+            f'<div class="done-toolbar">'
+            f'<span class="done-count">완료 매칭 <b>{len(pairs)}</b>쌍</span></div>',
             unsafe_allow_html=True,
         )
-    else:
-        cards = "".join(render_done_card(p) for p in pairs)
-        st.markdown(f'<div class="done-grid">{cards}</div>', unsafe_allow_html=True)
+        q_done = st.text_input(
+            "완료 검색",
+            placeholder="이름 · 직군 · 지역 · 연락처 검색",
+            label_visibility="collapsed",
+            key="done_q",
+        )
+        pairs = filter_pairs(pairs, q_done)
+
+        if not pairs:
+            st.markdown(
+                '<p class="done-empty">완료된 매칭이 없습니다.</p>',
+                unsafe_allow_html=True,
+            )
+        else:
+            cards = "".join(render_done_card(p) for p in pairs)
+            st.markdown(f'<div class="done-grid">{cards}</div>', unsafe_allow_html=True)
 
 with tab3:
+    src = crm_raw if df_empty else df
     labels = {
         "name": "성함", "gender": "성별", "job": "직군", "region": "지역",
         "have": "제공가치", "want": "원하는것", "matched": "매칭여부",
-        "reject": "거절횟수", "dday": "D-day",
+        "reject": "거절횟수", "dday": "D-day", "paid": "입금", "refund": "환불",
     }
-    cols = [c for c in labels if c in df.columns]
-    st.dataframe(df[cols].rename(columns=labels), use_container_width=True, height=320)
+    cols = [c for c in labels if c in src.columns]
+    if not cols or src.empty:
+        st.info("표시할 데이터가 없습니다.")
+    else:
+        st.dataframe(src[cols].rename(columns=labels), use_container_width=True, height=320)
 
 with tab4:
     st.markdown("#### 연동 · 알림")

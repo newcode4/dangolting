@@ -4,6 +4,7 @@ data/users.json
 data/telegram.toml
 data/telegram_notify_state.json
 data/sheet_prefs.json
+data/crm_events.jsonl
 data/logs/
 json/
 __pycache__/
