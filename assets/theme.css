@@ -57,9 +57,29 @@ footer { display: none !important; }
     min-width: 280px !important;
     margin-left: 0 !important;
   }
-  [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-    padding: 1rem 1.1rem 2rem !important;
-  }
+[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+  padding: 1rem 1.1rem 2rem !important;
+}
+
+/* 사이드바 — 텔레그램·설정 버튼 세로 간격 */
+[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+  min-height: 38px !important;
+  font-size: 0.78rem !important;
+  white-space: nowrap !important;
+}
+[data-testid="stSidebar"] div[data-testid="stHorizontalBlock"] {
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+[data-testid="stSidebar"] div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
+  min-width: 0 !important;
+}
+[data-testid="stSidebar"] div[data-testid="stHorizontalBlock"] > [data-testid="column"]
+  div[data-testid="stButton"] > button {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 6px 8px !important;
+}
   /* 닫기·열기 토글 숨김 — 실수로 접으면 CSS로 복구 */
   [data-testid="collapsedControl"],
   [data-testid="stSidebarCollapsedControl"] {

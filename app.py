@@ -151,29 +151,48 @@ def render_telegram_controls(*, key_prefix: str) -> None:
     st.caption(f"📱 텔레그램 — {telegram_config_status()}")
     if telegram_enabled():
         st.caption(f"신규 신청 폴링 · 약 {poll_interval_seconds() // 60}분 (앱 켜져 있을 때)")
-        tg1, tg2, tg3 = st.columns(3)
-        with tg1:
+        stacked = key_prefix.startswith("side_")
+
+        def _btn_test() -> None:
+            if send_test_notification():
+                st.toast("테스트 알림을 보냈습니다")
+            else:
+                st.error("발송 실패 — bot_token · chat_id · 봇 /start 확인")
+
+        def _btn_poll() -> None:
+            if st.session_state["demo_mode"] or not _saved_sheet_url():
+                st.info("데모 끄고 실제 시트 연동 후 사용하세요")
+            else:
+                n = run_applicant_watch(_saved_sheet_url(), _saved_ws_name())
+                st.toast(f"알림 {n}건 발송" if n else "새 신청 없음 (또는 이미 알림 보냄)")
+
+        def _btn_baseline() -> None:
+            if not st.session_state["demo_mode"] and _saved_sheet_url():
+                reset_notify_baseline(_saved_sheet_url(), _saved_ws_name())
+                st.toast("알림 기준선을 현재 시트로 맞췄습니다")
+            else:
+                st.info("데모 끄고 실제 시트 연동 후 사용하세요")
+
+        if stacked:
             if st.button("알림 테스트", key=f"{key_prefix}tg_test", use_container_width=True):
-                if send_test_notification():
-                    st.toast("테스트 알림을 보냈습니다")
-                else:
-                    st.error("발송 실패 — bot_token · chat_id · 봇 /start 확인")
-        with tg2:
+                _btn_test()
             if st.button("지금 확인", key=f"{key_prefix}tg_poll", use_container_width=True):
-                if st.session_state["demo_mode"] or not _saved_sheet_url():
-                    st.info("데모 끄고 실제 시트 연동 후 사용하세요")
-                else:
-                    n = run_applicant_watch(
-                        _saved_sheet_url(), _saved_ws_name()
-                    )
-                    st.toast(f"알림 {n}건 발송" if n else "새 신청 없음 (또는 이미 알림 보냄)")
-        with tg3:
-            if st.button("기준선", key=f"{key_prefix}tg_reset", use_container_width=True, help="지금까지 신청은 알림 제외"):
-                if not st.session_state["demo_mode"] and _saved_sheet_url():
-                    reset_notify_baseline(_saved_sheet_url(), _saved_ws_name())
-                    st.toast("알림 기준선을 현재 시트로 맞췄습니다")
-                else:
-                    st.info("데모 끄고 실제 시트 연동 후 사용하세요")
+                _btn_poll()
+            if st.button("기준선", key=f"{key_prefix}tg_reset", use_container_width=True):
+                _btn_baseline()
+            st.caption("기준선 — 지금까지 신청은 알림에서 제외")
+        else:
+            tg1, tg2, tg3 = st.columns(3, gap="small")
+            with tg1:
+                if st.button("알림 테스트", key=f"{key_prefix}tg_test", use_container_width=True):
+                    _btn_test()
+            with tg2:
+                if st.button("지금 확인", key=f"{key_prefix}tg_poll", use_container_width=True):
+                    _btn_poll()
+            with tg3:
+                if st.button("기준선", key=f"{key_prefix}tg_reset", use_container_width=True):
+                    _btn_baseline()
+            st.caption("기준선 — 지금까지 신청은 알림에서 제외")
     else:
         st.caption("`data/telegram.toml.example` → `data/telegram.toml` 복사 후 token · chat_id 입력")
         st.caption("또는 `.streamlit/secrets.toml`의 [telegram] 섹션 (template 파일은 읽히지 않음)")
