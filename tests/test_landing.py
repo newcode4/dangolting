@@ -13,7 +13,9 @@ def test_content_max_width():
 def test_landing_hook_section():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "hook-panel" in html
-    assert 'data-count="1000"' in html
+    assert 'data-count="10"' in html
+    assert 'data-suffix="배+"' in html
+    assert "평생 비즈니스 파트너" in html
     assert "initHookCounters" in html
 
 
@@ -70,6 +72,15 @@ def test_landing_fab():
     assert "injectFAB" in html
     assert "scrollParentToTop" in html
     assert "dgt-fab-top" in html
+    assert "max-width:768px" in html
+
+
+def test_landing_footer_admin_link():
+    """푸터 관리자 진입 링크."""
+    html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", admin_url="/?p=dangol-admin")
+    assert "footer-link-admin" in html
+    assert 'data-admin-go="/?p=dangol-admin"' in html
+    assert "관리자" in html
 
 
 def test_landing_kakao_link():

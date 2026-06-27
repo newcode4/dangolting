@@ -297,7 +297,7 @@ div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
   margin: 24px 0 18px;
 }
 
-/* 상태 필터 — 3열 그리드로 2행 간격 확보 */
+/* 상태 필터 — 1줄 5칸 */
 div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
   > [data-testid="stVerticalBlockBorderWrapper"] > [data-testid="stVerticalBlock"]
   > div:has([data-testid="stRadio"]) {
@@ -311,17 +311,28 @@ div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
 div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
   > [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stRadio"] [role="radiogroup"] {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 10px 8px !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 6px !important;
   padding-bottom: 4px !important;
 }
 div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
   > [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stRadio"] label {
   margin: 0 !important;
-  padding: 10px 8px !important;
+  padding: 8px 2px !important;
   text-align: center !important;
   justify-content: center !important;
-  min-height: 38px !important;
+  min-height: 36px !important;
+  font-size: 0.72rem !important;
+}
+div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
+  > [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stRadio"] label > div:first-child {
+  display: none !important;
+}
+div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
+  > [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stRadio"] [aria-checked="true"] {
+  border-color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.12) !important;
+  color: #58a6ff !important;
 }
 div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child [data-testid="stSelectbox"] {
   margin-bottom: 18px !important;

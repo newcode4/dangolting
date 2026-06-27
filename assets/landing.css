@@ -9,6 +9,16 @@ body.dgt-landing footer {
   display: none !important;
 }
 
+/* Streamlit Cloud "Hosted with Streamlit" 배지 — FAB 가림 방지 */
+body.dgt-landing [data-testid="stBottom"],
+body.dgt-landing .stAppDeployButton,
+body.dgt-landing [class*="viewerBadge"],
+body.dgt-landing a[href*="streamlit.io"][target="_blank"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Streamlit 내부 스크롤·뷰포트 고정 해제 → 브라우저 단일 스크롤 */
 body.dgt-landing,
 html:has(body.dgt-landing) {

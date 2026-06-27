@@ -24,17 +24,33 @@ def _read_css(path: Path) -> str:
 
 
 @st.cache_resource
-def _read_css_cached(path_str: str) -> str:
-    """배포 환경에서 CSS를 한 번만 읽어 캐싱."""
+def _read_css_cached(path_str: str, _mtime: float) -> str:
+    """배포 환경 CSS 캐시 — 파일 수정 시 mtime으로 무효화."""
     try:
         return Path(path_str).read_text(encoding="utf-8")
     except OSError:
         return ""
 
 
-def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *, shell_preview: bool = False) -> str:
+def _css_mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+def _landing_html(
+    logo_uri: str,
+    form_url: str,
+    page_css: str,
+    shell_css: str,
+    *,
+    admin_url: str = "/?p=dgt-manage",
+    shell_preview: bool = False,
+) -> str:
     logo = html.escape(logo_uri)
     form = html.escape(form_url)
+    admin = html.escape(admin_url)
     fee = html.escape(PARTICIPATION_FEE)
     shell_js = json.dumps(shell_css)
     shell_preview_js = "true" if shell_preview else "false"
@@ -94,23 +110,36 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <div class="hook-head reveal-item">
       <span class="hook-kicker">잠깐, 이 숫자를 보세요 ↓</span>
       <h2>아는 사람은 많아도, 비즈니스로 <em>서로 이득</em>이 되는 사람은 드뭅니다</h2>
-      <p>인맥은 넓은데 막상 도움이 되는 사람은 손에 꼽죠. <strong>비즈니스 시너지가 나는 파트너 한 명</strong>이 생기면 성장 속도가 완전히 달라집니다.</p>
+      <p>인맥은 넓은데, 평생 비즈니스 파트너는 <strong>손에 꼽습니다</strong>.<br/>
+      한 명만 제대로 붙어도 성장 속도는 <strong>완전히 다른 레벨</strong>로 올라갑니다.</p>
     </div>
 
-    <div class="hook-flow reveal-item">
-      <div class="hook-step">
-        <div class="hook-step-num"><span class="count" data-count="1000" data-suffix="+">0</span></div>
-        <div class="hook-step-lbl">평생 알게 되는 비즈니스 지인 수</div>
+    <div class="hook-climax reveal-item">
+      <div class="hook-climax-band">
+        <div class="hook-band-stat">
+          <span class="hook-band-num"><span class="count" data-count="10" data-prefix="~" data-suffix="명">0</span></span>
+          <span class="hook-band-lbl">평생 비즈니스 파트너</span>
+        </div>
+        <span class="hook-band-arrow" aria-hidden="true">→</span>
+        <div class="hook-band-stat hook-band-stat--lit">
+          <span class="hook-band-num"><span class="count" data-count="1" data-prefix="~" data-suffix="명">0</span></span>
+          <span class="hook-band-lbl">1년에 새로 생기는 진짜 파트너</span>
+        </div>
       </div>
-      <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
-      <div class="hook-step hook-step--mid">
-        <div class="hook-step-num"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
-        <div class="hook-step-lbl">1년에 새로 생기는 진짜 비즈니스 파트너</div>
+      <div class="hook-climax-body">
+      <div class="hook-climax-left">
+        <span class="hook-climax-tag">혼자 성장할 때</span>
+        <div class="hook-climax-num hook-climax-num--dim">×1</div>
+        <p class="hook-climax-desc">6개월 뒤에도 비슷한 속도</p>
       </div>
-      <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
-      <div class="hook-step hook-step--hot">
-        <div class="hook-step-num"><span class="count" data-count="3" data-suffix="배">0</span></div>
-        <div class="hook-step-lbl">비즈니스 파트너가 생기면 달라지는 성장 속도</div>
+      <div class="hook-climax-divider" aria-hidden="true"><span>VS</span></div>
+      <div class="hook-climax-right">
+        <span class="hook-climax-tag hook-climax-tag--hot">단골 1명 연결 후</span>
+        <div class="hook-climax-num hook-climax-num--hero">
+          <span class="count" data-count="10" data-suffix="배+">0</span>
+        </div>
+        <p class="hook-climax-desc hook-climax-desc--hot">성장 속도, 완전히 다른 레벨</p>
+      </div>
       </div>
     </div>
 
@@ -121,9 +150,13 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
           <svg class="growth-svg" viewBox="0 0 480 180" preserveAspectRatio="none" aria-hidden="true">
             <defs>
               <linearGradient id="duoAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.28"/>
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35"/>
                 <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
               </linearGradient>
+              <filter id="lineBlueGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
               <filter id="dotBlue" x="-80%" y="-80%" width="260%" height="260%">
                 <feGaussianBlur stdDeviation="4" result="blur"/>
                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -132,13 +165,13 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
             <line x1="0" y1="40" x2="480" y2="40" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
             <line x1="0" y1="90" x2="480" y2="90" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
             <line x1="0" y1="140" x2="480" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-            <line x1="180" y1="10" x2="180" y2="172" stroke="rgba(96,165,250,0.25)" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <line x1="180" y1="10" x2="180" y2="172" stroke="rgba(96,165,250,0.35)" stroke-width="1.5" stroke-dasharray="5 4"/>
             <path class="chart-area-duo" d="M 0,165 C 70,163 130,158 180,148 C 265,108 380,20 480,3 L480,172 L0,172 Z" fill="url(#duoAreaGrad)" opacity="0"/>
-            <path class="chart-path-solo" d="M 0,165 C 160,163 310,158 480,138" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
-            <path class="chart-path-duo" d="M 0,165 C 70,163 130,158 180,148 C 265,108 380,20 480,3" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-            <circle class="chart-dot-solo" cx="480" cy="138" r="5" fill="#64748b" opacity="0"/>
-            <circle class="chart-dot-duo" cx="480" cy="3" r="6" fill="#60a5fa" opacity="0" filter="url(#dotBlue)"/>
-            <text x="185" y="142" font-size="10.5" fill="rgba(96,165,250,0.75)" font-family="Pretendard,Apple SD Gothic Neo,sans-serif" font-weight="700">↗ 단골 연결</text>
+            <path class="chart-path-solo" d="M 0,165 C 160,163 310,158 480,138" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+            <path class="chart-path-duo" d="M 0,165 C 70,163 130,158 180,148 C 265,108 380,20 480,3" fill="none" stroke="#60a5fa" stroke-width="4" stroke-linecap="round" filter="url(#lineBlueGlow)"/>
+            <circle class="chart-dot-solo" cx="480" cy="138" r="4" fill="#475569" opacity="0"/>
+            <circle class="chart-dot-duo" cx="480" cy="3" r="7" fill="#93c5fd" opacity="0" filter="url(#dotBlue)"/>
+            <text x="185" y="142" font-size="10.5" fill="rgba(147,197,253,0.9)" font-family="Pretendard,Apple SD Gothic Neo,sans-serif" font-weight="700">↗ 단골 연결</text>
           </svg>
           <div class="chart-end-labels">
             <span class="chart-end-duo">단골팅</span>
@@ -177,7 +210,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         </p>
         <p class="founder-story founder-story--highlight">
           그런데 저는 그 과정이 <strong>재밌었습니다.</strong><br/>
-          사람을 읽고, 비즈니스 맥락을 파악하고, 누가 누구에게 어떤 가치를 줄 수 있는지 찾는 게 — 저한테는 놀이예요.
+          사람을 읽고, 비즈니스 맥락을 파악하고, 누가 누구에게 어떤 가치를 줄 수 있는지 <span class="founder-keep">찾는 게 — 저한테는 놀이예요.</span>
         </p>
         <p class="founder-story">
           &ldquo;남들이 힘들어하는 걸 내가 즐긴다면 — 내가 하면 되잖아.&rdquo;<br/>
@@ -473,6 +506,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <button type="button" data-modal="refundModal">환불 규정</button>
       <button type="button" data-modal="privacyModal">개인정보처리방침</button>
       <a href="https://open.kakao.com/me/dangolgrow" data-external-raw="https://open.kakao.com/me/dangolgrow" class="footer-link-kakao">카카오로 문의하기</a>
+      <a href="{admin}" class="footer-link-admin" data-admin-go="{admin}">관리자</a>
     </nav>
   </footer>
 
@@ -652,7 +686,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       var styleEl = pdoc.createElement("style");
       styleEl.id = "dgt-fab-style";
       styleEl.textContent = [
-        "#dgt-fab-top{{position:fixed;bottom:28px;right:24px;width:46px;height:46px;border-radius:50%;",
+        "#dgt-fab-top{{position:fixed;bottom:calc(28px + env(safe-area-inset-bottom,0px));right:24px;width:46px;height:46px;border-radius:50%;",
         "background:rgba(15,22,42,0.92);border:1px solid rgba(96,165,250,0.4);color:#93c5fd;",
         "display:flex;align-items:center;justify-content:center;cursor:pointer;",
         "backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,0.45);",
@@ -660,7 +694,8 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         "pointer-events:none;z-index:9999;}}",
         "#dgt-fab-top svg{{width:20px;height:20px;stroke-width:2.5;stroke-linecap:round;}}",
         "#dgt-fab-top.dgt-fab-visible{{opacity:1;transform:translateY(0);pointer-events:auto;}}",
-        "#dgt-fab-top:hover{{background:rgba(25,38,72,0.96);border-color:rgba(96,165,250,0.65);}}"
+        "#dgt-fab-top:hover{{background:rgba(25,38,72,0.96);border-color:rgba(96,165,250,0.65);}}",
+        "@media (max-width:768px){{#dgt-fab-top{{bottom:calc(76px + env(safe-area-inset-bottom,0px));right:16px;width:44px;height:44px;}}}}"
       ].join("");
       pdoc.head.appendChild(styleEl);
 
@@ -849,7 +884,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         }});
         ScrollTrigger.create({{
           scroller: scroller,
-          trigger: el.closest(".hook-panel, .stat-grid, .hook-bars") || el,
+          trigger: el.closest(".hook-panel, .stat-grid, .hook-bars, .hook-climax") || el,
           start: "top 84%",
           onEnter: function () {{ obj.val = 0; tween.restart(); }},
           onEnterBack: function () {{ obj.val = 0; tween.restart(); }},
@@ -898,24 +933,44 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         .to(dotDuo, {{ opacity: 1, duration: 0.15 }}, 0.92);
     }}
 
-    gsap.utils.toArray(".hook-arrow span").forEach(function (arrow) {{
+    gsap.utils.toArray(".hook-band-arrow").forEach(function (arrow) {{
       gsap.fromTo(
         arrow,
-        {{ x: -6, opacity: 0.35 }},
+        {{ opacity: 0.25, scale: 0.85 }},
         {{
-          x: 6,
           opacity: 1,
+          scale: 1,
           ease: "none",
           scrollTrigger: {{
             scroller: scroller,
-            trigger: arrow.closest(".hook-flow"),
+            trigger: arrow.closest(".hook-climax"),
             start: "top 80%",
-            end: "top 45%",
+            end: "top 50%",
             scrub: 0.35
           }}
         }}
       );
     }});
+
+    var climaxRight = document.querySelector(".hook-climax-right");
+    if (climaxRight) {{
+      gsap.fromTo(
+        climaxRight,
+        {{ scale: 0.94, opacity: 0.6 }},
+        {{
+          scale: 1,
+          opacity: 1,
+          ease: "power2.out",
+          scrollTrigger: {{
+            scroller: scroller,
+            trigger: climaxRight.closest(".hook-climax"),
+            start: "top 78%",
+            end: "top 52%",
+            scrub: 0.4
+          }}
+        }}
+      );
+    }}
 
     initHookCounters();
     initGrowthChart();
@@ -1062,6 +1117,18 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     }});
   }});
 
+  document.querySelectorAll("[data-admin-go]").forEach(function (el) {{
+    el.addEventListener("click", function (e) {{
+      e.preventDefault();
+      var path = el.getAttribute("data-admin-go") || "/";
+      try {{
+        window.parent.location.href = path;
+      }} catch (err) {{
+        window.location.href = path;
+      }}
+    }});
+  }});
+
   document.querySelectorAll("[data-scroll-to]").forEach(function (el) {{
     el.addEventListener("click", function (e) {{
       e.preventDefault();
@@ -1119,12 +1186,19 @@ def render_landing_page(logo_uri: str) -> None:
     """공개 랜딩. 관리자 미리보기(?view=landing + 로그인)일 때만 하단 네비."""
     from utils.admin_route import admin_entry_path, is_landing_preview_route
 
-    shell_css = _read_css_cached(str(_SHELL_CSS_PATH))
-    page_css = _read_css_cached(str(_PAGE_CSS_PATH))
+    shell_css = _read_css_cached(str(_SHELL_CSS_PATH), _css_mtime(_SHELL_CSS_PATH))
+    page_css = _read_css_cached(str(_PAGE_CSS_PATH), _css_mtime(_PAGE_CSS_PATH))
     preview = is_landing_preview_route() and bool(st.session_state.get("auth_user"))
 
     components.html(
-        _landing_html(logo_uri, APPLICATION_FORM_URL, page_css, shell_css, shell_preview=preview),
+        _landing_html(
+            logo_uri,
+            APPLICATION_FORM_URL,
+            page_css,
+            shell_css,
+            admin_url=admin_entry_path(),
+            shell_preview=preview,
+        ),
         height=LANDING_IFRAME_HEIGHT,
         scrolling=False,
     )
