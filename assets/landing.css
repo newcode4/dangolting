@@ -1,0 +1,207 @@
+/* ── 공개 랜딩 (모바일 퍼스트) ── */
+body:has(.dgt-landing) [data-testid="stSidebar"],
+body:has(.dgt-landing) [data-testid="stSidebarCollapsedControl"],
+body:has(.dgt-landing) header[data-testid="stHeader"],
+body:has(.dgt-landing) [data-testid="stToolbar"],
+body:has(.dgt-landing) [data-testid="stDecoration"],
+body:has(.dgt-landing) #MainMenu,
+body:has(.dgt-landing) footer {
+  display: none !important;
+}
+body:has(.dgt-landing) .main .block-container {
+  max-width: 480px !important;
+  padding: 0 16px 48px !important;
+  margin: 0 auto !important;
+}
+body:has(.dgt-landing) .main {
+  background: #faf8f5 !important;
+}
+
+.dgt-landing {
+  color: #2c2419;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  line-height: 1.55;
+}
+.dgt-landing * { box-sizing: border-box; }
+
+.lnd-hero {
+  text-align: center;
+  padding: 28px 8px 24px;
+}
+.lnd-logo {
+  width: 72px; height: 72px;
+  margin: 0 auto 16px;
+  display: block;
+}
+.lnd-hero h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0 0 12px;
+  color: #1a1510;
+  letter-spacing: -0.02em;
+}
+.lnd-hero .sub {
+  font-size: 0.88rem;
+  color: #6b5d4f;
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+.lnd-deco {
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  color: #a67c52;
+  margin: 8px 0 20px;
+}
+
+.lnd-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 15px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  transition: opacity 0.15s;
+}
+.lnd-btn:hover { opacity: 0.92; }
+.lnd-btn-primary {
+  background: linear-gradient(180deg, #b8895a 0%, #9a6b3f 100%);
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(154, 107, 63, 0.35);
+}
+.lnd-btn-outline {
+  background: #fff;
+  color: #5c4a38 !important;
+  border: 1.5px solid #d4c4b0;
+}
+
+.lnd-section {
+  margin: 32px 0;
+  padding: 0 4px;
+}
+.lnd-section h2 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 8px;
+  color: #1a1510;
+}
+.lnd-section .lnd-lead {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #8a7968;
+  margin: 0 0 20px;
+}
+
+.lnd-faq {
+  background: #fff;
+  border: 1px solid #e8dfd3;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+.lnd-faq summary {
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  list-style: none;
+}
+.lnd-faq summary::-webkit-details-marker { display: none; }
+.lnd-faq p {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  color: #5c4a38;
+  line-height: 1.65;
+}
+
+.lnd-review {
+  background: #fff;
+  border: 1px solid #e8dfd3;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.lnd-review .meta {
+  font-size: 0.72rem;
+  color: #a67c52;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.lnd-review p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #3d342c;
+  line-height: 1.65;
+}
+
+.lnd-reason {
+  margin-bottom: 28px;
+}
+.lnd-reason-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #b8895a;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.lnd-reason h3 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  line-height: 1.45;
+  color: #1a1510;
+}
+.lnd-reason .quote {
+  font-size: 0.8rem;
+  color: #8a7968;
+  font-style: italic;
+  margin: 0 0 10px;
+}
+.lnd-reason p {
+  font-size: 0.82rem;
+  color: #5c4a38;
+  margin: 0;
+  line-height: 1.7;
+}
+
+.lnd-cta-box {
+  text-align: center;
+  background: linear-gradient(180deg, #fff9f2 0%, #fff 100%);
+  border: 1px solid #e8dfd3;
+  border-radius: 18px;
+  padding: 28px 20px;
+  margin: 36px 0 24px;
+}
+.lnd-cta-box h2 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+.lnd-cta-box p {
+  font-size: 0.82rem;
+  color: #6b5d4f;
+  margin: 0 0 18px;
+  line-height: 1.6;
+}
+
+.lnd-footer {
+  text-align: center;
+  font-size: 0.68rem;
+  color: #9a8b7a;
+  line-height: 1.7;
+  padding-top: 16px;
+  border-top: 1px solid #e8dfd3;
+}
+.lnd-footer a {
+  color: #8a7968;
+  text-decoration: none;
+  margin: 0 8px;
+}
+.lnd-admin-link {
+  margin-top: 20px;
+  text-align: center;
+}

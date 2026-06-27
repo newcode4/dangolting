@@ -33,6 +33,7 @@ from utils.search_index import search_df, drop_search_index, ensure_search_index
 from utils.data_loader import expected_data_source, should_reload_df
 from utils.sheet_prefs import active_sheet_config, load_sheet_prefs, save_sheet_prefs
 from utils.auth import ensure_authenticated, current_user, logout
+from utils.landing import render_landing_page
 from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
 from utils.unpaid import unpaid_applicants
 from utils.telegram_notify import (
@@ -101,7 +102,31 @@ st.set_page_config(
 THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
 st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
 
-ensure_authenticated(logo_data_uri())
+
+def _public_entry_gate(logo_uri: str) -> None:
+    """미로그인 → 랜딩. 관리자 로그인 선택 시 로그인 화면."""
+    if "auth_user" not in st.session_state:
+        st.session_state["auth_user"] = None
+    if "admin_login" not in st.session_state:
+        st.session_state["admin_login"] = False
+
+    if st.session_state.get("auth_user"):
+        return
+
+    if not st.session_state.get("admin_login"):
+        render_landing_page(logo_uri)
+        st.stop()
+
+    if st.button("← 랜딩으로", key="back_to_landing"):
+        st.session_state["admin_login"] = False
+        st.rerun()
+
+    ensure_authenticated(logo_uri)
+    if not st.session_state.get("auth_user"):
+        st.stop()
+
+
+_public_entry_gate(logo_data_uri())
 ensure_sidebar_visible()
 
 for k, v in [
