@@ -88,6 +88,34 @@ def _theme_css_inline() -> str:
     return f"/* rev:{path.stat().st_mtime:.0f} */\n{css}"
 
 
+def _force_admin_full_width() -> None:
+    """Streamlit emotion CSS가 나중에 max-width를 주입하므로 JS로 직접 제거."""
+    components.html(
+        """<script>
+        (function () {
+          var pd = window.parent.document;
+          function fix() {
+            [
+              '[data-testid="stMainBlockContainer"]',
+              'section.main > div.block-container',
+              '[data-testid="stMain"] > div'
+            ].forEach(function (sel) {
+              pd.querySelectorAll(sel).forEach(function (el) {
+                el.style.setProperty('max-width', 'none', 'important');
+                el.style.setProperty('width',     '100%',  'important');
+              });
+            });
+          }
+          fix();
+          [200, 600, 1500].forEach(function (ms) { setTimeout(fix, ms); });
+          new MutationObserver(fix).observe(pd.body, { childList: true, subtree: false });
+        })();
+        </script>""",
+        height=0,
+        width=0,
+    )
+
+
 def ensure_sidebar_visible() -> None:
     """접힌 사이드바를 자동으로 다시 펼침 (CSS 보조)."""
     components.html(
@@ -192,6 +220,8 @@ _public_entry_gate(logo_data_uri())
 from utils.scroll_top import reset_page_scroll
 
 reset_page_scroll()
+
+_force_admin_full_width()   # Streamlit emotion CSS max-width 강제 제거
 
 ensure_sidebar_visible()
 
