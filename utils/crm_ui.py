@@ -32,28 +32,29 @@ def _render_action_alerts(snapshot: CrmSnapshot) -> None:
     reject1  = sc.get("reject_1", 0)
     refunded = sc.get("refunded", 0)
 
+    # 다크테마 팔레트 (bg, border, text)
     alerts = []
     if unpaid:
-        alerts.append(("🔴", f"입금 대기 {unpaid}명", "입금 확인 후 매칭 풀 이동 필요", "#fef3c7", "#d97706"))
+        alerts.append(("🔴", f"입금 대기 {unpaid}명", "입금 확인 후 매칭 풀 이동 필요", "#2d1f00", "#f59e0b", "#fbbf24"))
     if reject1:
-        alerts.append(("🟡", f"1차 거절 {reject1}명", "재매칭 진행 또는 상황 확인 필요", "#fce7f3", "#db2777"))
+        alerts.append(("🟡", f"1차 거절 {reject1}명", "재매칭 진행 또는 상황 확인 필요", "#2d001a", "#db2777", "#f472b6"))
     if matching:
-        alerts.append(("🔵", f"매칭 진행 중 {matching}명", "상대방 탐색·연결 진행 중", "#eff6ff", "#1d4ed8"))
+        alerts.append(("🔵", f"매칭 진행 중 {matching}명", "상대방 탐색·연결 진행 중", "#0f1f3d", "#3b82f6", "#60a5fa"))
     if refunded:
-        alerts.append(("⚪", f"환불 처리 {refunded}명", "완료 케이스", "#f8fafc", "#64748b"))
+        alerts.append(("⚪", f"환불 처리 {refunded}명", "완료 케이스", "#1a1f2e", "#64748b", "#94a3b8"))
 
     if not alerts:
         st.success("✅ 현재 처리 대기 항목 없음")
         return
 
     cols = st.columns(len(alerts))
-    for col, (icon, title, desc, bg, border) in zip(cols, alerts):
+    for col, (icon, title, desc, bg, border, txt) in zip(cols, alerts):
         with col:
             st.markdown(
                 f'<div style="background:{bg};border-left:4px solid {border};'
                 f'border-radius:10px;padding:14px 16px;margin-bottom:4px">'
-                f'<div style="font-size:20px;font-weight:900;color:#0f172a">{icon} {title}</div>'
-                f'<div style="font-size:12px;color:#475569;margin-top:4px">{desc}</div>'
+                f'<div style="font-size:18px;font-weight:900;color:{txt}">{icon} {title}</div>'
+                f'<div style="font-size:12px;color:#8b949e;margin-top:4px">{desc}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -80,13 +81,19 @@ def _render_kpi_row(snapshot: CrmSnapshot) -> None:
         r = n / d * 100
         return "#10b981" if r >= 50 else "#f59e0b" if r >= 20 else "#ef4444"
 
+    def arrow(n: int, d: int) -> str:
+        if not d: return "—"
+        r = n / d * 100
+        arrow_char = "↑" if r >= 50 else "↓"
+        return f"{arrow_char} {round(r,1)}%"
+
     kpis = [
-        ("👁 방문(순)",    pv,     None,           "#3b82f6",  "고유 방문자"),
-        ("🖱 신청클릭",    ac,     pct(ac, pv),    color(ac,pv), "방문→클릭"),
-        ("📝 폼제출",      fm,     pct(fm, ac),    color(fm,ac), "클릭→제출"),
-        ("💳 입금확인",    paid,   pct(paid, fm),  color(paid,fm), "제출→입금"),
-        ("🤝 매칭완료",    matched, pct(matched, paid), color(matched,paid), "입금→매칭"),
-        ("↩ 환불",         refund, None,           "#ec4899",  ""),
+        ("👁 방문(순)",   pv,      None,              "#3b82f6",  "고유 방문자"),
+        ("🖱 신청클릭",   ac,      arrow(ac, pv),     color(ac,pv),    "방문→클릭"),
+        ("📝 폼제출",     fm,      arrow(fm, ac),     color(fm,ac),    "클릭→제출"),
+        ("💳 입금확인",   paid,    arrow(paid, fm),   color(paid,fm),  "제출→입금"),
+        ("🤝 매칭완료",   matched, arrow(matched,paid), color(matched,paid), "입금→매칭"),
+        ("↩ 환불",        refund,  None,              "#ec4899",  ""),
     ]
 
     cols = st.columns(len(kpis))
@@ -94,7 +101,7 @@ def _render_kpi_row(snapshot: CrmSnapshot) -> None:
         with col:
             rate_html = (
                 f'<div style="font-size:11px;font-weight:700;color:{clr};margin-top:2px">'
-                f'↑ {rate}</div>' if rate else ""
+                f'{rate}</div>' if rate and rate != "—" else ""
             )
             hint_html = (
                 f'<div style="font-size:10px;color:#94a3b8;margin-top:1px">{hint}</div>'
@@ -312,7 +319,7 @@ def _render_stage_donut(snapshot: CrmSnapshot) -> None:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 6. 신청자 테이블 (soft delete)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def _render_applicant_table(snapshot: CrmSnapshot, raw_df: pd.DataFrame) -> None:
+def _render_applicant_table(snapshot: CrmSnapshot) -> None:
     st.markdown("##### 📋 신청자 파이프라인")
 
     if "crm_hidden_rows" not in st.session_state:
@@ -447,7 +454,7 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
     st.markdown("---")
 
     # ── 5. 신청자 테이블 ──
-    _render_applicant_table(snapshot, raw_df)
+    _render_applicant_table(snapshot)
     st.markdown("---")
 
     # ── 6. 데이터 관리 ──

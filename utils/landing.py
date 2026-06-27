@@ -23,6 +23,15 @@ def _read_css(path: Path) -> str:
         return ""
 
 
+@st.cache_resource
+def _read_css_cached(path_str: str) -> str:
+    """배포 환경에서 CSS를 한 번만 읽어 캐싱."""
+    try:
+        return Path(path_str).read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
 def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *, shell_preview: bool = False) -> str:
     logo = html.escape(logo_uri)
     form = html.escape(form_url)
@@ -911,17 +920,6 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     initHookCounters();
     initGrowthChart();
 
-    var fabTop = document.getElementById("fabTop");
-    if (fabTop) {{
-      fabTop.addEventListener("click", scrollParentToTop);
-      ScrollTrigger.create({{
-        scroller: scroller,
-        trigger: ".trust-strip",
-        start: "top top",
-        onEnter: function () {{ fabTop.classList.add("is-visible"); }},
-        onLeaveBack: function () {{ fabTop.classList.remove("is-visible"); }}
-      }});
-    }}
 
     gsap.from(".hero-glow", {{
       scale: 0.88,
@@ -1121,8 +1119,8 @@ def render_landing_page(logo_uri: str) -> None:
     """공개 랜딩. 관리자 미리보기(?view=landing + 로그인)일 때만 하단 네비."""
     from utils.admin_route import admin_entry_path, is_landing_preview_route
 
-    shell_css = _read_css(_SHELL_CSS_PATH)
-    page_css = _read_css(_PAGE_CSS_PATH)
+    shell_css = _read_css_cached(str(_SHELL_CSS_PATH))
+    page_css = _read_css_cached(str(_PAGE_CSS_PATH))
     preview = is_landing_preview_route() and bool(st.session_state.get("auth_user"))
 
     components.html(

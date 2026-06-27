@@ -63,6 +63,7 @@ LOGO_SVG_FALLBACK = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 4
 </svg>"""
 
 
+@st.cache_resource
 def _read_logo_svg() -> str:
     if LOGO.is_file():
         try:
@@ -72,8 +73,14 @@ def _read_logo_svg() -> str:
     return LOGO_SVG_FALLBACK
 
 
+@st.cache_resource
 def logo_data_uri() -> str:
     return "data:image/svg+xml," + quote(_read_logo_svg())
+
+
+@st.cache_resource
+def _load_theme_css() -> str:
+    return (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
 
 
 def ensure_sidebar_visible() -> None:
@@ -168,8 +175,7 @@ def _public_entry_gate(logo_uri: str) -> None:
 
 _public_entry_gate(logo_data_uri())
 
-THEME_CSS = (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
-st.markdown(f"<style>{THEME_CSS}</style>", unsafe_allow_html=True)
+st.markdown(f"<style>{_load_theme_css()}</style>", unsafe_allow_html=True)
 
 ensure_sidebar_visible()
 
