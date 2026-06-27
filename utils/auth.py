@@ -169,9 +169,11 @@ def _read_cookies_safe(cm: CookieManager) -> dict | None:
     get_all() 재호출 금지 — Streamlit 1.58 duplicate key 오류.
     """
     try:
+        if not hasattr(cm, "cookies"):
+            return {}
         raw = getattr(cm, "cookies", None)
         if raw is None:
-            return None if isinstance(cm, CookieManager) else {}
+            return None
         if isinstance(raw, dict):
             return raw
         get_logger().warning("CookieManager.cookies 비정상 — type=%s", type(raw).__name__)
