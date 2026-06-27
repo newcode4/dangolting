@@ -1,28 +1,28 @@
-# Google Sheets Apps Script — 텔레그램 알림
+# Apps Script — 3단계만
 
-Streamlit 앱과 **함께** 쓰거나, 앱 없이 **시트만**으로 알림을 받을 수 있습니다.
+| # | 함수 | 하는 일 |
+|---|------|---------|
+| 1 | `setupTelegram` | token · chat_id 저장 |
+| 2 | **`installTriggers`** | ★ **알림 켜기** (폼·입금) |
+| 3 | `testTelegramPing` | 텔레그램 테스트 |
 
-| 이벤트 | Streamlit 앱 | Apps Script |
-|--------|--------------|-------------|
-| 구글 폼 **새 제출** | ✅ (앱 켜져 있을 때, ~2분) | ✅ 즉시 (`onFormSubmit`) |
-| U열 **입금 체크** | ❌ | ✅ (`onEdit`) |
+**`installTriggers`를 안 하면 폼 제출해도 알림 없음.**
 
-## 설치
+`onFormSubmit`은 직접 누르는 버튼이 아닙니다. `installTriggers()`가 백그라운드 트리거로 등록합니다.
 
-1. 단골팅 스프레드시트 → **확장 프로그램 → Apps Script**
-2. `Code.gs` 내용 붙여넣기 (또는 앱 **설정 · 알림** 탭에서 다운로드)
-3. `setupTelegram` 선택 → **실행** → bot_token, chat_id 입력
-4. **트리거**(시계 아이콘) → **트리거 추가**
-   - `onFormSubmit` — 이벤트: **양식 제출 시**
-   - `onEdit` — 이벤트: **편집 시**
-5. `testTelegramPing` 실행으로 연동 확인
+## 실행 방법
 
-## 열 번호 수정
+1. 스프레드시트 → **확장 프로그램 → Apps Script**
+2. `Code.gs` 붙여넣기 → 저장
+3. 상단 함수 드롭다운에서 함수 선택 → **실행**
+4. 시트 **새로고침** → 메뉴 **단골팅 알림** (2번부터 여기서도 가능)
 
-시트에 열이 추가·삭제됐으면 `Code.gs` 상단 `COL` 숫자만 맞추세요.  
-앱의 `utils/columns.py` `COL`과 동일합니다.
+## 폼 테스트
 
-## 보안
+- 구글 **폼**으로 제출 (시트에 연결된 그 폼)
+- 또는 `testLastRowNotify` — 마지막 행 내용으로 알림
 
-- token · chat_id는 **스크립트 속성**에 저장 (시트에 노출 안 됨)
-- Streamlit `secrets.toml`과 **같은 봇**을 써도 됩니다
+## 주의
+
+- Apps Script는 **응답이 쌓이는 그 스프레드시트**에 붙여야 함
+- Streamlit Reboot **불필요**

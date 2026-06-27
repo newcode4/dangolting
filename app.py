@@ -354,16 +354,26 @@ def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> Non
 
 def render_apps_script_guide() -> None:
     st.markdown("#### 시트 Apps Script (추천)")
-    st.markdown(
-        "Streamlit 앱은 **새 행 추가**만 감지합니다. "
-        "시트에서 **입금 체크**·**폼 제출 즉시 알림**은 Google Apps Script가 맞습니다."
+    st.info(
+        "**Apps Script는 구글 시트에서만 설정합니다.** "
+        "Streamlit **Reboot·배포와 무관** — 시트에 코드 붙이고 트리거만 추가하면 됩니다."
     )
     st.markdown(
-        "1. 스프레드시트 → **확장 프로그램 → Apps Script**  \n"
-        "2. `docs/apps-script/Code.gs` 내용 붙여넣기  \n"
-        "3. `setupTelegram()` 실행 → bot_token · chat_id 입력  \n"
-        "4. **트리거** 추가: `onFormSubmit` (폼 제출), `onEdit` (U열 체크)"
+        "Streamlit 앱은 **새 행**만 (~2분, 앱 켜져 있을 때). "
+        "**입금 체크(U열)**·**폼 제출 즉시 알림**은 Apps Script가 담당합니다."
     )
+    with st.expander("📋 설치 3단계 (트리거 UI ❌)", expanded=True):
+        st.markdown(
+            "**1.** `setupTelegram` 실행 → token · chat_id  \n"
+            "**2.** `installTriggers` 실행 ★ **이게 onFormSubmit/onEdit 트리거**  \n"
+            "**3.** `testTelegramPing` 실행 → 텔레그램 확인  \n\n"
+            "폼 테스트: 구글 폼 제출 **또는** `testLastRowNotify` 실행  \n"
+            "시트 **새로고침** 후 상단 메뉴 **단골팅 알림**에서도 실행 가능"
+        )
+        st.warning(
+            "**installTriggers를 안 하면** 폼을 아무리 제출해도 알림이 없습니다. "
+            "onFormSubmit은 버튼이 아니라 **installTriggers가 자동으로 켜 주는 기능**입니다."
+        )
     gs_path = ROOT / "docs" / "apps-script" / "Code.gs"
     if gs_path.is_file():
         st.download_button(
