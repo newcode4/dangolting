@@ -53,12 +53,12 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <div class="hero-glow"></div>
     <div class="hero-stars"></div>
     <div class="hero-inner">
-      <span class="eyebrow">혼자 달려온 사람들을 위한 1:1 단골 매칭</span>
-      <h1>결이 맞는 한 사람이,<br/>모든 걸 바꿉니다</h1>
+      <span class="eyebrow">1기 모집 · 단돈 5만 원 · 못 만나면 100% 환불</span>
+      <h1>나랑 진짜 잘 맞는 사람,<br/>딱 <em>한 명</em>이면 됩니다</h1>
       <p class="lead">
-        하는 일은 달라도, 우리가 원하는 건 닮아 있습니다.<br/>
-        같이 고민할 동료, 솔직한 피드백, 내 일을 깊이 묻는 사람 —<br/>
-        <strong style="color:#f1f5f9">서로 주고받을 수 있는 단 한 사람</strong>을 단골팅이 찾아 드립니다.
+        일은 늘어가는데, 마음 터놓고 얘기할 사람은 점점 줄어듭니다.<br/>
+        단골팅은 <strong style="color:#f1f5f9">나와 잘 맞는 단 한 사람</strong>을 운영진이 직접 찾아 1:1로 이어 드립니다.<br/>
+        못 찾으면 5만 원, 그대로 돌려드립니다.
       </p>
       <div class="hero-icons">
         <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
@@ -67,126 +67,102 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       </div>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">
-          <span>지금 참여 신청하기</span>
+          <span>지금 내 사람 찾기</span>
           <span class="arrow">&rarr;</span>
         </a>
-        <a href="#faq" class="btn btn-outline">자주 묻는 질문</a>
+        <a href="#offer" class="btn btn-outline">5만 원에 뭘 받나요?</a>
       </div>
-      <p class="price-line">운영진이 못 찾으면 전액 환불 · 지금이 가장 저렴합니다</p>
+      <p class="price-line">못 만나면 한 푼도 안 받습니다 · 1기 가격은 지금이 마지막</p>
     </div>
   </section>
 
   <div class="trust-strip reveal-item">
-    <strong>1:1 큐레이션</strong><span class="dot"></span>
-    <span>14일 케어</span><span class="dot"></span>
-    <span>익명 프로필 소개</span><span class="dot"></span>
-    <span>미매칭 전액 환불</span>
+    <strong>운영진이 직접 찾아줌</strong><span class="dot"></span>
+    <span>14일 안에 연결</span><span class="dot"></span>
+    <span>프로필 먼저 보고 결정</span><span class="dot"></span>
+    <span>못 만나면 100% 환불</span>
   </div>
 
   <section class="hook-panel section--alt reveal">
     <div class="hook-head reveal-item">
-      <span class="hook-kicker">↓ 스크롤하면 숫자가 살아납니다</span>
-      <h2>혼자면 <em>100</em> — 결이 맞으면 <em>300</em></h2>
-      <p>막연한 인맥이 아니라, <strong>주고받을 한 사람</strong>이 있을 때 궤적이 달라집니다.</p>
+      <span class="hook-kicker">잠깐, 이 숫자를 보세요 ↓</span>
+      <h2>평생 수만 명을 스쳐도,<br/>내 사람은 <em>한 명</em> 만나기도 어렵습니다</h2>
+      <p>아는 사람은 많은데, 정작 <strong>내 일을 진짜 아는 사람</strong>은 손에 꼽죠. 그 한 명을 빨리 만날수록 덜 외롭고, 덜 헤맵니다.</p>
     </div>
 
     <div class="hook-flow reveal-item">
       <div class="hook-step">
         <div class="hook-step-num"><span class="count" data-count="80000" data-suffix="+">0</span></div>
-        <div class="hook-step-lbl">평생 스쳐가는 인연</div>
+        <div class="hook-step-lbl">평생 스쳐가는<br/>사람 수</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--mid">
         <div class="hook-step-num"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
-        <div class="hook-step-lbl">1년에 새로 만나는<br/>결이 맞는 사람</div>
+        <div class="hook-step-lbl">1년에 새로 만나는<br/>진짜 통하는 사람</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--hot">
         <div class="hook-step-num"><span class="count" data-count="3" data-suffix="배">0</span></div>
-        <div class="hook-step-lbl">혼자 100일 때<br/>함께면 300</div>
+        <div class="hook-step-lbl">그 한 명이 있을 때<br/>달라지는 속도</div>
       </div>
     </div>
 
     <div class="hook-bars reveal-item">
       <div class="hook-bar-row">
         <div class="hook-bar-meta">
-          <span class="hook-bar-title">혼자 헤매는 시간</span>
+          <span class="hook-bar-title">혼자 끙끙대며 보내는 시간</span>
           <span class="hook-bar-val">100%</span>
         </div>
         <div class="hook-bar-track"><div class="hook-bar-fill hook-bar-fill--solo" data-fill="100"></div></div>
       </div>
-      <div class="hook-bar-connector"><span class="hook-bar-arrow-icon">↓</span> 단골 한 명이면</div>
+      <div class="hook-bar-connector"><span class="hook-bar-arrow-icon">↓</span> 내 사람 한 명이 생기면</div>
       <div class="hook-bar-row hook-bar-row--up">
         <div class="hook-bar-meta">
-          <span class="hook-bar-title">함께 달릴 때 속도</span>
+          <span class="hook-bar-title">같이라서 빨라지는 속도</span>
           <span class="hook-bar-val hook-bar-val--hot"><span class="count" data-count="300" data-suffix="%">0</span></span>
         </div>
         <div class="hook-bar-track"><div class="hook-bar-fill hook-bar-fill--duo" data-fill="100"></div></div>
       </div>
     </div>
 
-    <a href="#process" class="hook-cta reveal-item">
-      <span>어떻게 연결되나요?</span>
+    <a href="#offer" class="hook-cta reveal-item">
+      <span>그래서, 5만 원에 뭘 받나요?</span>
       <span class="hook-cta-arrow">→</span>
     </a>
   </section>
 
-  <section class="section section--alt reveal">
-    <div class="framing-head reveal-item">
-      <h2>우리는 평생 몇 명을 만날까요?<br/>그중 <em>결이 맞는 사람</em>은요?</h2>
-      <p>
-        스쳐가는 인연은 수만 명. 하지만 <strong>내 결을 아는 사람</strong>은 손에 꼽습니다.<br/>
-        그래서 한 명을 <strong>빨리 만날수록</strong> 이득입니다. 혼자 헤맬 길이 절반으로 줄어드니까요.
-      </p>
-    </div>
-    <div class="stat-grid">
-      <div class="stat reveal-item">
-        <div class="big"><span class="count" data-count="80000" data-suffix="+">0</span></div>
-        <div class="cap">평생 스쳐가는 사람<br/><b>그러나 대부분 한 번뿐</b></div>
-      </div>
-      <div class="stat reveal-item">
-        <div class="big"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
-        <div class="cap">1년에 새로 만나는<br/><b>진짜 결이 맞는 사람</b></div>
-      </div>
-      <div class="stat reveal-item">
-        <div class="big"><span class="count" data-count="3" data-suffix="배">0</span></div>
-        <div class="cap">혼자 100을 할 때<br/><b>맞는 단골과는 300</b></div>
-      </div>
-    </div>
-  </section>
-
   <section class="section reveal">
     <div class="section-head reveal-item">
-      <h2>이런 &lsquo;단골&rsquo;을 만납니다</h2>
-      <p>카테고리는 정해져 있어도, 내가 원하는 가치는 무궁무진하니까</p>
+      <h2>어떤 사람을 만나게 되나요?</h2>
+      <p>직업이 같을 필요는 없어요. 서로 주고받을 게 있으면 됩니다</p>
     </div>
     <div class="meet-grid">
       <div class="meet-card reveal-item">
         <span class="icon-chip">동</span>
         <div>
-          <h3>같은 고민을 나누는 동료</h3>
-          <p>비슷한 길을 걷는 사람과, 새벽까지 혼자 끙끙대던 고민을 함께 풉니다.</p>
+          <h3>같은 고민을 나눌 동료</h3>
+          <p>혼자 새벽까지 끙끙대던 고민, 비슷한 길을 걷는 사람과 같이 풀어 갑니다.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
         <span class="icon-chip">피</span>
         <div>
-          <h3>솔직한 피드백을 주는 사람</h3>
-          <p>좋은 말만 하는 사이가 아니라, 내 일을 진짜로 봐주고 짚어 주는 한 사람.</p>
+          <h3>솔직하게 말해 줄 사람</h3>
+          <p>듣기 좋은 말만 하는 사이 말고, 내 일을 진짜로 봐주고 짚어 줄 한 사람.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
-        <span class="icon-chip">인</span>
+        <span class="icon-chip">멘</span>
         <div>
-          <h3>내 일을 깊이 묻는 인터뷰어</h3>
-          <p>질문을 통해 내 생각이 정리되고, 미처 못 본 기회가 보이게 해주는 사람.</p>
+          <h3>한발 앞서 걸어 본 사람</h3>
+          <p>내가 지금 막힌 그 길을 먼저 지나온 사람. 묻기만 해도 시간이 줄어듭니다.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
         <span class="icon-chip">파</span>
         <div>
-          <h3>가치를 주고받는 파트너</h3>
-          <p>내가 가진 것과 상대가 필요한 것이 맞물려, 서로를 끌어올리는 관계.</p>
+          <h3>같이 일할 파트너</h3>
+          <p>내가 가진 것과 상대가 필요한 것이 맞물려, 서로를 끌어올리는 사이.</p>
         </div>
       </div>
     </div>
@@ -194,103 +170,131 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
 
   <section class="section section--alt reveal">
     <div class="section-head reveal-item">
-      <h2>단골팅이 보는 &lsquo;찐&rsquo;</h2>
-      <p>오래 가는 관계를 만드는 3가지 기준</p>
+      <h2>아무나 연결하지 않습니다</h2>
+      <p>운영진이 사람을 고를 때 보는 3가지</p>
     </div>
     <div class="card-grid-3">
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="num">01</div>
-        <h3>구체성</h3>
-        <p>지금 뭐가 필요한지 또렷한 분을 봅니다. 막연한 인맥이 아니라, 진짜 필요한 연결인지 확인합니다.</p>
+        <h3>지금 뭐가 필요한지 또렷한 사람</h3>
+        <p>"인맥 넓히고 싶어요"는 거릅니다. 무엇이 필요한지 분명한 분만 정확히 연결합니다.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
         <div class="num">02</div>
-        <h3>주고받을 마음</h3>
-        <p>받기만 하는 게 아니라, 줄 것도 있는 분. 서로를 끌어올릴 준비가 된 사람끼리 연결합니다.</p>
+        <h3>받기만 하지 않는 사람</h3>
+        <p>줄 것도 있는 분끼리 잇습니다. 한쪽만 손해 보는 관계는 오래 못 가니까요.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <div class="num">03</div>
-        <h3>지속성 · 진심</h3>
-        <p>한 번 보고 끝이 아닙니다. 오래 가는 단골 관계를, 진심으로 임하는 분과 만들어 갑니다.</p>
+        <h3>한 번 보고 끝낼 사람이 아닌</h3>
+        <p>명함만 바꾸고 사라지는 게 아니라, 계속 보고 싶은 사이를 진심으로 찾는 분.</p>
       </div>
     </div>
   </section>
 
   <section class="section reveal" id="process">
     <div class="section-head reveal-item">
-      <h2>신청 후 진행</h2>
-      <p>단계별로 진행되는 단골 매칭 프로세스</p>
+      <h2>신청하면, 이렇게 진행됩니다</h2>
+      <p>복잡한 거 없습니다. 신청서만 쓰면 나머지는 운영진이 합니다</p>
     </div>
     <div class="timeline">
       <div class="timeline-step reveal-item">
         <div class="circle">01</div>
-        <b>입금 확인</b>
-        <span>신청서 작성 후 참가비 입금</span>
+        <b>신청서 작성</b>
+        <span>5분이면 충분, 솔직하게만</span>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">02</div>
-        <b>매칭 서칭</b>
-        <span>운영진이 결 맞는 상대 탐색 · 14일</span>
+        <b>운영진이 직접 찾기</b>
+        <span>나와 맞는 사람 탐색 · 14일</span>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">03</div>
-        <b>개별 소개</b>
-        <span>익명 프로필로 1:1 소개</span>
+        <b>프로필 먼저 확인</b>
+        <span>익명 카드 보고 내가 결정</span>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">04</div>
         <b>1:1 단톡 연결</b>
-        <span>수락 시 카톡방 개설</span>
+        <span>서로 좋으면 바로 대화 시작</span>
       </div>
     </div>
   </section>
 
   <section class="section section--alt reveal">
     <div class="section-head reveal-item">
-      <h2>왜 단골팅인가?</h2>
-      <p>수많은 모임 중, 우리가 다른 4가지</p>
+      <h2>그냥 모임이랑 뭐가 다른가요?</h2>
+      <p>발품 팔던 네트워킹과 단골팅의 차이</p>
     </div>
     <div class="why-grid">
       <div class="why-item reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <h3>결 기반<br/>매칭</h3>
-        <p>직군 너머, 주고받을<br/>가치로 연결</p>
+        <h3>한 명만<br/>딱</h3>
+        <p>수십 명 명함 말고<br/>맞는 한 사람</p>
       </div>
       <div class="why-item reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-        <h3>프라이빗<br/>1:1</h3>
-        <p>프로필 공개 없이<br/>1:1로만 제안</p>
+        <h3>내 정보는<br/>비공개</h3>
+        <p>아무 데도 안 뜨고<br/>1:1로만 제안</p>
       </div>
       <div class="why-item reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <h3>안전한<br/>연결</h3>
-        <p>바이럴·촬영 없이<br/>매칭 목적만</p>
+        <h3>부담 없이<br/>안전하게</h3>
+        <p>영업·촬영 없이<br/>만남 목적만</p>
       </div>
       <div class="why-item reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <h3>운영진 직접<br/>큐레이션</h3>
-        <p>신청서를 직접 읽고<br/>1:1로 조율</p>
+        <h3>사람이<br/>직접</h3>
+        <p>알고리즘 말고<br/>운영진이 직접</p>
       </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="offer">
+    <div class="offer-box reveal-item">
+      <div class="offer-badge">1기 한정 제안</div>
+      <h2 class="offer-title">단돈 <em>5만 원</em>에,<br/>당신의 단골 한 명</h2>
+      <p class="offer-sub">받을 건 다 받고, 못 만나면 한 푼도 안 냅니다.</p>
+
+      <ul class="offer-list">
+        <li><span class="offer-check">✓</span><span>운영진이 <b>직접</b> 신청서 읽고 맞는 사람 찾기 (14일 밀착)</span></li>
+        <li><span class="offer-check">✓</span><span>상대 <b>익명 프로필 카드</b> 먼저 확인 후 내가 결정</span></li>
+        <li><span class="offer-check">✓</span><span>안 맞으면 <b>다시</b> — 최대 2회 재매칭</span></li>
+        <li><span class="offer-check">✓</span><span>서로 좋으면 <b>1:1 단톡방</b> 바로 개설·연결</span></li>
+        <li><span class="offer-check">✓</span><span>14일 안에 못 찾으면 <b>5만 원 전액 환불</b></span></li>
+      </ul>
+
+      <div class="offer-price">
+        <span class="offer-price-old">보통 이런 1:1 큐레이션은 수십만 원</span>
+        <span class="offer-price-now">1기는 단돈 <b>{fee}</b></span>
+        <span class="offer-price-risk">못 만나면 → <b>0원</b></span>
+      </div>
+
+      <a href="#" data-external="{form}" class="btn btn-primary offer-cta">
+        <span>지금 신청하고 내 사람 찾기</span>
+        <span class="arrow">&rarr;</span>
+      </a>
+      <p class="offer-fine">잃을 게 없습니다. 만나면 천금, 못 만나면 환불.</p>
     </div>
   </section>
 
   <section class="section reveal">
     <div class="section-head reveal-item">
-      <h2>참가자 후기</h2>
-      <p>실제 회원들의 리얼 후기</p>
+      <h2>먼저 만나 본 사람들</h2>
+      <p>1기 참가자들이 직접 남긴 이야기</p>
     </div>
     <div class="review-grid">
       <div class="review-card reveal-item">
         <div class="review-meta">2026.06 · 마케팅 디렉터</div>
-        <p>&ldquo;첫 미팅부터 실무 이야기로 바로 들어갔어요. 명함만 바꾸던 모임과는 차원이 달랐습니다.&rdquo;</p>
+        <p>&ldquo;첫 만남부터 바로 실무 이야기로 들어갔어요. 명함만 주고받던 모임이랑은 아예 달랐습니다.&rdquo;</p>
         <div class="stars">★★★★★</div>
       </div>
       <div class="review-card reveal-item">
         <div class="review-meta">2026.06 · 프리랜서 디자이너</div>
-        <p>&ldquo;결이 맞는 사람을 연결해 주셔서 시간 낭비 없이 깊은 대화로 이어졌고, 이후 협업까지 됐어요.&rdquo;</p>
+        <p>&ldquo;나랑 잘 맞는 사람을 딱 찾아 주셔서, 시간 낭비 없이 깊은 얘기까지 갔고 결국 같이 일하게 됐어요.&rdquo;</p>
         <div class="stars">★★★★★</div>
       </div>
     </div>
@@ -306,16 +310,16 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     </div>
     <div class="faq-list">
       <details class="faq reveal-item">
-        <summary>외모 · 나이도 보나요?</summary>
-        <p>아닙니다. <strong>지금 뭐가 필요한지, 무엇을 주고받을 수 있는지</strong>가 기준입니다. 진지하게 단골을 찾는 분만 받습니다.</p>
+        <summary>외모나 나이도 보나요?</summary>
+        <p>아닙니다. <strong>지금 뭐가 필요한지, 서로 뭘 주고받을 수 있는지</strong>만 봅니다. 진지하게 내 사람을 찾는 분만 받습니다.</p>
       </details>
       <details class="faq reveal-item">
-        <summary>매칭이 안 되면 어떻게 되나요?</summary>
-        <p>운영진이 <strong>14일 이내</strong> 결 맞는 상대를 찾지 못하거나 조율 과정에서 결렬되면 참가비 <strong>전액 환불</strong>합니다. 다만 소개해 드린 프로필을 누적 <strong>2회 거절</strong>하시면 기회 소진으로 보아 환불되지 않습니다. (자세한 내용은 아래 환불 규정)</p>
+        <summary>못 만나면 정말 환불해 주나요?</summary>
+        <p>네. <strong>14일 안에</strong> 맞는 사람을 못 찾거나 조율이 끝내 안 되면 참가비 <strong>전액 환불</strong>합니다. 다만 소개해 드린 프로필을 누적 <strong>2회 거절</strong>하시면 기회 소진으로 보아 환불되지 않습니다. (자세한 내용은 아래 환불 규정)</p>
       </details>
       <details class="faq reveal-item">
         <summary>신청서는 어떻게 쓰나요?</summary>
-        <p><strong>[지금 내 상황] + [받고 싶은 것] + [내가 줄 수 있는 것]</strong>을 솔직하게 적어 주세요. 구체적일수록 더 잘 맞는 사람을 만납니다.</p>
+        <p><strong>[지금 내 상황] + [받고 싶은 것] + [내가 줄 수 있는 것]</strong>, 이 세 가지만 솔직하게 적으면 됩니다. 구체적일수록 더 잘 맞는 사람을 만납니다.</p>
       </details>
       <details class="faq reveal-item">
         <summary>세금계산서 발행되나요?</summary>
@@ -329,16 +333,16 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
   </section>
 
   <section class="cta-band reveal">
-    <h2 class="reveal-item">이제, 가만히 시간만 보내지 마세요</h2>
+    <h2 class="reveal-item">계속 혼자 버틸 건가요?</h2>
     <p class="reveal-item">
-      운영진이 끝내 못 찾으면 돌려받고, 만나면 천금 같은 기회입니다. 남는 장사입니다.<br/>
-      혼자서는 한계가 있습니다 — 동료든 파트너든, 지금 내 단골을 만드세요.
+      못 만나면 돌려받고, 만나면 평생 갈 사람을 얻습니다. 잃을 게 없는 만남입니다.<br/>
+      <strong style="color:#f1f5f9">1기 가격은 지금이 마지막</strong>입니다. 다음엔 이 가격으로 못 들어옵니다.
     </p>
     <a href="#" data-external="{form}" class="btn btn-primary reveal-item">
-      <span>지금 참여 신청하기</span>
+      <span>지금 신청하고 내 사람 찾기</span>
       <span class="arrow">&rarr;</span>
     </a>
-    <p class="price-line" style="margin-top:16px">참가비 {fee} · 운영진 미매칭 시 전액 환불</p>
+    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 못 만나면 100% 환불</p>
   </section>
 
   <footer class="site-footer">
