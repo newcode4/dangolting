@@ -115,6 +115,15 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
 }
 
+.hero--fullscreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 48px 24px 80px;
+}
+
 .hero-glow {
   position: absolute;
   width: min(560px, 55vw);
@@ -171,11 +180,11 @@ a { color: inherit; text-decoration: none; }
 }
 
 .hero h1 {
-  font-size: clamp(28px, 4.5vw, 38px);
-  font-weight: 800;
-  line-height: 1.35;
-  letter-spacing: -0.03em;
-  margin-bottom: 16px;
+  font-size: clamp(32px, 5.5vw, 52px);
+  font-weight: 900;
+  line-height: 1.22;
+  letter-spacing: -0.04em;
+  margin-bottom: 20px;
 }
 
 .hero h1 em {
@@ -184,11 +193,51 @@ a { color: inherit; text-decoration: none; }
   position: relative;
 }
 
+/* hero scroll hint */
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  padding: 8px;
+  transition: color 0.2s;
+}
+
+.hero-scroll-hint:hover { color: var(--text-muted); }
+
+.hero-scroll-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.hero-scroll-arrow {
+  display: block;
+  font-size: 20px;
+  animation: scrollBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
 .hero .lead {
-  font-size: clamp(14px, 2vw, 16px);
+  font-size: clamp(15px, 2.1vw, 17px);
   color: var(--text-muted);
-  line-height: 1.75;
-  margin-bottom: 28px;
+  line-height: 1.8;
+  margin-bottom: 32px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-icons {
@@ -345,15 +394,17 @@ a { color: inherit; text-decoration: none; }
 }
 
 .section-head h2 {
-  font-size: clamp(22px, 3vw, 26px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  font-size: clamp(22px, 3.4vw, 30px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+  line-height: 1.3;
 }
 
 .section-head p {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-muted);
+  line-height: 1.6;
 }
 
 /* ── 3 Cards (찐) ── */
@@ -1155,6 +1206,284 @@ a { color: inherit; text-decoration: none; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Growth Chart (SVG 꺾은선) ── */
+.growth-chart {
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.chart-wrap {
+  position: relative;
+  padding-bottom: 28px;
+}
+
+.chart-y-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  text-align: left;
+  padding-left: 4px;
+}
+
+.chart-svg-container {
+  position: relative;
+}
+
+.growth-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.chart-end-labels {
+  position: absolute;
+  right: -52px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.chart-end-duo {
+  font-size: 13px;
+  font-weight: 800;
+  color: #60a5fa;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.chart-end-solo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  padding-bottom: 12px;
+}
+
+.chart-x-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 6px 0 0;
+  letter-spacing: 0.03em;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.leg-line {
+  display: inline-block;
+  width: 24px;
+  height: 2.5px;
+  border-radius: 2px;
+}
+
+.leg-solo .leg-line { background: #475569; }
+.leg-duo .leg-line { background: #3b82f6; }
+.leg-solo { color: #64748b; }
+.leg-duo { color: #93c5fd; }
+
+/* ── VS Table (모임 vs 단골팅) ── */
+.vs-table {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.vs-col {
+  flex: 1;
+  padding: 28px 24px;
+}
+
+.vs-col--old {
+  background: rgba(15, 15, 20, 0.5);
+}
+
+.vs-col--new {
+  background: rgba(20, 30, 52, 0.7);
+  border-left: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.vs-col-head {
+  margin-bottom: 22px;
+}
+
+.vs-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.vs-badge--old {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+.vs-badge--new {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  background: rgba(8, 11, 18, 0.6);
+  border-left: 1px solid rgba(255,255,255,0.04);
+  border-right: 1px solid rgba(59,130,246,0.18);
+}
+
+.vs-divider span {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  writing-mode: vertical-lr;
+}
+
+.vs-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.vs-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.vs-list li div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vs-list li strong {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.vs-col--old .vs-list li strong { color: #94a3b8; }
+.vs-col--new .vs-list li strong { color: #f1f5f9; }
+
+.vs-list li span {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.vs-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.vs-icon--bad {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+.vs-icon--ok {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  color: #60a5fa;
+}
+
+/* ── FAB (위로 가기) ── */
+.fab-top {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(20, 30, 52, 0.9);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #93c5fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s ease, border-color 0.2s ease;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.fab-top svg { width: 20px; height: 20px; }
+
+.fab-top.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.fab-top:hover {
+  background: rgba(30, 45, 80, 0.95);
+  border-color: rgba(96, 165, 250, 0.6);
+}
+
+/* ── Footer kakao link ── */
+.footer-link-kakao {
+  font-size: inherit;
+  color: #FEE500;
+  font-weight: 700;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.2s;
+}
+
+.footer-link-kakao:hover { opacity: 0.75; }
+
 /* ── Offer box (그랜드 슬램 오퍼) ── */
 .offer-box {
   position: relative;
@@ -1501,6 +1830,28 @@ a { color: inherit; text-decoration: none; }
   }
 
   .hook-step { max-width: 100%; width: 100%; }
+
+  .vs-table {
+    flex-direction: column;
+    border-radius: 16px;
+  }
+
+  .vs-divider {
+    flex: 0 0 40px;
+    writing-mode: horizontal-tb;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(59,130,246,0.18);
+  }
+
+  .vs-divider span { writing-mode: horizontal-tb; }
+
+  .vs-col--new { border-left: none; border-top: 1px solid rgba(59, 130, 246, 0.18); }
+
+  .chart-end-labels { display: none; }
+
+  .chart-y-label { display: none; }
 
   .timeline {
     flex-direction: column;

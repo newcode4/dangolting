@@ -49,38 +49,36 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     </a>
   </header>
 
-  <section class="hero">
+  <section class="hero hero--fullscreen">
     <div class="hero-glow"></div>
     <div class="hero-stars"></div>
     <div class="hero-inner">
-      <span class="eyebrow">1기 모집 · 단돈 5만 원 · 못 만나면 100% 환불</span>
+      <span class="eyebrow">1기 한정 모집 · 단돈 5만 원 · 리스크 제로</span>
       <h1>나랑 진짜 잘 맞는 사람,<br/>딱 <em>한 명</em>이면 됩니다</h1>
       <p class="lead">
-        일은 늘어가는데, 마음 터놓고 얘기할 사람은 점점 줄어듭니다.<br/>
-        단골팅은 <strong style="color:#f1f5f9">나와 잘 맞는 단 한 사람</strong>을 운영진이 직접 찾아 1:1로 이어 드립니다.<br/>
-        못 찾으면 5만 원, 그대로 돌려드립니다.
+        일은 늘어가는데, 마음 터놓고 얘기할 사람은 점점 없어집니다.<br/>
+        운영진이 직접 찾아 연결합니다. 못 찾으면 5만 원 그대로 돌려드립니다.
       </p>
-      <div class="hero-icons">
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
-      </div>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">
           <span>지금 내 사람 찾기</span>
           <span class="arrow">&rarr;</span>
         </a>
-        <a href="#offer" class="btn btn-outline">5만 원에 뭘 받나요?</a>
+        <a href="#offer" data-scroll-to="offer" class="btn btn-outline">5만 원에 뭘 받나요?</a>
       </div>
-      <p class="price-line">못 만나면 한 푼도 안 받습니다 · 1기 가격은 지금이 마지막</p>
+      <p class="price-line">운영진이 못 찾으면 한 푼도 안 냅니다 · 1기 가격은 지금이 마지막</p>
     </div>
+    <button class="hero-scroll-hint" data-scroll-to="hook-section" aria-label="아래로 스크롤">
+      <span class="hero-scroll-label">아래로</span>
+      <span class="hero-scroll-arrow">↓</span>
+    </button>
   </section>
 
-  <div class="trust-strip reveal-item">
+  <div class="trust-strip reveal-item" id="hook-section">
     <strong>운영진이 직접 찾아줌</strong><span class="dot"></span>
     <span>14일 안에 연결</span><span class="dot"></span>
     <span>프로필 먼저 보고 결정</span><span class="dot"></span>
-    <span>못 만나면 100% 환불</span>
+    <span>운영진 미매칭 시 전액 환불</span>
   </div>
 
   <section class="hook-panel section--alt reveal">
@@ -107,21 +105,45 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       </div>
     </div>
 
-    <div class="hook-bars reveal-item">
-      <div class="hook-bar-row">
-        <div class="hook-bar-meta">
-          <span class="hook-bar-title">혼자 끙끙대며 보내는 시간</span>
-          <span class="hook-bar-val">100%</span>
+    <div class="growth-chart reveal-item">
+      <div class="chart-wrap">
+        <div class="chart-y-label">성장 속도 →</div>
+        <div class="chart-svg-container">
+          <svg class="growth-svg" viewBox="0 0 480 180" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="duoAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="dotBlue" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="4" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <line x1="0" y1="40" x2="480" y2="40" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="0" y1="90" x2="480" y2="90" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="0" y1="140" x2="480" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="180" y1="10" x2="180" y2="172" stroke="rgba(96,165,250,0.25)" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <path class="chart-area-duo" d="M 0,165 C 70,163 130,158 180,148 C 250,118 360,42 480,8 L480,172 L0,172 Z" fill="url(#duoAreaGrad)" opacity="0"/>
+            <path class="chart-path-solo" d="M 0,165 C 120,160 240,142 480,98" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+            <path class="chart-path-duo" d="M 0,165 C 70,163 130,158 180,148 C 250,118 360,42 480,8" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+            <circle class="chart-dot-solo" cx="480" cy="98" r="5" fill="#64748b" opacity="0"/>
+            <circle class="chart-dot-duo" cx="480" cy="8" r="6" fill="#60a5fa" opacity="0" filter="url(#dotBlue)"/>
+            <text x="185" y="142" font-size="10.5" fill="rgba(96,165,250,0.75)" font-family="Pretendard,Apple SD Gothic Neo,sans-serif" font-weight="700">↗ 단골 연결</text>
+          </svg>
+          <div class="chart-end-labels">
+            <span class="chart-end-duo">단골팅</span>
+            <span class="chart-end-solo">혼자</span>
+          </div>
         </div>
-        <div class="hook-bar-track"><div class="hook-bar-fill hook-bar-fill--solo" data-fill="100"></div></div>
+        <div class="chart-x-labels">
+          <span>지금</span>
+          <span>6개월 후</span>
+        </div>
       </div>
-      <div class="hook-bar-connector"><span class="hook-bar-arrow-icon">↓</span> 내 사람 한 명이 생기면</div>
-      <div class="hook-bar-row hook-bar-row--up">
-        <div class="hook-bar-meta">
-          <span class="hook-bar-title">같이라서 빨라지는 속도</span>
-          <span class="hook-bar-val hook-bar-val--hot"><span class="count" data-count="300" data-suffix="%">0</span></span>
-        </div>
-        <div class="hook-bar-track"><div class="hook-bar-fill hook-bar-fill--duo" data-fill="100"></div></div>
+      <div class="chart-legend">
+        <span class="leg-item leg-solo"><span class="leg-line"></span>혼자 할 때</span>
+        <span class="leg-item leg-duo"><span class="leg-line"></span>단골 한 명 생긴 후</span>
       </div>
     </div>
 
@@ -226,29 +248,56 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
 
   <section class="section section--alt reveal">
     <div class="section-head reveal-item">
-      <h2>그냥 모임이랑 뭐가 다른가요?</h2>
-      <p>발품 팔던 네트워킹과 단골팅의 차이</p>
+      <h2>모임만 나가선 원하는 사람 못 만납니다</h2>
+      <p>그 시간에 매칭이 되면 훨씬 낫습니다</p>
     </div>
-    <div class="why-grid">
-      <div class="why-item reveal-item">
-        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <h3>한 명만<br/>딱</h3>
-        <p>수십 명 명함 말고<br/>맞는 한 사람</p>
+    <div class="vs-table reveal-item">
+      <div class="vs-col vs-col--old">
+        <div class="vs-col-head">
+          <span class="vs-badge vs-badge--old">일반 모임·네트워킹</span>
+        </div>
+        <ul class="vs-list">
+          <li>
+            <span class="vs-icon vs-icon--bad">✗</span>
+            <div><strong>직접 찾아다녀야</strong><span>시간 내서 가고, 사람 걸러내고, 또 가고</span></div>
+          </li>
+          <li>
+            <span class="vs-icon vs-icon--bad">✗</span>
+            <div><strong>만나도 아이스브레이킹에 1시간</strong><span>뭘 원하는지조차 모르고 헤어짐</span></div>
+          </li>
+          <li>
+            <span class="vs-icon vs-icon--bad">✗</span>
+            <div><strong>수십 명 스쳐도 남는 사람 0</strong><span>명함은 쌓이는데, 연락 가는 사람은 없음</span></div>
+          </li>
+          <li>
+            <span class="vs-icon vs-icon--bad">✗</span>
+            <div><strong>돈·시간 둘 다 날림</strong><span>참가비에 교통비, 매번 쓰는데 뭐가 남나요</span></div>
+          </li>
+        </ul>
       </div>
-      <div class="why-item reveal-item">
-        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-        <h3>내 정보는<br/>비공개</h3>
-        <p>아무 데도 안 뜨고<br/>1:1로만 제안</p>
-      </div>
-      <div class="why-item reveal-item">
-        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <h3>부담 없이<br/>안전하게</h3>
-        <p>영업·촬영 없이<br/>만남 목적만</p>
-      </div>
-      <div class="why-item reveal-item">
-        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <h3>사람이<br/>직접</h3>
-        <p>알고리즘 말고<br/>운영진이 직접</p>
+      <div class="vs-divider" aria-hidden="true"><span>VS</span></div>
+      <div class="vs-col vs-col--new">
+        <div class="vs-col-head">
+          <span class="vs-badge vs-badge--new">단골팅</span>
+        </div>
+        <ul class="vs-list">
+          <li>
+            <span class="vs-icon vs-icon--ok">✓</span>
+            <div><strong>운영진이 대신 찾아줌</strong><span>신청서만 쓰면, 맞는 사람이 연결됨</span></div>
+          </li>
+          <li>
+            <span class="vs-icon vs-icon--ok">✓</span>
+            <div><strong>첫 대화부터 본론</strong><span>서로 뭘 원하는지 알고 만나니 깊어짐</span></div>
+          </li>
+          <li>
+            <span class="vs-icon vs-icon--ok">✓</span>
+            <div><strong>딱 한 명, 정확하게</strong><span>100명 스치지 않아도 됩니다</span></div>
+          </li>
+          <li>
+            <span class="vs-icon vs-icon--ok">✓</span>
+            <div><strong>못 찾으면 전액 환불</strong><span>운영진이 끝내 못 찾으면 5만 원 그대로</span></div>
+          </li>
+        </ul>
       </div>
     </div>
   </section>
@@ -314,8 +363,8 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         <p>아닙니다. <strong>지금 뭐가 필요한지, 서로 뭘 주고받을 수 있는지</strong>만 봅니다. 진지하게 내 사람을 찾는 분만 받습니다.</p>
       </details>
       <details class="faq reveal-item">
-        <summary>못 만나면 정말 환불해 주나요?</summary>
-        <p>네. <strong>14일 안에</strong> 맞는 사람을 못 찾거나 조율이 끝내 안 되면 참가비 <strong>전액 환불</strong>합니다. 다만 소개해 드린 프로필을 누적 <strong>2회 거절</strong>하시면 기회 소진으로 보아 환불되지 않습니다. (자세한 내용은 아래 환불 규정)</p>
+        <summary>환불은 어떻게 되나요?</summary>
+        <p>운영진이 <strong>14일 안에</strong> 맞는 분을 못 찾으면 <strong>5만 원 전액 환불</strong>합니다. 소개받은 프로필을 <strong>1회 거절</strong>하시면 <strong>50% 환불</strong>, <strong>2회 거절</strong>하시면 기회 소진으로 간주해 환불이 되지 않습니다. (자세한 내용은 아래 환불 규정 확인)</p>
       </details>
       <details class="faq reveal-item">
         <summary>신청서는 어떻게 쓰나요?</summary>
@@ -342,7 +391,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <span>지금 신청하고 내 사람 찾기</span>
       <span class="arrow">&rarr;</span>
     </a>
-    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 못 만나면 100% 환불</p>
+    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 운영진 미매칭 시 전액 환불</p>
   </section>
 
   <footer class="site-footer">
@@ -356,7 +405,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <nav class="footer-links">
       <button type="button" data-modal="refundModal">환불 규정</button>
       <button type="button" data-modal="privacyModal">개인정보처리방침</button>
-      <button type="button" data-external="{form}">문의하기</button>
+      <a href="https://open.kakao.com/me/dangolgrow" data-external-raw="https://open.kakao.com/me/dangolgrow" class="footer-link-kakao">카카오로 문의하기</a>
     </nav>
   </footer>
 
@@ -370,8 +419,14 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <div class="dlg-body">
         <h4>전액 환불</h4>
         <p>신청일 기준 14일 이내에 조건에 부합하는 상대를 찾지 못하거나, 주최자의 1:1 조율 과정에서 매칭이 최종 결렬될 경우 참가비 {fee} 전액을 조건 없이 즉시 환불해 드립니다. 단, 대표님의 1:1 밀착 조율을 거쳐 최종 3인 매칭 단톡방이 개설된 이후에는 어떤 이유로도 환불이 불가능합니다.</p>
-        <h4>거절 · 재매칭</h4>
-        <p>대표님이 1:1로 전달해 드리는 상대방의 익명 프로필 카드를 확인하신 후 핏이 맞지 않으면 비밀리에 거절하실 수 있으나, 무분별한 노쇼 방지 및 매칭 풀 관리를 위해 프로필 거절 및 재매칭 기회는 최대 2회로 제한됩니다. 누적 2회 거절 시 서비스는 자동으로 종료되며, 이 경우 개인 변심 및 기회 소진으로 간주하여 참가비가 환불되지 않습니다. 원활한 진행을 위해 중간 가치 조율 과정에 적극적인 협조를 부탁드립니다.</p>
+        <h4>거절 · 재매칭 · 부분 환불</h4>
+        <p>운영진이 소개해 드리는 익명 프로필 카드를 확인 후 맞지 않으시면 거절하실 수 있습니다. 거절 횟수에 따라 환불 기준이 달라집니다.</p>
+        <ul style="margin: 10px 0 10px 16px; line-height: 1.9; font-size: 14px; color: #94a3b8;">
+          <li><b style="color:#f1f5f9">1회 거절</b> → 참가비의 50% 환불</li>
+          <li><b style="color:#f1f5f9">2회 거절</b> → 기회 소진으로 간주, 환불 없음</li>
+          <li><b style="color:#f1f5f9">운영진 미매칭</b> (14일 내 상대를 못 찾은 경우) → 전액 환불</li>
+        </ul>
+        <p>매칭 단톡방이 개설된 이후에는 어떤 이유로도 환불이 불가합니다. 원활한 진행을 위해 조율 과정에 적극적으로 협조 부탁드립니다.</p>
         <div class="acct">
           <b>입금 계좌</b><br/>
           국민은행 942902-00-243479 (예금주: 이주환)<br/>
@@ -400,6 +455,10 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       </div>
     </div>
   </div>
+
+  <button class="fab-top" id="fabTop" aria-label="맨 위로">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
 
 </div>
 </div>
@@ -507,6 +566,50 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     return scroller;
   }}
 
+  function scrollParentTo(id) {{
+    try {{
+      var el = document.getElementById(id);
+      if (!el) return;
+      var rect = el.getBoundingClientRect();
+      var frameRect = window.frameElement ? window.frameElement.getBoundingClientRect() : {{ top: 0 }};
+      var scr = getParentScroller();
+      var currentTop = (scr === window.parent.document.documentElement || scr === window.parent.document.body)
+        ? (window.parent.scrollY || 0) : scr.scrollTop;
+      var targetY = currentTop + frameRect.top + rect.top - 80;
+      if (scr === window.parent.document.documentElement || scr === window.parent.document.body) {{
+        window.parent.scrollTo({{ top: targetY, behavior: "smooth" }});
+      }} else {{
+        scr.scrollTo({{ top: targetY, behavior: "smooth" }});
+      }}
+    }} catch (e) {{}}
+  }}
+
+  function scrollParentToTop() {{
+    try {{
+      var scr = getParentScroller();
+      if (scr === window.parent.document.documentElement || scr === window.parent.document.body) {{
+        window.parent.scrollTo({{ top: 0, behavior: "smooth" }});
+      }} else {{
+        scr.scrollTo({{ top: 0, behavior: "smooth" }});
+      }}
+    }} catch (e) {{
+      window.scrollTo({{ top: 0, behavior: "smooth" }});
+    }}
+  }}
+
+  function setHeroHeight() {{
+    try {{
+      var vh = window.parent.innerHeight;
+      var hero = document.querySelector(".hero--fullscreen");
+      var header = document.querySelector(".site-header");
+      var headerH = header ? header.offsetHeight : 0;
+      if (hero) hero.style.minHeight = (vh - headerH) + "px";
+    }} catch (e) {{
+      var hero = document.querySelector(".hero--fullscreen");
+      if (hero) hero.style.minHeight = "100svh";
+    }}
+  }}
+
   function trackEvent(evt) {{
     try {{
       var vid = localStorage.getItem("dgt_vid");
@@ -607,8 +710,12 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       document.querySelectorAll(".count").forEach(function (el) {{
         el.textContent = (el.getAttribute("data-prefix") || "") + (el.getAttribute("data-count") || "") + (el.getAttribute("data-suffix") || "");
       }});
-      document.querySelectorAll(".hook-bar-fill").forEach(function (el) {{
-        el.style.width = (el.getAttribute("data-fill") || "0") + "%";
+      var soloPath = document.querySelector(".chart-path-solo");
+      var duoPath = document.querySelector(".chart-path-duo");
+      if (soloPath) gsap.set(soloPath, {{ strokeDashoffset: 0 }});
+      if (duoPath) gsap.set(duoPath, {{ strokeDashoffset: 0 }});
+      document.querySelectorAll(".chart-dot-solo, .chart-dot-duo, .chart-area-duo").forEach(function (el) {{
+        el.style.opacity = "1";
       }});
       syncFrameHeight();
       return;
@@ -644,47 +751,76 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       }});
     }}
 
-    function initHookBars() {{
-      document.querySelectorAll(".hook-bar-fill").forEach(function (fill) {{
-        var pct = fill.getAttribute("data-fill") || "0";
-        gsap.fromTo(
-          fill,
-          {{ width: "0%" }},
-          {{
-            width: pct + "%",
-            ease: "none",
-            scrollTrigger: {{
-              scroller: scroller,
-              trigger: fill.closest(".hook-bars"),
-              start: "top 85%",
-              end: "top 35%",
-              scrub: 0.4
-            }}
-          }}
-        );
+    function initGrowthChart() {{
+      var soloPath = document.querySelector(".chart-path-solo");
+      var duoPath = document.querySelector(".chart-path-duo");
+      var areaPath = document.querySelector(".chart-area-duo");
+      var dotSolo = document.querySelector(".chart-dot-solo");
+      var dotDuo = document.querySelector(".chart-dot-duo");
+      if (!soloPath || !duoPath) return;
+
+      var soloLen = soloPath.getTotalLength();
+      var duoLen = duoPath.getTotalLength();
+
+      gsap.set(soloPath, {{ strokeDasharray: soloLen, strokeDashoffset: soloLen }});
+      gsap.set(duoPath, {{ strokeDasharray: duoLen, strokeDashoffset: duoLen }});
+      if (dotSolo) gsap.set(dotSolo, {{ opacity: 0 }});
+      if (dotDuo) gsap.set(dotDuo, {{ opacity: 0 }});
+      if (areaPath) gsap.set(areaPath, {{ opacity: 0 }});
+
+      var chartEl = document.querySelector(".growth-chart");
+      if (!chartEl) return;
+
+      var tl = gsap.timeline({{
+        scrollTrigger: {{
+          scroller: scroller,
+          trigger: chartEl,
+          start: "top 82%",
+          end: "top 18%",
+          scrub: 0.7
+        }}
       }});
-      gsap.utils.toArray(".hook-arrow span").forEach(function (arrow) {{
-        gsap.fromTo(
-          arrow,
-          {{ x: -6, opacity: 0.35 }},
-          {{
-            x: 6,
-            opacity: 1,
-            ease: "none",
-            scrollTrigger: {{
-              scroller: scroller,
-              trigger: arrow.closest(".hook-flow"),
-              start: "top 80%",
-              end: "top 45%",
-              scrub: 0.35
-            }}
-          }}
-        );
-      }});
+
+      tl.to(soloPath, {{ strokeDashoffset: 0, ease: "none", duration: 1 }}, 0)
+        .to(duoPath, {{ strokeDashoffset: 0, ease: "power3.in", duration: 1 }}, 0)
+        .to(areaPath, {{ opacity: 1, ease: "none", duration: 0.4 }}, 0.5)
+        .to(dotSolo, {{ opacity: 1, duration: 0.15 }}, 0.88)
+        .to(dotDuo, {{ opacity: 1, duration: 0.15 }}, 0.92);
     }}
 
+    gsap.utils.toArray(".hook-arrow span").forEach(function (arrow) {{
+      gsap.fromTo(
+        arrow,
+        {{ x: -6, opacity: 0.35 }},
+        {{
+          x: 6,
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {{
+            scroller: scroller,
+            trigger: arrow.closest(".hook-flow"),
+            start: "top 80%",
+            end: "top 45%",
+            scrub: 0.35
+          }}
+        }}
+      );
+    }});
+
     initHookCounters();
-    initHookBars();
+    initGrowthChart();
+
+    var fabTop = document.getElementById("fabTop");
+    if (fabTop) {{
+      fabTop.addEventListener("click", scrollParentToTop);
+      ScrollTrigger.create({{
+        scroller: scroller,
+        trigger: ".trust-strip",
+        start: "top top",
+        onEnter: function () {{ fabTop.classList.add("is-visible"); }},
+        onLeaveBack: function () {{ fabTop.classList.remove("is-visible"); }}
+      }});
+    }}
 
     gsap.from(".hero-glow", {{
       scale: 0.88,
@@ -820,9 +956,25 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     }});
   }});
 
+  document.querySelectorAll("[data-external-raw]").forEach(function (el) {{
+    el.addEventListener("click", function (e) {{
+      e.preventDefault();
+      openExternal(el.getAttribute("data-external-raw"));
+    }});
+  }});
+
+  document.querySelectorAll("[data-scroll-to]").forEach(function (el) {{
+    el.addEventListener("click", function (e) {{
+      e.preventDefault();
+      scrollParentTo(el.getAttribute("data-scroll-to"));
+    }});
+  }});
+
   document.querySelectorAll('a[href="#faq"]').forEach(function (el) {{
-    el.addEventListener("click", function () {{
+    el.addEventListener("click", function (e) {{
+      e.preventDefault();
       trackEvent("faq_click");
+      scrollParentTo("faq");
     }});
   }});
 
@@ -839,17 +991,19 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     trackEvent("page_view");
   }}
   function boot() {{
+    setHeroHeight();
     syncFrameHeight();
     initMotion();
     setTimeout(syncFrameHeight, 120);
     setTimeout(syncFrameHeight, 600);
+    setTimeout(setHeroHeight, 200);
   }}
   if (document.readyState === "complete") {{
     boot();
   }} else {{
     window.addEventListener("load", boot, {{ once: true }});
   }}
-  window.addEventListener("resize", syncFrameHeight);
+  window.addEventListener("resize", function () {{ syncFrameHeight(); setHeroHeight(); }});
   if (window.ResizeObserver) {{
     new ResizeObserver(syncFrameHeight).observe(document.body);
   }}
