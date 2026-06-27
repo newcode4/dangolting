@@ -84,24 +84,24 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
   <section class="hook-panel section--alt reveal">
     <div class="hook-head reveal-item">
       <span class="hook-kicker">잠깐, 이 숫자를 보세요 ↓</span>
-      <h2>아는 사람은 많아도,<br/>비즈니스로 <em>서로 이득</em>이 되는 사람은 드뭅니다</h2>
+      <h2>아는 사람은 많아도, 비즈니스로 <em>서로 이득</em>이 되는 사람은 드뭅니다</h2>
       <p>인맥은 넓은데 막상 도움이 되는 사람은 손에 꼽죠. <strong>비즈니스 시너지가 나는 파트너 한 명</strong>이 생기면 성장 속도가 완전히 달라집니다.</p>
     </div>
 
     <div class="hook-flow reveal-item">
       <div class="hook-step">
         <div class="hook-step-num"><span class="count" data-count="1000" data-suffix="+">0</span></div>
-        <div class="hook-step-lbl">평생 알게 되는<br/>비즈니스 지인 수</div>
+        <div class="hook-step-lbl">평생 알게 되는 비즈니스 지인 수</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--mid">
         <div class="hook-step-num"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
-        <div class="hook-step-lbl">1년에 새로 생기는<br/>진짜 비즈니스 파트너</div>
+        <div class="hook-step-lbl">1년에 새로 생기는 진짜 비즈니스 파트너</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--hot">
         <div class="hook-step-num"><span class="count" data-count="3" data-suffix="배">0</span></div>
-        <div class="hook-step-lbl">비즈니스 파트너가 생기면<br/>달라지는 성장 속도</div>
+        <div class="hook-step-lbl">비즈니스 파트너가 생기면 달라지는 성장 속도</div>
       </div>
     </div>
 
@@ -287,23 +287,19 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <div class="timeline">
       <div class="timeline-step reveal-item">
         <div class="circle">01</div>
-        <b>신청서 작성</b>
-        <span>5분이면 충분, 솔직하게만</span>
+        <div class="step-content"><b class="step-label">신청서 작성</b><span class="step-sub">5분이면 충분, 솔직하게만</span></div>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">02</div>
-        <b>운영진이 직접 찾기</b>
-        <span>나와 맞는 사람 탐색 · 14일</span>
+        <div class="step-content"><b class="step-label">운영진이 직접 찾기</b><span class="step-sub">나와 맞는 사람 탐색 · 14일</span></div>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">03</div>
-        <b>프로필 먼저 확인</b>
-        <span>익명 카드 보고 내가 결정</span>
+        <div class="step-content"><b class="step-label">프로필 먼저 확인</b><span class="step-sub">익명 카드 보고 내가 결정</span></div>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">04</div>
-        <b>1:1 단톡 연결</b>
-        <span>서로 좋으면 바로 대화 시작</span>
+        <div class="step-content"><b class="step-label">1:1 단톡 연결</b><span class="step-sub">서로 좋으면 바로 대화 시작</span></div>
       </div>
     </div>
   </section>

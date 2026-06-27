@@ -28,6 +28,8 @@ body {
   color: var(--text);
   line-height: 1.6;
   font-size: 15px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -530,6 +532,12 @@ a { color: inherit; text-decoration: none; }
   font-size: 11px;
   color: var(--text-dim);
   line-height: 1.45;
+}
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 /* ── FAQ ── */
@@ -1953,61 +1961,216 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
+  /* ── Grid → single column ── */
   .card-grid-3,
   .review-grid,
   .why-grid,
   .stat-grid,
-  .meet-grid,
-  .hook-flow { grid-template-columns: 1fr; }
+  .meet-grid { grid-template-columns: 1fr; }
+
+  /* ── Section spacing ── */
+  section { padding: 56px 20px !important; }
+  .section-head { margin-bottom: 28px; }
+
+  /* ── Section headings ── */
+  .section-head h2 {
+    font-size: clamp(20px, 5.5vw, 26px);
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+  .section-head p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── Hero ── */
+  .hero { padding: 48px 22px 72px; }
+  .hero h1 {
+    font-size: clamp(26px, 7.5vw, 36px);
+    line-height: 1.28;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+  .hero .lead {
+    font-size: 14px;
+    line-height: 1.85;
+    margin-bottom: 28px;
+    max-width: 100%;
+  }
+  .hero-inner { max-width: 100%; }
+
+  /* ── CTA buttons ── */
+  .hero-cta { gap: 10px; }
+  .btn { min-width: 0; width: 100%; max-width: 320px; font-size: 15px; }
+
+  /* ── Hook section ── */
+  .hook-head { max-width: 100%; margin-bottom: 28px; }
+  .hook-head h2 {
+    font-size: clamp(20px, 5.5vw, 28px);
+    line-height: 1.38;
+    letter-spacing: -0.02em;
+  }
+  .hook-head p { font-size: 14px; line-height: 1.8; }
 
   .hook-flow {
     flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 28px;
+  }
+  .hook-step {
+    max-width: 100%;
+    width: 100%;
+    flex: none;
+    display: flex;
+    flex-direction: row;
     align-items: center;
+    gap: 16px;
+    text-align: left;
+    padding: 18px 20px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
   }
-
-  .hook-arrow {
-    transform: rotate(90deg);
-    width: auto;
-    height: 28px;
+  .hook-step:first-of-type { border-radius: 16px 16px 0 0; }
+  .hook-step:last-of-type  { border-radius: 0 0 16px 16px; border-bottom-width: 1px; }
+  .hook-step + .hook-step  { border-top: 1px solid rgba(255,255,255,0.04); }
+  .hook-step-num {
+    font-size: clamp(26px, 7vw, 36px);
+    min-width: 80px;
+    text-align: center;
+    margin-bottom: 0;
   }
+  .hook-step-lbl {
+    font-size: 13px;
+    line-height: 1.55;
+    text-align: left;
+  }
+  .hook-arrow { display: none; }
 
-  .hook-step { max-width: 100%; width: 100%; }
+  /* ── Growth chart ── */
+  .growth-chart { padding: 24px 16px 16px; }
+  .chart-end-labels { display: none; }
+  .chart-y-label { display: none; }
+  .chart-legend { gap: 16px; }
+  .chart-legend-item { font-size: 12px; }
+  .hook-cta { font-size: 15px; padding: 16px 28px; }
 
+  /* ── VS Table ── */
   .vs-table {
     flex-direction: column;
     border-radius: 16px;
   }
-
   .vs-divider {
-    flex: 0 0 40px;
+    flex: 0 0 44px;
     writing-mode: horizontal-tb;
     border-left: none;
     border-right: none;
     border-top: 1px solid rgba(255,255,255,0.04);
     border-bottom: 1px solid rgba(59,130,246,0.18);
+    font-size: 11px;
+    letter-spacing: 0.06em;
   }
-
   .vs-divider span { writing-mode: horizontal-tb; }
-
   .vs-col--new { border-left: none; border-top: 1px solid rgba(59, 130, 246, 0.18); }
+  .vs-col { padding: 20px 18px; }
+  .vs-col h4 { font-size: 14px; margin-bottom: 12px; }
+  .vs-list li { font-size: 13px; padding: 7px 0; }
 
-  .chart-end-labels { display: none; }
-
-  .chart-y-label { display: none; }
-
+  /* ── Timeline (process steps) ── */
   .timeline {
     flex-direction: column;
-    gap: 24px;
+    gap: 0;
     padding: 0;
+    position: relative;
+  }
+  .timeline::before {
+    display: block;
+    content: "";
+    position: absolute;
+    left: 28px;
+    top: 28px;
+    bottom: 28px;
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(59,130,246,0.4), rgba(59,130,246,0.1));
+    border-radius: 2px;
+  }
+  .timeline-step {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    text-align: left;
+    padding: 20px 0;
+    position: relative;
+  }
+  .timeline-step:not(:last-child) {
+    border-bottom: none;
+  }
+  .timeline-step .circle {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    font-size: 16px;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+    background: var(--bg-elevated);
+  }
+  .timeline-step .step-content { flex: 1; }
+  .timeline-step .step-label { font-size: 15px; font-weight: 700; display: block; margin-bottom: 3px; }
+  .timeline-step .step-sub   { font-size: 13px; color: var(--text-dim); display: block; }
+
+  /* ── Meet / Value cards ── */
+  .meet-card, .value-card { padding: 18px; }
+
+  /* ── Founder ── */
+  .founder-card { padding: 24px 20px; }
+  .founder-story { font-size: 14px; line-height: 1.85; }
+  .founder-story--highlight { font-size: 15px; }
+
+  /* ── Target chips ── */
+  .target-grid { gap: 8px; }
+  .target-chip { font-size: 13px; padding: 8px 14px; }
+
+  /* ── Offer box ── */
+  .offer-box { padding: 28px 20px; }
+  .offer-price { font-size: 36px; }
+  .offer-list li { font-size: 14px; }
+
+  /* ── FAQ ── */
+  details summary { font-size: 14px; padding: 16px 0; }
+  details p { font-size: 13px; }
+
+  /* ── Reviews ── */
+  .review-card { padding: 18px 16px; }
+  .review-card p { font-size: 13px; }
+
+  /* ── Footer ── */
+  .site-footer { flex-direction: column; text-align: center; gap: 16px; padding: 28px 20px; }
+  .footer-links { justify-content: center; flex-wrap: wrap; gap: 12px; }
+  .footer-links button, .footer-links a { font-size: 13px; }
+}
+
+/* ── 480px 이하: 아이폰 SE 등 소형 폰 ── */
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: clamp(24px, 8vw, 30px);
+    line-height: 1.3;
+  }
+  .hero .lead { font-size: 13.5px; }
+
+  .hook-head h2 {
+    font-size: clamp(18px, 6vw, 24px);
+  }
+  .section-head h2 {
+    font-size: clamp(18px, 6vw, 22px);
   }
 
-  .timeline::before { display: none; }
+  .hook-step-num { font-size: clamp(24px, 7vw, 32px); min-width: 70px; }
 
-  .timeline-step .circle { margin-bottom: 10px; }
+  .eyebrow { font-size: 11px; padding: 5px 12px; }
 
-  .btn { min-width: 0; width: 100%; max-width: 320px; }
-
-  .site-footer { flex-direction: column; text-align: center; }
-
-  .footer-links { justify-content: center; flex-wrap: wrap; }
+  .founder-story--highlight { font-size: 14px; }
 }
