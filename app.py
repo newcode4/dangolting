@@ -17,8 +17,11 @@ from utils.matching import recommend, score_label, evaluate
 from utils.value_match import story_block_html, value_badge_html
 from utils.ui_components import recommendation_card_html
 from utils.match_display import keywords_html, apply_keyword_filter, MatchKeyword, analyze_pair, _theme
-from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, parse_checkbox, EDIT_LABELS, now_matched_at, format_matched_at
-from utils.sheets import load_data, load_data_raw, load_demo_data, set_matched, increment_reject, update_profile_fields
+from utils.columns import (
+    DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, parse_checkbox, EDIT_LABELS,
+    now_matched_at, format_matched_at, apply_eligibility_filter,
+)
+from utils.sheets import load_data_raw, load_demo_data, set_matched, increment_reject, update_profile_fields
 from utils.filters import (
     FILTER_FIELDS,
     field_options,
@@ -180,9 +183,9 @@ st.markdown(f"<style>{_load_theme_css()}</style>", unsafe_allow_html=True)
 ensure_sidebar_visible()
 
 for k, v in [
-    ("df", None), ("selected", []), ("demo_mode", True), ("load_ver", 0), ("flash", ""),
+    ("df", None), ("selected", []), ("demo_mode", False), ("load_ver", 0), ("flash", ""),
     ("chip_filter", None), ("mob_view", "list"), ("focus_settings", False),
-    ("_df_source", None),
+    ("_df_source", None), ("_sheet_raw", None),
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
@@ -202,6 +205,7 @@ def _refresh_data() -> None:
     st.session_state["load_ver"] += 1
     st.session_state["df"] = None
     st.session_state.pop("_df_source", None)
+    st.session_state.pop("_sheet_raw", None)
     st.session_state["selected"] = []
     st.session_state["mob_view"] = "list"
 
@@ -373,7 +377,7 @@ if telegram_enabled():
     def applicant_telegram_watch() -> None:
         try:
             url, ws = active_sheet_config(
-                demo_mode=st.session_state.get("demo_mode", True),
+                demo_mode=st.session_state.get("demo_mode", False),
                 saved_url=_saved_sheet_url(),
                 saved_ws=_saved_ws_name(),
             )
@@ -386,14 +390,74 @@ if telegram_enabled():
         applicant_telegram_watch()
 
 
-@st.cache_data(ttl=60)
-def _load(url: str, ws: str, _ver: int) -> pd.DataFrame:
-    return load_data(url, ws)
+
+def _fetch_sheet_with_progress(url: str, ws: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """시트 1회 읽기 + 프로그레스 바 → (전체 raw, 매칭용 filtered)."""
+    slot = st.empty()
+    bar = slot.progress(0, text="구글 시트 연결 중…")
+    try:
+        bar.progress(12, text="인증 확인 중…")
+        bar.progress(28, text="시트 데이터 읽는 중…")
+        raw = load_data_raw(url, ws, apply_eligibility=False)
+        bar.progress(72, text="데이터 정리 중…")
+        filtered = apply_eligibility_filter(raw)
+        bar.progress(100, text="불러오기 완료")
+        return raw, filtered
+    finally:
+        slot.empty()
 
 
-@st.cache_data(ttl=30)
-def _load_raw(url: str, ws: str, _ver: int) -> pd.DataFrame:
-    return load_data_raw(url, ws, apply_eligibility=False)
+def get_sheet_dataframes() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """매칭용 df + CRM용 raw df. 캐시 hit 시 프로그레스 없음."""
+    if demo_mode:
+        demo = load_demo_data()
+        indexed = ensure_search_index(demo)
+        st.session_state["_sheet_raw"] = demo
+        st.session_state["_df_source"] = "demo"
+        st.session_state["df"] = indexed
+        return indexed, demo
+
+    if not sheet_url:
+        empty = pd.DataFrame()
+        return empty, empty
+
+    source = expected_data_source(demo_mode=False, sheet_url=sheet_url)
+    cached = st.session_state.get("df")
+    raw_cached = st.session_state.get("_sheet_raw")
+
+    if (
+        not should_reload_df(
+            cached=cached,
+            demo_mode=False,
+            data_source=st.session_state.get("_df_source"),
+            expected_source=source,
+        )
+        and raw_cached is not None
+        and cached is not None
+    ):
+        return cached, raw_cached
+
+    try:
+        raw, filtered = _fetch_sheet_with_progress(sheet_url, ws_name)
+    except Exception as exc:
+        ui_error(exc, where="시트 로드", streamlit_module=st)
+        empty = pd.DataFrame()
+        return empty, empty
+
+    st.session_state["_df_source"] = source
+    st.session_state["_sheet_raw"] = raw
+    st.session_state["df"] = ensure_search_index(filtered)
+    return st.session_state["df"], raw
+
+
+def get_df() -> pd.DataFrame:
+    df, _ = get_sheet_dataframes()
+    return df
+
+
+def get_crm_raw_df() -> pd.DataFrame:
+    _, raw = get_sheet_dataframes()
+    return raw
 
 
 def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> None:
@@ -406,7 +470,7 @@ def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> Non
         st.warning("시트 URL을 입력하세요.")
         return
     try:
-        raw = _load_raw(sheet_url, ws_name, st.session_state["load_ver"])
+        raw = get_crm_raw_df()
     except Exception as exc:
         ui_error(exc, where="입금 대기 목록", streamlit_module=st)
         return
@@ -429,7 +493,7 @@ def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> Non
         )
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     if st.button("입금 대기 목록 새로고침", key="unpaid_refresh"):
-        _load_raw.clear()
+        _refresh_data()
         st.rerun()
 
 
@@ -462,46 +526,6 @@ def render_apps_script_guide() -> None:
             mime="text/plain",
             key="dl_apps_script",
         )
-
-
-def get_crm_raw_df() -> pd.DataFrame:
-    """CRM용 — 입금·환불 필터 없이 전체 신청."""
-    if demo_mode:
-        return load_demo_data()
-    if not sheet_url:
-        return pd.DataFrame()
-    try:
-        return _load_raw(sheet_url, ws_name, st.session_state["load_ver"])
-    except Exception as exc:
-        log_exception(exc, where="crm.load_raw")
-        return pd.DataFrame()
-
-
-def get_df() -> pd.DataFrame:
-    source = expected_data_source(demo_mode=demo_mode, sheet_url=sheet_url)
-    cached = st.session_state.get("df")
-    if not should_reload_df(
-        cached=cached,
-        demo_mode=demo_mode,
-        data_source=st.session_state.get("_df_source"),
-        expected_source=source,
-    ):
-        return ensure_search_index(cached)
-
-    if demo_mode:
-        df = load_demo_data()
-    elif sheet_url:
-        try:
-            df = _load(sheet_url, ws_name, st.session_state["load_ver"])
-        except Exception as e:
-            ui_error(e, where="시트 로드", streamlit_module=st)
-            return pd.DataFrame()
-    else:
-        return pd.DataFrame()
-
-    st.session_state["_df_source"] = source
-    st.session_state["df"] = ensure_search_index(df)
-    return st.session_state["df"]
 
 
 def is_matched(row) -> bool:
@@ -1303,17 +1327,16 @@ def render_profile_editor(idx: int, slot: int) -> None:
             st.caption("데모 모드: 시트에는 반영되지 않고 이 세션에만 저장됩니다.")
 
 
-df = get_df()
-crm_raw = get_crm_raw_df()
+df, crm_raw = get_sheet_dataframes()
 df_empty = df.empty
 
 if df_empty:
-    if st.session_state.get("demo_mode", True):
+    if st.session_state.get("demo_mode", False):
         st.warning("데모 데이터를 불러오지 못했습니다. **새로고침**을 눌러 보세요.")
     elif not _saved_sheet_url():
         st.warning(
-            "시트 주소가 없습니다. **⚙ 설정**에서 「데모 데이터」를 켜거나 "
-            "구글 시트 URL을 입력하세요."
+            "시트 주소가 없습니다. **⚙ 설정**에서 구글 시트 URL을 입력하거나 "
+            "「데모 데이터」를 켜세요."
         )
     else:
         st.warning(

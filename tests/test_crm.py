@@ -49,3 +49,21 @@ def test_record_and_summarize_events(tmp_path, monkeypatch):
     summary = summarize_events(mod.load_events())
     assert summary["totals"]["page_view"] == 2
     assert summary["unique"]["apply_click"] == 1
+    assert summary["visitors"]["return_visitors"] == 0
+    assert summary["visitors"]["unique_visitors"] == 2
+
+
+def test_visitor_metrics_return_visitors():
+    from utils.crm_events import visitor_metrics
+
+    events = [
+        {"event": "page_view", "visitor_id": "a", "ts": "2026-06-01T09:00:00+00:00"},
+        {"event": "page_view", "visitor_id": "a", "ts": "2026-06-02T10:00:00+00:00"},
+        {"event": "page_view", "visitor_id": "b", "ts": "2026-06-01T11:00:00+00:00"},
+    ]
+    m = visitor_metrics(events)
+    assert m["unique_visitors"] == 2
+    assert m["return_visitors"] == 1
+    assert m["return_rate_pct"] == 50.0
+    assert m["multi_day_visitors"] == 1
+    assert m["avg_views_per_visitor"] == 1.5
