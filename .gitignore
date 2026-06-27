@@ -3,6 +3,7 @@ credentials.json
 data/users.json
 data/telegram.toml
 data/telegram_notify_state.json
+data/sheet_prefs.json
 data/logs/
 json/
 __pycache__/

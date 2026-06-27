@@ -31,6 +31,7 @@ from utils.filters import (
 from utils.date_filter import render_global_date_filter, apply_date_filter
 from utils.search_index import search_df, drop_search_index, ensure_search_index
 from utils.data_loader import expected_data_source, should_reload_df
+from utils.sheet_prefs import active_sheet_config, load_sheet_prefs, save_sheet_prefs
 from utils.auth import ensure_authenticated, current_user, logout
 from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
 from utils.telegram_notify import (
@@ -105,10 +106,17 @@ ensure_sidebar_visible()
 for k, v in [
     ("df", None), ("selected", []), ("demo_mode", True), ("load_ver", 0), ("flash", ""),
     ("chip_filter", None), ("mob_view", "list"), ("focus_settings", False),
-    ("sheet_url", DEFAULT_SHEET_URL), ("ws_name", DEFAULT_WORKSHEET), ("_df_source", None),
+    ("_df_source", None),
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
+
+if "saved_sheet_url" not in st.session_state:
+    file_url, file_ws = load_sheet_prefs()
+    legacy_url = st.session_state.pop("sheet_url", None)
+    legacy_ws = st.session_state.pop("ws_name", None)
+    st.session_state["saved_sheet_url"] = (legacy_url or file_url or DEFAULT_SHEET_URL).strip()
+    st.session_state["saved_ws_name"] = (legacy_ws or file_ws or DEFAULT_WORKSHEET).strip()
 # 이전 버전 호환
 if st.session_state.get("selected_idx") is not None and not st.session_state["selected"]:
     st.session_state["selected"] = [st.session_state.pop("selected_idx")]
@@ -131,6 +139,14 @@ if (
     _refresh_data()
 
 
+def _saved_sheet_url() -> str:
+    return str(st.session_state.get("saved_sheet_url", DEFAULT_SHEET_URL) or DEFAULT_SHEET_URL)
+
+
+def _saved_ws_name() -> str:
+    return str(st.session_state.get("saved_ws_name", DEFAULT_WORKSHEET) or DEFAULT_WORKSHEET)
+
+
 def render_telegram_controls(*, key_prefix: str) -> None:
     st.caption(f"📱 텔레그램 — {telegram_config_status()}")
     if telegram_enabled():
@@ -144,17 +160,17 @@ def render_telegram_controls(*, key_prefix: str) -> None:
                     st.error("발송 실패 — bot_token · chat_id · 봇 /start 확인")
         with tg2:
             if st.button("지금 확인", key=f"{key_prefix}tg_poll", use_container_width=True):
-                if st.session_state["demo_mode"] or not st.session_state.get("sheet_url"):
+                if st.session_state["demo_mode"] or not _saved_sheet_url():
                     st.info("데모 끄고 실제 시트 연동 후 사용하세요")
                 else:
                     n = run_applicant_watch(
-                        st.session_state["sheet_url"], st.session_state["ws_name"]
+                        _saved_sheet_url(), _saved_ws_name()
                     )
                     st.toast(f"알림 {n}건 발송" if n else "새 신청 없음 (또는 이미 알림 보냄)")
         with tg3:
             if st.button("기준선", key=f"{key_prefix}tg_reset", use_container_width=True, help="지금까지 신청은 알림 제외"):
-                if not st.session_state["demo_mode"] and st.session_state["sheet_url"]:
-                    reset_notify_baseline(st.session_state["sheet_url"], st.session_state["ws_name"])
+                if not st.session_state["demo_mode"] and _saved_sheet_url():
+                    reset_notify_baseline(_saved_sheet_url(), _saved_ws_name())
                     st.toast("알림 기준선을 현재 시트로 맞췄습니다")
                 else:
                     st.info("데모 끄고 실제 시트 연동 후 사용하세요")
@@ -177,21 +193,40 @@ def render_settings_panel(*, key_prefix: str) -> None:
 
     if not demo_on:
         st.caption("시트 연동 중 · 변경은 새로고침으로 불러옴")
-        st.session_state["sheet_url"] = st.text_input(
+        new_url = st.text_input(
             "시트 주소",
-            value=st.session_state["sheet_url"],
+            value=_saved_sheet_url(),
             key=f"{key_prefix}sheet_url",
             label_visibility="collapsed",
         )
-        st.session_state["ws_name"] = st.text_input(
+        new_ws = st.text_input(
             "시트 탭",
-            value=st.session_state["ws_name"],
+            value=_saved_ws_name(),
             key=f"{key_prefix}ws_name",
             label_visibility="collapsed",
         )
+        if new_url != _saved_sheet_url() or new_ws != _saved_ws_name():
+            url = new_url.strip() or DEFAULT_SHEET_URL
+            ws = new_ws.strip() or DEFAULT_WORKSHEET
+            st.session_state["saved_sheet_url"] = url
+            st.session_state["saved_ws_name"] = ws
+            save_sheet_prefs(url, ws)
     else:
-        st.session_state["sheet_url"] = ""
-        st.session_state["ws_name"] = DEFAULT_WORKSHEET
+        st.caption("데모 모드 — 시트 설정은 유지됩니다")
+        st.text_input(
+            "시트 주소 (보존)",
+            value=_saved_sheet_url(),
+            disabled=True,
+            key=f"{key_prefix}sheet_url_ro",
+            label_visibility="collapsed",
+        )
+        st.text_input(
+            "시트 탭 (보존)",
+            value=_saved_ws_name(),
+            disabled=True,
+            key=f"{key_prefix}ws_name_ro",
+            label_visibility="collapsed",
+        )
 
     if st.button("새로고침", key=f"{key_prefix}refresh", use_container_width=True):
         _refresh_data()
@@ -216,8 +251,11 @@ with st.sidebar:
     render_settings_panel(key_prefix="side_")
 
 demo_mode = st.session_state["demo_mode"]
-sheet_url = st.session_state.get("sheet_url", "")
-ws_name = st.session_state.get("ws_name", DEFAULT_WORKSHEET)
+sheet_url, ws_name = active_sheet_config(
+    demo_mode=demo_mode,
+    saved_url=_saved_sheet_url(),
+    saved_ws=_saved_ws_name(),
+)
 
 if telegram_enabled():
     _poll = poll_interval_seconds()
@@ -232,9 +270,12 @@ if telegram_enabled():
     @st.fragment(run_every=timedelta(seconds=_poll))
     def applicant_telegram_watch() -> None:
         try:
-            url = st.session_state.get("sheet_url", "")
-            ws = st.session_state.get("ws_name", DEFAULT_WORKSHEET)
-            if not st.session_state.get("demo_mode") and url:
+            url, ws = active_sheet_config(
+                demo_mode=st.session_state.get("demo_mode", True),
+                saved_url=_saved_sheet_url(),
+                saved_ws=_saved_ws_name(),
+            )
+            if url:
                 run_applicant_watch(url, ws)
         except Exception as exc:
             log_exception(exc, where="telegram.fragment")
@@ -1078,7 +1119,7 @@ df = get_df()
 if df.empty:
     if st.session_state.get("demo_mode", True):
         st.warning("데모 데이터를 불러오지 못했습니다. **새로고침**을 눌러 보세요.")
-    elif not st.session_state.get("sheet_url"):
+    elif not _saved_sheet_url():
         st.warning(
             "시트 주소가 없습니다. **⚙ 설정**에서 「데모 데이터」를 켜거나 "
             "구글 시트 URL을 입력하세요."
@@ -1253,6 +1294,3 @@ with tab4:
         "아래 설정은 사이드바와 동일합니다."
     )
     render_settings_panel(key_prefix="tab_")
-    demo_mode = st.session_state["demo_mode"]
-    sheet_url = st.session_state.get("sheet_url", "")
-    ws_name = st.session_state.get("ws_name", DEFAULT_WORKSHEET)
