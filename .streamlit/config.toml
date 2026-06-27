@@ -7,9 +7,9 @@ textColor = "#E6EDF3"
 font = "sans serif"
 [server]
 headless = true
-# OneDrive·한글 경로 등에서 기본 watcher가 변경을 못 잡을 때 poll 사용
 fileWatcherType = "poll"
 runOnSave = true
+enableStaticServing = true
 
 [browser]
 gatherUsageStats = false
