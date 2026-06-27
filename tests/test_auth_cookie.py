@@ -9,9 +9,13 @@ import pytest
 class _FakeCookieManager:
     def __init__(self, key: str = ""):
         self.key = key
-        self._cookies: dict | None = None
+        self._cookies: dict | None = {}
 
-    def get_all(self):
+    @property
+    def cookies(self):
+        return self._cookies
+
+    def get_all(self, key="get_all"):
         return self._cookies
 
     def set(self, name, val, **kwargs):
@@ -59,6 +63,34 @@ def test_render_auth_page_does_not_stop_while_cookies_loading():
     src = inspect.getsource(auth.render_auth_page)
     assert "st.stop()" not in src
     assert "auth-loading" not in src
+
+
+def test_read_cookies_safe_uses_cm_cookies_not_get_all():
+    """get_all() 재호출 시 StreamlitDuplicateElementKey(get_all) 회귀 방지."""
+    import inspect
+
+    from utils import auth
+
+    src = inspect.getsource(auth._read_cookies_safe)
+    assert "cm.get_all(" not in src
+
+
+def test_try_cookie_login_accepts_prefetched_cookies():
+    cm = _FakeCookieManager()
+    from utils.auth import _try_cookie_login, make_token
+
+    cm._cookies = {"dgt_auth": make_token("admin")}
+    boot_users = load_user_store_with_admin()
+
+    class _State(dict):
+        pass
+
+    fake_st = MagicMock()
+    fake_st.session_state = _State()
+
+    with patch("utils.auth.st", fake_st), patch("utils.auth.load_user_store", return_value=boot_users):
+        assert _try_cookie_login(cm, cookies=cm._cookies) is True
+        assert fake_st.session_state["auth_user"] == "admin"
 
 
 def test_try_cookie_login_sets_user():

@@ -21,7 +21,6 @@ COOKIE_NAME = "dgt_auth"
 COOKIE_WIDGET_KEY = "dgt_cookie_mgr"
 TOKEN_DAYS = 30
 
-
 def _auth_cfg() -> dict:
     try:
         return dict(st.secrets.get("auth", {}))
@@ -159,26 +158,23 @@ def parse_token(token: str) -> str | None:
         return None
 
 
-def _new_cookie_manager() -> CookieManager:
-    """실행 1회당 CookieManager 1개 — session_state에 저장하지 않음."""
+def _get_cookie_manager() -> CookieManager:
+    """CookieManager 1회 생성 — __init__에서 getAll 1번만 (key=COOKIE_WIDGET_KEY)."""
     return CookieManager(key=COOKIE_WIDGET_KEY)
 
 
 def _read_cookies_safe(cm: CookieManager) -> dict | None:
-    """None = 컴포넌트 아직 준비 안 됨. {} = 쿠키 없음."""
+    """None = 컴포넌트 아직 준비 안 됨. {} = 쿠키 없음.
+
+    get_all() 재호출 금지 — Streamlit 1.58 duplicate key 오류.
+    """
     try:
-        if not hasattr(cm, "get_all"):
-            get_logger().warning("CookieManager.get_all 없음 — type=%s", type(cm).__name__)
-            return {}
-        raw = cm.get_all()
+        raw = getattr(cm, "cookies", None)
         if raw is None:
-            return None
+            return None if isinstance(cm, CookieManager) else {}
         if isinstance(raw, dict):
             return raw
-        get_logger().warning("CookieManager.get_all 비정상 반환 — type=%s", type(raw).__name__)
-        return {}
-    except AttributeError as exc:
-        log_exception(exc, where="auth.read_cookies")
+        get_logger().warning("CookieManager.cookies 비정상 — type=%s", type(raw).__name__)
         return {}
     except Exception as exc:
         log_exception(exc, where="auth.read_cookies")
@@ -190,8 +186,9 @@ def _token_from_cookies(cookies: dict) -> str | None:
     return str(val) if val else None
 
 
-def _try_cookie_login(cm: CookieManager) -> bool:
-    cookies = _read_cookies_safe(cm)
+def _try_cookie_login(cm: CookieManager, *, cookies: dict | None = None) -> bool:
+    if cookies is None:
+        cookies = _read_cookies_safe(cm)
     if cookies is None:
         return False
     token = _token_from_cookies(cookies)
@@ -211,7 +208,7 @@ def set_auth_cookie(username: str, remember: bool, *, cm: CookieManager | None =
             _clear_auth_cookie_safe(cm)
         return
     try:
-        manager = cm or _new_cookie_manager()
+        manager = cm or _get_cookie_manager()
         expires = datetime.now(timezone.utc) + timedelta(days=TOKEN_DAYS)
         manager.set(COOKIE_NAME, make_token(username), expires_at=expires, key="dgt_set")
     except Exception as exc:
@@ -220,7 +217,7 @@ def set_auth_cookie(username: str, remember: bool, *, cm: CookieManager | None =
 
 def _clear_auth_cookie_safe(cm: CookieManager | None = None) -> None:
     try:
-        manager = cm or _new_cookie_manager()
+        manager = cm or _get_cookie_manager()
         manager.delete(COOKIE_NAME, key="dgt_logout")
     except Exception as exc:
         log_exception(exc, where="auth.clear_cookie")
@@ -318,14 +315,14 @@ def render_auth_page(logo_uri: str) -> None:
         unsafe_allow_html=True,
     )
 
-    cm = _new_cookie_manager()
+    cm = _get_cookie_manager()
 
     # 쿠키 자동로그인 — 준비됐을 때만 시도. None이면 폼을 먼저 보여줌 (st.stop 금지).
     if not st.session_state.get("_auth_cookie_tried"):
         cookies = _read_cookies_safe(cm)
         if cookies is not None:
             st.session_state["_auth_cookie_tried"] = True
-            if _try_cookie_login(cm):
+            if _try_cookie_login(cm, cookies=cookies):
                 st.rerun()
 
     _sp, main, _sp2 = st.columns([2.2, 1.6, 2.2], gap="small")
@@ -371,8 +368,9 @@ def ensure_authenticated(logo_uri: str) -> None:
 
 
 def get_cookie_manager() -> CookieManager:
-    return _new_cookie_manager()
+    return _get_cookie_manager()
 
 
 def _safe_cookie_get_all() -> dict | None:
-    return _read_cookies_safe(_new_cookie_manager())
+    cm = _get_cookie_manager()
+    return _read_cookies_safe(cm)
