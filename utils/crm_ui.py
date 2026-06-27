@@ -1,7 +1,8 @@
-"""CRM 대시보드 UI."""
+"""CRM 대시보드 UI — 직관형 재설계."""
 from __future__ import annotations
 
 import html as html_lib
+from datetime import date, timedelta
 from typing import Any
 
 import pandas as pd
@@ -11,200 +12,328 @@ from utils.crm import STAGE_LABELS, CrmSnapshot, build_crm_snapshot, crm_events_
 from utils.crm_events import EVENTS_PATH, load_events
 from utils.landing_config import PARTICIPATION_FEE
 
-# ── 단계 색상 ──
 _STAGE_COLOR = {
-    "unpaid": "#f59e0b",
+    "unpaid":   "#f59e0b",
     "matching": "#6366f1",
     "reject_1": "#ef4444",
-    "matched": "#10b981",
-    "closed": "#64748b",
+    "matched":  "#10b981",
+    "closed":   "#64748b",
     "refunded": "#ec4899",
 }
 
 
-def _rate_label(rate: float | None) -> str:
-    if rate is None:
-        return "—"
-    return f"{rate}%"
-
-
-def _pct_color(rate: float | None) -> str:
-    if rate is None:
-        return "#64748b"
-    if rate >= 50:
-        return "#10b981"
-    if rate >= 20:
-        return "#f59e0b"
-    return "#ef4444"
-
-
-# ── 전환율 요약 바 ──────────────────────────────────────────────
-def _render_conversion_summary(snapshot: CrmSnapshot) -> None:
-    ev = snapshot.event_summary.get("unique", {})
-    pv = ev.get("page_view", 0)
-    ac = ev.get("apply_click", 0)
-    fm = snapshot.form_total
-
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 1. ACTION ALERT — 지금 당장 해야 할 일
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _render_action_alerts(snapshot: CrmSnapshot) -> None:
     sc = snapshot.stage_counts
-    paid_total = (
-        sc.get("matching", 0) + sc.get("reject_1", 0)
-        + sc.get("matched", 0) + sc.get("closed", 0)
-    )
+    unpaid   = sc.get("unpaid", 0)
+    matching = sc.get("matching", 0)
+    reject1  = sc.get("reject_1", 0)
+    refunded = sc.get("refunded", 0)
+
+    alerts = []
+    if unpaid:
+        alerts.append(("🔴", f"입금 대기 {unpaid}명", "입금 확인 후 매칭 풀 이동 필요", "#fef3c7", "#d97706"))
+    if reject1:
+        alerts.append(("🟡", f"1차 거절 {reject1}명", "재매칭 진행 또는 상황 확인 필요", "#fce7f3", "#db2777"))
+    if matching:
+        alerts.append(("🔵", f"매칭 진행 중 {matching}명", "상대방 탐색·연결 진행 중", "#eff6ff", "#1d4ed8"))
+    if refunded:
+        alerts.append(("⚪", f"환불 처리 {refunded}명", "완료 케이스", "#f8fafc", "#64748b"))
+
+    if not alerts:
+        st.success("✅ 현재 처리 대기 항목 없음")
+        return
+
+    cols = st.columns(len(alerts))
+    for col, (icon, title, desc, bg, border) in zip(cols, alerts):
+        with col:
+            st.markdown(
+                f'<div style="background:{bg};border-left:4px solid {border};'
+                f'border-radius:10px;padding:14px 16px;margin-bottom:4px">'
+                f'<div style="font-size:20px;font-weight:900;color:#0f172a">{icon} {title}</div>'
+                f'<div style="font-size:12px;color:#475569;margin-top:4px">{desc}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 2. KPI 카드 — 전환율 델타 포함
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _render_kpi_row(snapshot: CrmSnapshot) -> None:
+    ev = snapshot.event_summary.get("unique", {})
+    sc = snapshot.stage_counts
+    pv     = ev.get("page_view", 0)
+    ac     = ev.get("apply_click", 0)
+    fm     = snapshot.form_total
+    paid   = sc.get("matching", 0) + sc.get("reject_1", 0) + sc.get("matched", 0) + sc.get("closed", 0)
     matched = sc.get("matched", 0)
+    refund  = sc.get("refunded", 0)
 
-    def pct(n: int, d: int) -> float | None:
-        return round(n / d * 100, 1) if d else None
+    def pct(n: int, d: int) -> str:
+        return f"{round(n/d*100,1)}%" if d else "—"
 
-    steps = [
-        ("방문", pv, None, "👁"),
-        ("신청클릭", ac, pct(ac, pv), "🖱️"),
-        ("폼제출", fm, pct(fm, ac), "📝"),
-        ("입금", paid_total, pct(paid_total, fm), "💳"),
-        ("매칭완료", matched, pct(matched, paid_total), "🤝"),
+    def color(n: int, d: int) -> str:
+        if not d: return "#64748b"
+        r = n / d * 100
+        return "#10b981" if r >= 50 else "#f59e0b" if r >= 20 else "#ef4444"
+
+    kpis = [
+        ("👁 방문(순)",    pv,     None,           "#3b82f6",  "고유 방문자"),
+        ("🖱 신청클릭",    ac,     pct(ac, pv),    color(ac,pv), "방문→클릭"),
+        ("📝 폼제출",      fm,     pct(fm, ac),    color(fm,ac), "클릭→제출"),
+        ("💳 입금확인",    paid,   pct(paid, fm),  color(paid,fm), "제출→입금"),
+        ("🤝 매칭완료",    matched, pct(matched, paid), color(matched,paid), "입금→매칭"),
+        ("↩ 환불",         refund, None,           "#ec4899",  ""),
     ]
 
-    parts = []
-    for label, cnt, rate, icon in steps:
-        color = _pct_color(rate)
-        rate_html = (
-            f'<span style="font-size:11px;color:{color};font-weight:700;">'
-            f'↑ {rate}%</span>' if rate is not None else ""
-        )
-        parts.append(
-            f'<div class="crm-conv-step">'
-            f'<div class="crm-conv-icon">{icon}</div>'
-            f'<div class="crm-conv-count">{cnt:,}</div>'
-            f'<div class="crm-conv-label">{label}</div>'
-            f'{rate_html}'
-            f'</div>'
-        )
-        if label != "매칭완료":
-            parts.append('<div class="crm-conv-arrow">→</div>')
-
-    html = f'<div class="crm-conv-bar">{"".join(parts)}</div>'
-    st.markdown(html, unsafe_allow_html=True)
-
-
-# ── KPI 카드 ──────────────────────────────────────────────────
-def _render_kpis(snapshot: CrmSnapshot) -> None:
-    ev = snapshot.event_summary.get("unique", {})
-    sc = snapshot.stage_counts
-    paid_total = (
-        sc.get("matching", 0) + sc.get("reject_1", 0)
-        + sc.get("matched", 0) + sc.get("closed", 0)
-    )
-    cards = [
-        ("방문(순)", ev.get("page_view", 0), "crm-kpi-blue", "고유 방문자 수"),
-        ("신청클릭", ev.get("apply_click", 0), "crm-kpi-indigo", "CTA 클릭"),
-        ("폼제출", snapshot.form_total, "crm-kpi-violet", "구글 시트 신청"),
-        ("입금확인", paid_total, "crm-kpi-green", "참가비 납부"),
-        ("매칭완료", sc.get("matched", 0), "crm-kpi-teal", "1:1 연결됨"),
-        ("환불", sc.get("refunded", 0), "crm-kpi-rose", "참가비 환불"),
-    ]
-    html = '<div class="crm-kpi-grid">'
-    for label, val, cls, hint in cards:
-        html += (
-            f'<div class="crm-kpi {cls}" title="{hint}">'
-            f'<div class="crm-kpi-val">{val:,}</div>'
-            f'<div class="crm-kpi-lbl">{html_lib.escape(label)}</div>'
-            f'<div class="crm-kpi-hint">{hint}</div>'
-            f'</div>'
-        )
-    html += "</div>"
-    st.markdown(html, unsafe_allow_html=True)
+    cols = st.columns(len(kpis))
+    for col, (label, val, rate, clr, hint) in zip(cols, kpis):
+        with col:
+            rate_html = (
+                f'<div style="font-size:11px;font-weight:700;color:{clr};margin-top:2px">'
+                f'↑ {rate}</div>' if rate else ""
+            )
+            hint_html = (
+                f'<div style="font-size:10px;color:#94a3b8;margin-top:1px">{hint}</div>'
+                if hint else ""
+            )
+            st.markdown(
+                f'<div style="background:#161b22;border:1px solid #21262d;border-top:3px solid {clr};'
+                f'border-radius:10px;padding:14px 12px;text-align:center">'
+                f'<div style="font-size:11px;color:#8b949e;font-weight:600;margin-bottom:6px">{label}</div>'
+                f'<div style="font-size:1.6rem;font-weight:900;color:#f0f6fc;line-height:1">{val:,}</div>'
+                f'{rate_html}{hint_html}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
 
-# ── 단계 칩 ──────────────────────────────────────────────────
-def _render_stage_chips(snapshot: CrmSnapshot) -> None:
-    chips = []
-    for key in ("unpaid", "matching", "reject_1", "matched", "closed", "refunded"):
-        n = snapshot.stage_counts.get(key, 0)
-        color = _STAGE_COLOR.get(key, "#64748b")
-        chips.append(
-            f'<span class="crm-stage-chip crm-stage-{key}">'
-            f'{html_lib.escape(STAGE_LABELS[key])} '
-            f'<b style="color:{color}">{n}</b></span>'
-        )
-    st.markdown(f'<div class="crm-stage-bar">{"".join(chips)}</div>', unsafe_allow_html=True)
-
-
-# ── 퍼널 바 차트 ──────────────────────────────────────────────
-def _render_funnel(snapshot: CrmSnapshot) -> None:
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 3. 시각적 퍼널 — 가로 막대 + 드롭오프 표시
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _render_visual_funnel(snapshot: CrmSnapshot) -> None:
     max_count = max((s.count for s in snapshot.funnel), default=1) or 1
-    bars = []
-    for step in snapshot.funnel:
-        width = max(4, int(step.count / max_count * 100))
-        prev = _rate_label(step.rate_from_prev)
-        top = _rate_label(step.rate_from_top)
+    rows_html = []
 
-        badges = []
-        if step.rate_from_prev is not None:
-            color = _pct_color(step.rate_from_prev)
-            badges.append(
-                f'<span class="crm-rate-badge" style="color:{color}">이전대비 {prev}</span>'
-            )
-        if step.rate_from_top is not None:
-            badges.append(
-                f'<span class="crm-rate-badge crm-rate-dim">방문대비 {top}</span>'
-            )
+    for i, step in enumerate(snapshot.funnel):
+        width_pct = max(3, int(step.count / max_count * 100))
+        # 이전 대비 전환율 색상
+        if step.rate_from_prev is None:
+            rate_color = "#64748b"
+            rate_txt = ""
+        elif step.rate_from_prev >= 50:
+            rate_color = "#10b981"; rate_txt = f"이전 대비 {step.rate_from_prev}% ✓"
+        elif step.rate_from_prev >= 20:
+            rate_color = "#f59e0b"; rate_txt = f"이전 대비 {step.rate_from_prev}%"
+        else:
+            rate_color = "#ef4444"; rate_txt = f"이전 대비 {step.rate_from_prev}% ▼ 낮음"
 
-        badge_html = "".join(badges)
-        bars.append(
-            f'<div class="crm-funnel-row">'
-            f'<div class="crm-funnel-meta">'
-            f'<span class="crm-funnel-label">{html_lib.escape(step.label)}</span>'
-            f'<div class="crm-funnel-badges">{badge_html}</div>'
+        top_txt = f"방문 대비 {step.rate_from_top}%" if step.rate_from_top is not None else ""
+
+        # 드롭오프 계산 (다음 단계와 비교)
+        drop_html = ""
+        if i < len(snapshot.funnel) - 1:
+            nxt = snapshot.funnel[i + 1]
+            if step.count > 0 and nxt.count < step.count:
+                dropped = step.count - nxt.count
+                drop_pct = round(dropped / step.count * 100, 0)
+                drop_html = (
+                    f'<div style="text-align:right;font-size:10px;color:#ef4444;'
+                    f'margin-top:2px">▼ {int(drop_pct)}% 이탈 ({dropped}명)</div>'
+                )
+
+        row = (
+            f'<div style="margin-bottom:10px">'
+            # 레이블 행
+            f'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'
+            f'<span style="font-size:12px;color:#c9d1d9;font-weight:600">{html_lib.escape(step.label)}</span>'
+            f'<div style="display:flex;gap:8px;align-items:center">'
+            f'<span style="font-size:14px;color:#f0f6fc;font-weight:800">{step.count:,}</span>'
+            f'<span style="font-size:11px;color:{rate_color};font-weight:700">{rate_txt}</span>'
+            f'</div></div>'
+            # 막대
+            f'<div style="height:14px;background:#21262d;border-radius:7px;overflow:hidden;position:relative">'
+            f'<div style="height:100%;width:{width_pct}%;background:linear-gradient(90deg,#1f6feb,#58a6ff);'
+            f'border-radius:7px;transition:width .3s"></div>'
             f'</div>'
-            f'<div class="crm-funnel-track">'
-            f'<div class="crm-funnel-fill" style="width:{width}%"></div>'
-            f'<span class="crm-funnel-cnt">{step.count:,}</span>'
+            # 보조 정보
+            f'<div style="display:flex;justify-content:space-between">'
+            f'<span style="font-size:10px;color:#6e7681">{top_txt}</span>'
+            f'{drop_html}'
             f'</div>'
             f'</div>'
         )
-    st.markdown(f'<div class="crm-funnel">{"".join(bars)}</div>', unsafe_allow_html=True)
+        rows_html.append(row)
+
+    st.markdown(f'<div>{"".join(rows_html)}</div>', unsafe_allow_html=True)
 
 
-# ── 단계 분포 바 차트 ─────────────────────────────────────────
-def _render_stage_bar(snapshot: CrmSnapshot) -> None:
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 4. Plotly 꺾은선 차트 + 날짜 필터
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _render_trend_chart(snapshot: CrmSnapshot) -> None:
+    try:
+        import plotly.graph_objects as go
+    except ImportError:
+        st.caption("plotly 미설치 — `pip install plotly`")
+        return
+
+    by_day   = snapshot.event_summary.get("by_day", {})
+    daily_fm = snapshot.daily_applicants
+
+    all_days = sorted(set(by_day.keys()) | set(daily_fm.keys()))
+    if not all_days:
+        st.caption("데이터가 쌓이면 차트가 표시됩니다.")
+        return
+
+    # 날짜 범위 필터
+    d_min = date.fromisoformat(all_days[0])
+    d_max = date.fromisoformat(all_days[-1])
+    d_default_start = max(d_min, d_max - timedelta(days=29))
+
+    fc1, fc2 = st.columns(2)
+    with fc1:
+        d_start = st.date_input("시작일", value=d_default_start, min_value=d_min, max_value=d_max, key="crm_date_start")
+    with fc2:
+        d_end = st.date_input("종료일", value=d_max, min_value=d_min, max_value=d_max, key="crm_date_end")
+
+    if d_start > d_end:
+        st.warning("시작일이 종료일보다 늦습니다.")
+        return
+
+    filtered_days = [
+        d for d in all_days
+        if date.fromisoformat(d) >= d_start and date.fromisoformat(d) <= d_end
+    ]
+
+    pv_vals  = [by_day.get(d, {}).get("page_view",   0) for d in filtered_days]
+    ac_vals  = [by_day.get(d, {}).get("apply_click", 0) for d in filtered_days]
+    fm_vals  = [daily_fm.get(d, 0)                      for d in filtered_days]
+
+    fig = go.Figure()
+
+    def add_line(name, y, color, dash="solid", fill=None):
+        fig.add_trace(go.Scatter(
+            x=filtered_days, y=y, name=name,
+            mode="lines+markers",
+            line=dict(color=color, width=2.5, dash=dash),
+            marker=dict(size=6, color=color, line=dict(color="#0d1117", width=1.5)),
+            fill=fill,
+            fillcolor=color.replace(")", ",0.07)").replace("rgb", "rgba") if fill else None,
+            hovertemplate=f"<b>{name}</b><br>%{{x}}: %{{y}}명<extra></extra>",
+        ))
+
+    add_line("방문(순)",   pv_vals,  "#3b82f6", fill="tozeroy")
+    add_line("신청클릭",   ac_vals,  "#8b5cf6")
+    add_line("폼제출",     fm_vals,  "#10b981", dash="dot")
+
+    fig.update_layout(
+        height=240,
+        margin=dict(l=0, r=0, t=8, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#8b949e", size=11),
+        legend=dict(
+            orientation="h", y=-0.18, x=0,
+            bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#c9d1d9", size=11),
+        ),
+        xaxis=dict(
+            showgrid=False, zeroline=False,
+            tickfont=dict(color="#6e7681", size=10),
+            tickangle=-30,
+        ),
+        yaxis=dict(
+            showgrid=True, zeroline=False,
+            gridcolor="rgba(255,255,255,0.05)",
+            tickfont=dict(color="#6e7681", size=10),
+        ),
+        hovermode="x unified",
+    )
+
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+    # 기간 합계 요약
+    total_pv = sum(pv_vals)
+    total_ac = sum(ac_vals)
+    total_fm = sum(fm_vals)
+    s1, s2, s3, s4 = st.columns(4)
+    s1.metric("기간 방문", f"{total_pv:,}명")
+    s2.metric("기간 신청클릭", f"{total_ac:,}명",
+              delta=f"{round(total_ac/total_pv*100,1)}% 전환" if total_pv else None)
+    s3.metric("기간 폼제출", f"{total_fm:,}명",
+              delta=f"{round(total_fm/total_ac*100,1)}% 전환" if total_ac else None)
+    s4.metric("선택 기간", f"{(d_end - d_start).days + 1}일")
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 5. 단계 분포 도넛 차트
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _render_stage_donut(snapshot: CrmSnapshot) -> None:
+    try:
+        import plotly.graph_objects as go
+    except ImportError:
+        return
+
     sc = snapshot.stage_counts
-    data = {
-        STAGE_LABELS.get(k, k): sc.get(k, 0)
-        for k in ("unpaid", "matching", "reject_1", "matched", "closed", "refunded")
-    }
-    df = pd.DataFrame.from_dict({"인원": data}, orient="columns")
-    st.bar_chart(df, height=200, color="#3b82f6")
+    keys   = ["unpaid", "matching", "reject_1", "matched", "closed", "refunded"]
+    labels = [STAGE_LABELS.get(k, k) for k in keys]
+    values = [sc.get(k, 0) for k in keys]
+    colors = [_STAGE_COLOR.get(k, "#64748b") for k in keys]
+
+    if sum(values) == 0:
+        st.caption("신청자 없음")
+        return
+
+    fig = go.Figure(go.Pie(
+        labels=labels, values=values,
+        hole=0.55,
+        marker=dict(colors=colors, line=dict(color="#0d1117", width=2)),
+        textinfo="percent+label",
+        textfont=dict(size=11, color="#c9d1d9"),
+        hovertemplate="<b>%{label}</b><br>%{value}명 (%{percent})<extra></extra>",
+    ))
+    fig.update_layout(
+        height=240,
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+        annotations=[dict(
+            text=f"총<br><b>{sum(values)}</b>명",
+            x=0.5, y=0.5, font=dict(size=14, color="#f0f6fc"), showarrow=False,
+        )],
+    )
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
-# ── 신청자 테이블 (soft delete) ───────────────────────────────
-def _render_applicant_table(
-    snapshot: CrmSnapshot,
-    raw_df: pd.DataFrame,
-) -> None:
-    st.markdown("##### 신청자 파이프라인")
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 6. 신청자 테이블 (soft delete)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _render_applicant_table(snapshot: CrmSnapshot, raw_df: pd.DataFrame) -> None:
+    st.markdown("##### 📋 신청자 파이프라인")
 
     if "crm_hidden_rows" not in st.session_state:
         st.session_state["crm_hidden_rows"] = set()
     hidden: set = st.session_state["crm_hidden_rows"]
 
-    fa, fb, fc = st.columns([3, 2, 1])
+    fa, fb, fc, fd = st.columns([3, 2, 1, 1])
     with fa:
         stage_filter = st.multiselect(
-            "단계 필터",
-            options=list(STAGE_LABELS.values()),
-            default=[],
-            placeholder="전체 단계",
-            key="crm_stage_filter",
-            label_visibility="collapsed",
+            "단계 필터", options=list(STAGE_LABELS.values()),
+            default=[], placeholder="전체 단계",
+            key="crm_stage_filter", label_visibility="collapsed",
         )
     with fb:
-        q = st.text_input(
-            "검색",
-            placeholder="이름 · 연락처 · 직군",
-            key="crm_search",
-            label_visibility="collapsed",
-        )
+        q = st.text_input("검색", placeholder="이름 · 연락처 · 직군",
+                          key="crm_search", label_visibility="collapsed")
     with fc:
-        show_hidden = st.checkbox("숨긴 항목 포함", key="crm_show_hidden")
+        show_hidden = st.checkbox("숨김 포함", key="crm_show_hidden")
+    with fd:
+        if hidden and st.button("숨김 해제", key="crm_unhide_all", use_container_width=True):
+            st.session_state["crm_hidden_rows"] = set(); st.rerun()
 
     rows = snapshot.applicants
     if not show_hidden:
@@ -214,202 +343,112 @@ def _render_applicant_table(
         rows = [r for r in rows if r.get("단계") in allowed]
     if q.strip():
         needle = q.strip().lower()
-        rows = [
-            r for r in rows
-            if needle in str(r.get("이름", "")).lower()
-            or needle in str(r.get("연락처", "")).lower()
-            or needle in str(r.get("직군", "")).lower()
-        ]
+        rows = [r for r in rows
+                if needle in str(r.get("이름","")).lower()
+                or needle in str(r.get("연락처","")).lower()
+                or needle in str(r.get("직군","")).lower()]
 
     if not rows:
         st.info("표시할 신청자가 없습니다.")
-        if hidden:
-            if st.button("숨김 초기화", key="crm_unhide_all"):
-                st.session_state["crm_hidden_rows"] = set()
-                st.rerun()
         return
 
-    # 테이블 + 삭제(숨기기) 버튼
-    show_cols = ["신청일", "이름", "연락처", "단계", "입금", "매칭", "거절", "환불", "D-day", "직군", "지역", "행"]
-    show_cols = [c for c in show_cols if c in pd.DataFrame(rows).columns]
-    table = pd.DataFrame(rows)[show_cols]
+    show_cols = ["신청일","이름","연락처","단계","입금","매칭","거절","환불","D-day","직군","지역","행"]
+    tbl = pd.DataFrame(rows)
+    show_cols = [c for c in show_cols if c in tbl.columns]
 
-    col_cfg: dict[str, Any] = {}
-    if "행" in table.columns:
-        col_cfg["행"] = st.column_config.NumberColumn("행#", width="small")
-    if "단계" in table.columns:
-        col_cfg["단계"] = st.column_config.TextColumn("단계", width="medium")
-
-    selected = st.dataframe(
-        table,
-        use_container_width=True,
-        hide_index=True,
+    sel = st.dataframe(
+        tbl[show_cols], use_container_width=True, hide_index=True,
         height=min(440, 44 + len(rows) * 36),
-        on_select="rerun",
-        selection_mode="multi-row",
-        column_config=col_cfg,
+        on_select="rerun", selection_mode="multi-row",
     )
-
-    sel_indices = selected.selection.get("rows", []) if hasattr(selected, "selection") else []
-    if sel_indices:
-        n_sel = len(sel_indices)
-        d1, d2, _ = st.columns([1, 1, 4])
-        with d1:
-            if st.button(f"🙈 {n_sel}명 숨기기", key="crm_hide_sel", type="secondary"):
-                for i in sel_indices:
-                    row_num = rows[i].get("행")
-                    if row_num is not None:
-                        hidden.add(row_num)
-                st.session_state["crm_hidden_rows"] = hidden
-                st.rerun()
-        with d2:
-            if hidden and st.button("숨김 전체 해제", key="crm_unhide_all2"):
-                st.session_state["crm_hidden_rows"] = set()
-                st.rerun()
+    sel_idx = sel.selection.get("rows", []) if hasattr(sel, "selection") else []
+    if sel_idx:
+        if st.button(f"🙈 {len(sel_idx)}명 목록에서 숨기기", key="crm_hide_sel", type="secondary"):
+            for i in sel_idx:
+                rn = rows[i].get("행")
+                if rn is not None:
+                    hidden.add(rn)
+            st.session_state["crm_hidden_rows"] = hidden; st.rerun()
 
     st.caption(
-        f"총 **{len(rows)}**명 표시 · "
-        f"입금 대기 **{snapshot.stage_counts.get('unpaid', 0)}** · "
-        f"매칭 진행 **{snapshot.stage_counts.get('matching', 0)}** · "
-        + (f"숨긴 항목 **{len(hidden)}**" if hidden else "")
+        f"표시 **{len(rows)}**명 · 입금 대기 **{snapshot.stage_counts.get('unpaid',0)}** · "
+        f"매칭 진행 **{snapshot.stage_counts.get('matching',0)}**"
+        + (f" · 숨김 **{len(hidden)}**" if hidden else "")
     )
 
 
-# ── 이벤트 초기화 ──────────────────────────────────────────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 7. 이벤트 초기화
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def _render_event_reset(demo_mode: bool) -> None:
     with st.expander("⚙️ 데이터 관리", expanded=False):
-        st.caption("랜딩 이벤트 파일(`data/crm_events.jsonl`)을 초기화합니다. 시트 데이터는 영향 없음.")
         event_count = len(load_events())
-        st.markdown(f"현재 이벤트 **{event_count}**건 저장됨")
-
+        st.caption(f"랜딩 이벤트 파일(`{EVENTS_PATH.name}`) — 현재 **{event_count}**건")
         if "crm_reset_confirm" not in st.session_state:
             st.session_state["crm_reset_confirm"] = False
-
         if not st.session_state["crm_reset_confirm"]:
             if st.button("🗑 이벤트 기록 초기화", key="crm_reset_btn", type="secondary"):
-                st.session_state["crm_reset_confirm"] = True
-                st.rerun()
+                st.session_state["crm_reset_confirm"] = True; st.rerun()
         else:
-            st.warning("⚠️ 모든 방문·클릭 이벤트 기록이 삭제됩니다. 정말 초기화할까요?")
+            st.warning("⚠️ 모든 방문·클릭 이벤트 기록이 삭제됩니다. 계속할까요?")
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("✅ 확인, 초기화", key="crm_reset_confirm_yes", type="primary"):
+                if st.button("✅ 초기화 확인", key="crm_reset_yes", type="primary"):
                     if EVENTS_PATH.is_file():
                         EVENTS_PATH.write_text("", encoding="utf-8")
                     st.session_state["crm_reset_confirm"] = False
-                    st.success("초기화 완료!")
-                    st.rerun()
+                    st.success("초기화 완료!"); st.rerun()
             with c2:
                 if st.button("취소", key="crm_reset_cancel"):
-                    st.session_state["crm_reset_confirm"] = False
-                    st.rerun()
+                    st.session_state["crm_reset_confirm"] = False; st.rerun()
 
 
-# ── 메인 진입점 ──────────────────────────────────────────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MAIN
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
-    events = crm_events_for_mode(demo_mode=demo_mode)
+    events   = crm_events_for_mode(demo_mode=demo_mode)
     snapshot = build_crm_snapshot(raw_df, events=events)
 
-    # 헤더
-    h1, h2 = st.columns([5, 1])
-    with h1:
-        st.markdown("#### CRM · 전환 퍼널")
-        st.caption(
-            "랜딩 **방문·신청 클릭**은 자동 수집 · **폼·입금·매칭·환불**은 구글 시트 기준. "
-            f"참가비 {PARTICIPATION_FEE} · 입금 {snapshot.revenue_paid:,}원 · 환불 {snapshot.revenue_refunded:,}원"
-        )
-
-    # 전환율 요약 바
-    _render_conversion_summary(snapshot)
-    st.markdown('<div style="margin:12px 0 4px"></div>', unsafe_allow_html=True)
-
-    # KPI 카드
-    _render_kpis(snapshot)
-    st.markdown('<div class="crm-section-gap"></div>', unsafe_allow_html=True)
-
-    # 단계 칩
-    _render_stage_chips(snapshot)
+    # ── 헤더 ──
+    st.markdown("#### CRM · 전환 퍼널")
+    st.caption(
+        f"참가비 {PARTICIPATION_FEE} · "
+        f"총 입금 **{snapshot.revenue_paid:,}원** · "
+        f"환불 **{snapshot.revenue_refunded:,}원** · "
+        f"순수익 **{snapshot.revenue_paid - snapshot.revenue_refunded:,}원**"
+    )
     st.markdown("---")
 
-    # 퍼널 + 차트
-    left, right = st.columns([11, 9], gap="large")
+    # ── 1. 지금 할 일 ──
+    st.markdown("##### 🚨 지금 처리 필요")
+    _render_action_alerts(snapshot)
+    st.markdown('<div style="margin:16px 0"></div>', unsafe_allow_html=True)
 
+    # ── 2. KPI ──
+    st.markdown("##### 📊 전환 현황")
+    _render_kpi_row(snapshot)
+    st.markdown('<div style="margin:20px 0 4px"></div>', unsafe_allow_html=True)
+
+    # ── 3. 퍼널 + 도넛 ──
+    left, right = st.columns([13, 7], gap="large")
     with left:
-        st.markdown("##### 퍼널 상세")
-        _render_funnel(snapshot)
-
+        st.markdown("##### 🔽 퍼널 상세 (드롭오프 포함)")
+        _render_visual_funnel(snapshot)
     with right:
-        chart_tab1, chart_tab2, chart_tab3 = st.tabs(["📈 일별 추이", "📊 단계 분포", "📋 이벤트 로그"])
-
-        with chart_tab1:
-            if snapshot.event_summary.get("by_day") or snapshot.daily_applicants:
-                days = sorted(
-                    set(snapshot.event_summary.get("by_day", {}).keys())
-                    | set(snapshot.daily_applicants.keys())
-                )
-                chart_rows = []
-                for d in days[-14:]:
-                    ev = snapshot.event_summary.get("by_day", {}).get(d, {})
-                    chart_rows.append({
-                        "날짜": d,
-                        "방문": ev.get("page_view", 0),
-                        "신청클릭": ev.get("apply_click", 0),
-                        "폼제출": snapshot.daily_applicants.get(d, 0),
-                    })
-                if chart_rows:
-                    st.line_chart(
-                        pd.DataFrame(chart_rows).set_index("날짜"),
-                        height=220,
-                        color=["#3b82f6", "#8b5cf6", "#10b981"],
-                    )
-                else:
-                    st.caption("아직 일별 데이터가 없습니다.")
-            else:
-                st.caption("이벤트·신청 데이터가 쌓이면 차트가 표시됩니다.")
-
-        with chart_tab2:
-            _render_stage_bar(snapshot)
-            # 전환율 비교 표
-            ev = snapshot.event_summary.get("unique", {})
-            pv = ev.get("page_view", 0)
-            ac = ev.get("apply_click", 0)
-            fm = snapshot.form_total
-            sc = snapshot.stage_counts
-            paid = sc.get("matching", 0) + sc.get("reject_1", 0) + sc.get("matched", 0) + sc.get("closed", 0)
-            matched = sc.get("matched", 0)
-
-            def _p(n: int, d: int) -> str:
-                return f"{round(n/d*100,1)}%" if d else "—"
-
-            rate_df = pd.DataFrame([
-                {"구간": "방문 → 신청클릭", "전환율": _p(ac, pv)},
-                {"구간": "신청클릭 → 폼제출", "전환율": _p(fm, ac)},
-                {"구간": "폼제출 → 입금", "전환율": _p(paid, fm)},
-                {"구간": "입금 → 매칭완료", "전환율": _p(matched, paid)},
-                {"구간": "방문 → 최종매칭", "전환율": _p(matched, pv)},
-            ])
-            st.dataframe(rate_df, hide_index=True, use_container_width=True, height=210)
-
-        with chart_tab3:
-            recent: list[dict[str, Any]] = snapshot.event_summary.get("recent", [])
-            if not recent:
-                st.caption("수집된 이벤트 없음 — 랜딩 페이지 방문 후 표시됩니다.")
-            else:
-                log_rows = [
-                    {
-                        "시각": str(r.get("ts", ""))[:19].replace("T", " "),
-                        "이벤트": r.get("event", "—"),
-                        "visitor_id": str(r.get("visitor_id", "—"))[:14],
-                    }
-                    for r in recent[:20]
-                ]
-                st.dataframe(pd.DataFrame(log_rows), hide_index=True, use_container_width=True, height=220)
-            st.caption(f"파일: `{EVENTS_PATH.name}`")
+        st.markdown("##### 🥧 단계 분포")
+        _render_stage_donut(snapshot)
 
     st.markdown("---")
 
-    # 신청자 테이블
+    # ── 4. 꺾은선 추이 ──
+    st.markdown("##### 📈 일별 추이 (날짜 선택 가능)")
+    _render_trend_chart(snapshot)
+    st.markdown("---")
+
+    # ── 5. 신청자 테이블 ──
     _render_applicant_table(snapshot, raw_df)
-
     st.markdown("---")
+
+    # ── 6. 데이터 관리 ──
     _render_event_reset(demo_mode)

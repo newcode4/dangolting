@@ -23,6 +23,10 @@ class _FakeCookieManager:
             self._cookies = {}
         self._cookies[name] = val
 
+    def delete(self, name, **kwargs):
+        if self._cookies and name in self._cookies:
+            del self._cookies[name]
+
 
 def test_ensure_authenticated_never_calls_get_all_directly():
     """ensure_authenticated 본문에 get_cookie_manager().get_all() 패턴 없음."""
@@ -75,11 +79,13 @@ def test_read_cookies_safe_uses_cm_cookies_not_get_all():
     assert "cm.get_all(" not in src
 
 
+_FIXED_KEY = b"dangolting-local-dev-change-in-secrets"
+
+
 def test_try_cookie_login_accepts_prefetched_cookies():
     cm = _FakeCookieManager()
     from utils.auth import _try_cookie_login, make_token
 
-    cm._cookies = {"dgt_auth": make_token("admin")}
     boot_users = load_user_store_with_admin()
 
     class _State(dict):
@@ -88,7 +94,12 @@ def test_try_cookie_login_accepts_prefetched_cookies():
     fake_st = MagicMock()
     fake_st.session_state = _State()
 
-    with patch("utils.auth.st", fake_st), patch("utils.auth.load_user_store", return_value=boot_users):
+    with (
+        patch("utils.auth.st", fake_st),
+        patch("utils.auth.load_user_store", return_value=boot_users),
+        patch("utils.auth._session_key", return_value=_FIXED_KEY),
+    ):
+        cm._cookies = {"dgt_auth": make_token("admin")}
         assert _try_cookie_login(cm, cookies=cm._cookies) is True
         assert fake_st.session_state["auth_user"] == "admin"
 
@@ -97,8 +108,6 @@ def test_try_cookie_login_sets_user():
     cm = _FakeCookieManager()
     from utils.auth import _try_cookie_login, make_token
 
-    cm._cookies = {"dgt_auth": make_token("admin")}
-
     class _State(dict):
         pass
 
@@ -107,7 +116,12 @@ def test_try_cookie_login_sets_user():
 
     boot_users = load_user_store_with_admin()
 
-    with patch("utils.auth.st", fake_st), patch("utils.auth.load_user_store", return_value=boot_users):
+    with (
+        patch("utils.auth.st", fake_st),
+        patch("utils.auth.load_user_store", return_value=boot_users),
+        patch("utils.auth._session_key", return_value=_FIXED_KEY),
+    ):
+        cm._cookies = {"dgt_auth": make_token("admin")}
         assert _try_cookie_login(cm) is True
         assert fake_st.session_state["auth_user"] == "admin"
 
