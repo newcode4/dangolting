@@ -81,7 +81,7 @@ def _landing_html(
       <h1>서로에게 <em>진짜 도움이 되는</em><br/>비즈니스 파트너, 한 명이면 충분합니다</h1>
       <p class="lead">
         모임에 수십 번 나가도 — 이해관계가 맞고, 결이 통하는 사람은 잘 안 생깁니다.<br/>
-        운영진이 직접 나서서, 고민 없이 일을 주고받을 수 있는 사람을 찾아 연결합니다.
+        운영진이 직접 나서서, 딱 맞는 파트너를 찾아 연결합니다.
       </p>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">
