@@ -1206,6 +1206,99 @@ a { color: inherit; text-decoration: none; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Founder Story ── */
+.founder-section {
+  padding: 48px 24px 52px;
+}
+
+.founder-card {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+  background: linear-gradient(160deg, rgba(20, 28, 48, 0.7) 0%, rgba(12, 17, 28, 0.6) 100%);
+  border: 1px solid rgba(96, 165, 250, 0.14);
+  border-radius: 24px;
+  padding: 48px 44px 40px;
+  overflow: hidden;
+}
+
+.founder-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.5) 40%, rgba(96, 165, 250, 0.5) 60%, transparent);
+}
+
+.founder-quote-mark {
+  position: absolute;
+  top: 20px;
+  left: 28px;
+  font-size: 80px;
+  line-height: 1;
+  color: rgba(59, 130, 246, 0.15);
+  font-family: Georgia, serif;
+  pointer-events: none;
+  user-select: none;
+}
+
+.founder-body {
+  position: relative;
+}
+
+.founder-story {
+  font-size: 16px;
+  line-height: 1.85;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+}
+
+.founder-story em {
+  font-style: normal;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.founder-story strong {
+  color: #93c5fd;
+  font-weight: 800;
+}
+
+.founder-story--highlight {
+  color: var(--text);
+  font-size: 17px;
+  padding: 20px 22px;
+  background: rgba(59, 130, 246, 0.07);
+  border-left: 3px solid rgba(96, 165, 250, 0.6);
+  border-radius: 0 12px 12px 0;
+  margin-left: -22px;
+  padding-left: 22px;
+}
+
+.founder-sig {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.founder-sig-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.founder-sig-title {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
 /* ── Growth Chart (SVG 꺾은선) ── */
 .growth-chart {
   max-width: 580px;

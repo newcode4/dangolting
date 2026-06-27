@@ -78,6 +78,14 @@ def test_landing_kakao_link():
     assert "open.kakao.com/me/dangolgrow" in html
 
 
+def test_landing_founder_story():
+    """창업자 스토리 섹션 존재."""
+    html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
+    assert "founder-card" in html
+    assert "이주환" in html
+    assert "단골 수집가" in html
+
+
 def test_landing_refund_policy_accurate():
     """환불 정책에 1회=50%, 2회=0% 명시."""
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)

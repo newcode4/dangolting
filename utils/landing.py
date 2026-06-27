@@ -53,7 +53,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <div class="hero-glow"></div>
     <div class="hero-stars"></div>
     <div class="hero-inner">
-      <span class="eyebrow">1기 한정 모집 · 단돈 5만 원 · 리스크 제로</span>
+      <span class="eyebrow">단골 수집가가 직접 찾아드립니다 · 1기 한정 · 5만 원</span>
       <h1>나랑 진짜 잘 맞는 사람,<br/>딱 <em>한 명</em>이면 됩니다</h1>
       <p class="lead">
         일은 늘어가는데, 마음 터놓고 얘기할 사람은 점점 없어집니다.<br/>
@@ -151,6 +151,43 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <span>그래서, 5만 원에 뭘 받나요?</span>
       <span class="hook-cta-arrow">→</span>
     </a>
+  </section>
+
+  <section class="founder-section reveal">
+    <div class="founder-card reveal-item">
+      <div class="founder-quote-mark" aria-hidden="true">&ldquo;</div>
+      <div class="founder-body">
+        <p class="founder-story">
+          저도 오프라인 모임을 수십 번 나갔습니다.<br/>
+          그때마다 속으로 이런 생각을 했어요.<br/>
+          <em>&ldquo;여기서 나랑 진짜 통하는 사람을 찾을 수 있을까?&rdquo;</em>
+        </p>
+        <p class="founder-story">
+          대부분은 명함만 바꾸고 끝났습니다.<br/>
+          가끔 좋아 보이는 분을 만나도 — 의견 조율하고, 시간 맞추고, 서로 원하는 걸 확인하는 게<br/>
+          생각보다 너무 피곤했어요. 결국 흐지부지됐고요.
+        </p>
+        <p class="founder-story founder-story--highlight">
+          그런데 이상한 게 있어요.<br/>
+          저는 그 과정이 <strong>재밌었습니다.</strong><br/>
+          사람을 읽고, 대화하고, 조율하는 게 — 저한테는 일이 아니라 즐거움이에요.
+        </p>
+        <p class="founder-story">
+          그러다 깨달았습니다.<br/>
+          &ldquo;내가 즐거운 걸 다른 사람은 힘들어하는구나.<br/>
+          그러면 내가 하면 되잖아.&rdquo;
+        </p>
+        <p class="founder-story">
+          그래서 단골팅을 만들었습니다.<br/>
+          저는 실제로 단골을 만드는 걸 좋아하고, 사람을 보는 눈이 쌓여 있어요.<br/>
+          당신이 힘들어하는 그 과정을, 제가 대신 즐기겠습니다.
+        </p>
+        <div class="founder-sig">
+          <div class="founder-sig-name">이주환</div>
+          <div class="founder-sig-title">단골팅 운영자 · 단골 수집가</div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="section reveal">
