@@ -304,6 +304,10 @@ def render_auth_page(logo_uri: str) -> None:
           min-height: 36px !important;
           font-size: 0.85rem !important;
         }
+        .auth-logo { width: 52px; height: 52px; margin-bottom: 12px; }
+        .auth-brand { text-align: center; margin-bottom: 4px; }
+        .auth-brand h1 { font-size: 1.3rem; font-weight: 700; color: #e6edf3; margin: 0 0 6px; }
+        .auth-brand p  { font-size: 0.82rem; color: #8b949e; margin: 0; }
         @media (max-width: 768px) {
           section.main > div.block-container {
             padding: 2.5rem 1rem 1.5rem !important;
