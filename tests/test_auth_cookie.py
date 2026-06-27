@@ -161,6 +161,8 @@ def test_render_auth_page_does_not_stop_while_cookies_loading():
     src = inspect.getsource(auth.render_auth_page)
     assert "st.stop()" not in src
     assert "auth-loading" not in src
+    assert "st.columns" not in src
+    assert "auth-page-marker" in src
 
 
 def test_read_cookies_safe_uses_cm_cookies_not_get_all():

@@ -930,17 +930,100 @@ div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
 [data-testid="stExpander"] summary { font-size: 0.82rem !important; }
 div[data-testid="stMultiSelect"] [data-baseweb="tag"] { font-size: 0.72rem !important; }
 
-/* ── 로그인 / 회원가입 ── */
-.auth-brand { text-align: center; margin-bottom: 18px; }
-.auth-logo { width: 40px; height: 40px; margin-bottom: 10px; }
+/* ── 로그인 페이지 — PC 전체 화면 중앙 정렬 ── */
+.auth-page-marker { display: none; }
+
+body:has(.auth-page-marker) [data-testid="stSidebar"],
+body:has(.auth-page-marker) [data-testid="stSidebarCollapsedControl"] {
+  display: none !important;
+}
+
+section.main:has(.auth-page-marker) > div.block-container {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: calc(100vh - 2rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2.5rem 1.5rem !important;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(59, 130, 246, 0.14) 0%, transparent 58%),
+    #0d1117 !important;
+}
+
+section.main:has(.auth-page-marker) > div.block-container > div[data-testid="stVerticalBlock"] {
+  width: 100% !important;
+  max-width: 480px !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+}
+
+section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand) {
+  width: 100% !important;
+  max-width: 480px !important;
+  padding: 32px 36px 26px !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand)
+  [data-testid="stForm"] [data-testid="stVerticalBlock"] > div {
+  gap: 12px !important;
+}
+
+section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand)
+  div[data-testid="stButton"] > button {
+  min-height: 42px !important;
+  font-size: 0.9rem !important;
+}
+
+section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand)
+  [data-testid="stTextInput"] input {
+  min-height: 42px !important;
+  font-size: 0.9rem !important;
+}
+
+.auth-brand { text-align: center; margin-bottom: 20px; }
+.auth-logo { width: 52px; height: 52px; margin-bottom: 14px; }
 .auth-brand h1 {
-  font-size: 1.1rem; font-weight: 700; color: #e6edf3; margin: 0 0 6px;
+  font-size: 1.35rem; font-weight: 700; color: #e6edf3; margin: 0 0 8px;
 }
-.auth-brand p { font-size: 0.74rem; color: #8b949e; margin: 0; }
+.auth-brand p { font-size: 0.85rem; color: #8b949e; margin: 0; line-height: 1.45; }
 .auth-hint {
-  text-align: center; font-size: 0.68rem; color: #6e7681;
-  line-height: 1.55; margin: 14px 0 0;
+  text-align: center; font-size: 0.75rem; color: #6e7681;
+  line-height: 1.55; margin: 16px 0 0;
 }
+
+@media (min-width: 769px) {
+  section.main:has(.auth-page-marker) > div.block-container {
+    padding: 3rem 2rem !important;
+  }
+  section.main:has(.auth-page-marker) > div.block-container > div[data-testid="stVerticalBlock"],
+  section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand) {
+    max-width: 520px !important;
+  }
+  section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand) {
+    padding: 40px 44px 32px !important;
+  }
+  .auth-logo { width: 60px; height: 60px; }
+  .auth-brand h1 { font-size: 1.5rem; }
+  .auth-brand p { font-size: 0.9rem; }
+}
+
+@media (max-width: 768px) {
+  section.main:has(.auth-page-marker) > div.block-container {
+    min-height: calc(100vh - 1rem) !important;
+    padding: 2rem 1rem !important;
+  }
+  section.main:has(.auth-page-marker) > div.block-container > div[data-testid="stVerticalBlock"],
+  section.main:has(.auth-page-marker) [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand) {
+    max-width: 100% !important;
+  }
+}
+
 .auth-back-nav {
   max-width: 420px;
   margin: 0 auto 12px;

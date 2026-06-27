@@ -347,83 +347,37 @@ def render_auth_page(logo_uri: str) -> None:
     from utils.scroll_top import reset_page_scroll
 
     reset_page_scroll(force=True)
-    st.markdown(
-        """
-        <style>
-        section.main > div.block-container {
-          max-width: 100% !important;
-          padding: 4rem 1.5rem 2rem !important;
-        }
-        section.main [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand) {
-          padding: 28px 32px 22px !important;
-          background: #161b22 !important;
-          border-color: #30363d !important;
-          border-radius: 14px !important;
-          max-width: 400px;
-          margin: 0 auto;
-        }
-        section.main [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand)
-          [data-testid="stForm"] [data-testid="stVerticalBlock"] > div {
-          gap: 10px !important;
-        }
-        section.main [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand)
-          div[data-testid="stButton"] > button {
-          min-height: 38px !important;
-          font-size: 0.85rem !important;
-        }
-        section.main [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand)
-          [data-testid="stTextInput"] input {
-          min-height: 36px !important;
-          font-size: 0.85rem !important;
-        }
-        .auth-logo { width: 52px; height: 52px; margin-bottom: 12px; }
-        .auth-brand { text-align: center; margin-bottom: 4px; }
-        .auth-brand h1 { font-size: 1.3rem; font-weight: 700; color: #e6edf3; margin: 0 0 6px; }
-        .auth-brand p  { font-size: 0.82rem; color: #8b949e; margin: 0; }
-        @media (max-width: 768px) {
-          section.main > div.block-container {
-            padding: 2.5rem 1rem 1.5rem !important;
-          }
-          section.main [data-testid="stVerticalBlockBorderWrapper"]:has(.auth-brand) {
-            max-width: 100%;
-          }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
     cm = _get_cookie_manager()
     _attempt_cookie_auto_login(cm)
 
-    _sp, main, _sp2 = st.columns([2.2, 1.6, 2.2], gap="small")
+    st.markdown('<span class="auth-page-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
 
-    with main:
-        with st.container(border=True):
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div class="auth-brand">
+              <img src="{logo_uri}" alt="단골팅" class="auth-logo"/>
+              <h1>단골팅 관리자</h1>
+              <p>관리자 계정으로 로그인하세요</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if signup_allowed():
+            tab_login, tab_signup = st.tabs(["로그인", "회원가입"])
+            with tab_login:
+                _render_login_form(cm=cm)
+            with tab_signup:
+                _render_signup_form()
+        else:
+            _render_login_form(cm=cm)
             st.markdown(
-                f"""
-                <div class="auth-brand">
-                  <img src="{logo_uri}" alt="단골팅" class="auth-logo"/>
-                  <h1>단골팅 관리자</h1>
-                  <p>관리자 계정으로 로그인하세요</p>
-                </div>
-                """,
+                '<p class="auth-hint">접근 권한이 있는 관리자만 이용할 수 있습니다.<br>'
+                "계정은 운영자가 발급합니다.</p>",
                 unsafe_allow_html=True,
             )
-
-            if signup_allowed():
-                tab_login, tab_signup = st.tabs(["로그인", "회원가입"])
-                with tab_login:
-                    _render_login_form(cm=cm)
-                with tab_signup:
-                    _render_signup_form()
-            else:
-                _render_login_form(cm=cm)
-                st.markdown(
-                    '<p class="auth-hint">접근 권한이 있는 관리자만 이용할 수 있습니다.<br>'
-                    "계정은 운영자가 발급합니다.</p>",
-                    unsafe_allow_html=True,
-                )
 
 
 def ensure_authenticated(logo_uri: str) -> None:

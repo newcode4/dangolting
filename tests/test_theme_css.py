@@ -29,6 +29,20 @@ def test_admin_desktop_full_width_layout():
     assert "max-width: none !important" in text
     assert "list-layout-anchor" in text
     assert "flex: 0 0 min(340px" in text
+    assert "auth-page-marker" in text
     idx = text.find("/* ── 레이아웃 ── */")
     layout_chunk = text[idx : idx + 900]
     assert "flex: 0 0 260px" not in layout_chunk
+
+
+def test_admin_theme_injected_before_auth_gate():
+    import inspect
+
+    from app import _inject_admin_theme
+
+    src = inspect.getsource(_inject_admin_theme)
+    assert "_theme_css_inline()" in src
+    app_src = open(THEME.parent.parent / "app.py", encoding="utf-8").read()
+    gate_idx = app_src.find("_public_entry_gate(logo_data_uri())")
+    inject_idx = app_src.find("if is_admin_route():")
+    assert inject_idx > 0 and inject_idx < gate_idx

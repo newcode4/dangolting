@@ -159,6 +159,15 @@ def _crm_beacon_gate() -> None:
 _crm_beacon_gate()
 
 
+def _inject_admin_theme() -> None:
+    """관리자·로그인 — gate에서 st.stop() 되기 전 theme.css 주입."""
+    st.markdown(f"<style>{_theme_css_inline()}</style>", unsafe_allow_html=True)
+
+
+if is_admin_route():
+    _inject_admin_theme()
+
+
 def _public_entry_gate(logo_uri: str) -> None:
     """공개 URL → 랜딩만. 관리자 URL(?p=…) → 로그인·대시보드."""
     if "auth_user" not in st.session_state:
@@ -183,8 +192,6 @@ _public_entry_gate(logo_data_uri())
 from utils.scroll_top import reset_page_scroll
 
 reset_page_scroll()
-
-st.markdown(f"<style>{_theme_css_inline()}</style>", unsafe_allow_html=True)
 
 ensure_sidebar_visible()
 
