@@ -15,22 +15,31 @@ header[data-testid="stHeader"] {
   border-bottom: 1px solid #21262d;
 }
 
-section.main > div.block-container {
+/* ── 관리자 전체 너비 — Streamlit 자체 max-width 완전 무력화 ── */
+section.main > div.block-container,
+[data-testid="stMainBlockContainer"],
+[data-testid="stMainBlockContainer"] > div,
+[data-testid="stMain"] > div.block-container {
   width: 100% !important;
   max-width: none !important;
+  box-sizing: border-box !important;
+}
+
+section.main > div.block-container {
   padding: 1.5rem 1.5rem 2rem 1.25rem !important;
 }
+
+[data-testid="stAppViewContainer"] > section.main {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 auto !important;
+}
+
 @media (min-width: 769px) {
   section.main > div.block-container {
     padding-left: 2rem !important;
     padding-right: 2.5rem !important;
     padding-top: 1.75rem !important;
-  }
-  [data-testid="stAppViewContainer"] > section.main,
-  [data-testid="stMainBlockContainer"],
-  [data-testid="stMainBlockContainer"] > div {
-    width: 100% !important;
-    max-width: none !important;
   }
 }
 

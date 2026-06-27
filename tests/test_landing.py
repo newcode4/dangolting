@@ -17,7 +17,7 @@ def test_landing_hook_section():
     assert "hook-panel" in html
     assert 'data-count="10"' in html
     assert 'data-suffix="배+"' in html
-    assert "평생 비즈니스 파트너" in html
+    assert "의뢰를 주고받는 파트너" in html
     assert "initHookCounters" in html
     assert "syncHookLayout" in html
     assert "data-hook-layout" in html
@@ -123,13 +123,13 @@ def test_landing_founder_story():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "founder-card" in html
     assert "이주환" in html
-    assert "비즈니스 단골 수집가" in html
+    assert "비즈니스 파트너 큐레이터" in html
 
 
 def test_landing_business_positioning():
-    """비즈니스 시너지 중심 포지셔닝 카피."""
+    """이해관계 중심 포지셔닝 카피."""
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
-    assert "비즈니스 시너지" in html
+    assert "이해관계" in html
     assert "target-grid" in html
     assert "레퍼럴" in html
 
