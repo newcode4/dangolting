@@ -483,11 +483,6 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
           <li><b style="color:#f1f5f9">소개 2회</b> 모두 제공받은 경우 → 기회 소진, <b style="color:#f1f5f9">환불 없음</b></li>
         </ul>
         <p>소개받은 프로필이 맞지 않더라도 소개 제공 자체가 이루어진 경우에는 위 기준이 적용됩니다. 1:1 단톡방 개설 이후에는 환불이 불가합니다. 조율 과정에 적극적으로 협조 부탁드립니다.</p>
-        <div class="acct">
-          <b>입금 계좌</b><br/>
-          카카오뱅크 3333-11-0009194 (예금주: 이주환)<br/>
-          참가비 {fee}
-        </div>
       </div>
     </div>
   </div>
