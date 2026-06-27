@@ -178,6 +178,10 @@ def _public_entry_gate(logo_uri: str) -> None:
 
 _public_entry_gate(logo_data_uri())
 
+from utils.scroll_top import reset_page_scroll
+
+reset_page_scroll()
+
 st.markdown(f"<style>{_load_theme_css()}</style>", unsafe_allow_html=True)
 
 ensure_sidebar_visible()

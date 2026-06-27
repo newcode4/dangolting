@@ -199,6 +199,7 @@ def _try_cookie_login(cm: CookieManager, *, cookies: dict | None = None) -> bool
     user = parse_token(token)
     if user:
         st.session_state["auth_user"] = user
+        st.session_state.pop("_admin_scroll_reset", None)
         return True
     _clear_auth_cookie_safe(cm)
     return False
@@ -250,6 +251,7 @@ def _render_login_form(*, cm: CookieManager) -> None:
             if authenticate(uid, pw):
                 st.session_state["auth_user"] = uid.strip()
                 set_auth_cookie(uid.strip(), remember, cm=cm)
+                st.session_state.pop("_admin_scroll_reset", None)
                 st.rerun()
             else:
                 st.error("아이디 또는 비밀번호가 올바르지 않습니다.")
@@ -275,6 +277,9 @@ def _render_signup_form() -> None:
 
 
 def render_auth_page(logo_uri: str) -> None:
+    from utils.scroll_top import reset_page_scroll
+
+    reset_page_scroll(force=True)
     st.markdown(
         """
         <style>

@@ -164,8 +164,10 @@ def _render_period_selector(data_min: date | None, data_max: date | None) -> tup
     if "crm_period" not in st.session_state:
         st.session_state["crm_period"] = "이번 달"
 
-    cols = st.columns(len(_PERIOD_OPTIONS))
-    for col, label in zip(cols, _PERIOD_OPTIONS):
+    row1 = st.columns(2)
+    row2 = st.columns(2)
+    slots = [row1[0], row1[1], row2[0], row2[1]]
+    for col, label in zip(slots, _PERIOD_OPTIONS):
         with col:
             if st.button(
                 label,
@@ -197,18 +199,16 @@ def _render_action_alerts(snapshot: CrmSnapshot) -> None:
     if not active:
         st.success("✅ 처리 대기 없음")
         return
-    cols = st.columns(len(active))
-    for col, (n, title, desc, clr) in zip(cols, active):
-        with col:
-            st.markdown(
-                f'<div style="background:{_C["bg"]};border:1px solid {_C["border"]};'
-                f'border-left:3px solid {clr};border-radius:8px;padding:12px 14px">'
-                f'<div style="font-size:1.4rem;font-weight:800;color:{clr}">{n}</div>'
-                f'<div style="font-size:13px;font-weight:700;color:{_C["text"]}">{title}</div>'
-                f'<div style="font-size:11px;color:{_C["muted"]};margin-top:2px">{desc}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+    cards = []
+    for n, title, desc, clr in active:
+        cards.append(
+            f'<div class="crm-alert-card" style="border-left-color:{clr}">'
+            f'<div class="crm-alert-num" style="color:{clr}">{n}</div>'
+            f'<div class="crm-alert-title">{html_lib.escape(title)}</div>'
+            f'<div class="crm-alert-desc">{html_lib.escape(desc)}</div>'
+            f"</div>"
+        )
+    st.markdown(f'<div class="crm-alert-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -236,6 +236,28 @@ def _step_count(
     return step_map.get(key, 0)
 
 
+def _render_at_a_glance(
+    period_ev: dict[str, int],
+    period_biz: dict[str, int | float | None],
+) -> None:
+    """모바일·데스크톱 공통 — 핵심 4지표 한눈에."""
+    items = [
+        ("방문", period_ev["pv_unique"], _C["visit"]),
+        ("클릭", period_ev["ac_unique"], _C["click"]),
+        ("제출", int(period_biz.get("forms") or 0), _C["form"]),
+        ("입금", int(period_biz.get("paid") or 0), _C["paid"]),
+    ]
+    cards = []
+    for label, val, clr in items:
+        cards.append(
+            f'<div class="crm-glance-card" style="--accent:{clr}">'
+            f'<div class="crm-glance-val">{val:,}</div>'
+            f'<div class="crm-glance-lbl">{html_lib.escape(label)}</div>'
+            f"</div>"
+        )
+    st.markdown(f'<div class="crm-glance-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+
+
 def _render_conversion_flow(
     snapshot: CrmSnapshot,
     period_ev: dict[str, int],
@@ -248,27 +270,22 @@ def _render_conversion_flow(
         if key == "refunded" and period_biz.get("forms"):
             r = period_biz["refund_rate_pct"]
             if r is not None:
-                conv = f'<div style="font-size:10px;color:{_C["refund"]};font-weight:700">제출 대비 {r}%</div>'
+                conv = f'<div class="crm-conv-rate crm-conv-rate--warn">제출 대비 {r}%</div>'
         elif i > 0 and counts[i - 1] > 0:
             r = round(cnt / counts[i - 1] * 100, 1)
-            conv_clr = "#3fb950" if r >= 30 else "#d29922" if r >= 10 else "#f85149"
-            conv = f'<div style="font-size:10px;color:{conv_clr};font-weight:700">{r}%</div>'
+            conv_cls = "crm-conv-rate--good" if r >= 30 else "crm-conv-rate--mid" if r >= 10 else "crm-conv-rate--bad"
+            conv = f'<div class="crm-conv-rate {conv_cls}">{r}%</div>'
         parts.append(
-            f'<div style="flex:1;text-align:center;min-width:0">'
-            f'<div style="background:{_C["bg"]};border:1px solid {_C["border"]};'
-            f'border-top:3px solid {clr};border-radius:8px;padding:10px 6px">'
-            f'<div style="font-size:1.5rem;font-weight:900;color:{_C["text"]}">{cnt:,}</div>'
-            f'<div style="font-size:11px;color:{_C["muted"]};font-weight:600">{label}</div>'
-            f'{conv}'
-            f'</div></div>'
+            f'<div class="crm-conv-step" style="--step-color:{clr}">'
+            f'<div class="crm-conv-count">{cnt:,}</div>'
+            f'<div class="crm-conv-label">{html_lib.escape(label)}</div>'
+            f"{conv}"
+            f"</div>"
         )
         if i < len(_KEY_FLOW) - 1:
-            parts.append(
-                f'<div style="flex:0 0 20px;display:flex;align-items:center;'
-                f'justify-content:center;color:{_C["dim"]};font-size:16px;padding-bottom:14px">→</div>'
-            )
+            parts.append('<div class="crm-conv-arrow" aria-hidden="true">→</div>')
     st.markdown(
-        f'<div style="display:flex;align-items:stretch;gap:4px;margin:8px 0 16px">{"".join(parts)}</div>',
+        f'<div class="crm-conv-flow">{"".join(parts)}</div>',
         unsafe_allow_html=True,
     )
 
@@ -289,7 +306,8 @@ def _render_traffic_quality(visitors: dict[str, int | float | None]) -> None:
     avg = visitors.get("avg_views_per_visitor") or 0
     total_pv = int(visitors.get("total_page_views") or 0)
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2 = st.columns(2)
+    c3, c4 = st.columns(2)
     c1.metric("순 방문자", f"{uv:,}명")
     c2.metric(
         "재방문",
@@ -326,7 +344,8 @@ def _render_outcome_metrics(
     period_refund_amt = refunded * fee
     period_net = (int(period_biz.get("paid") or 0) - refunded) * fee
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2 = st.columns(2)
+    c3, c4 = st.columns(2)
     c1.metric("환불", f"{refunded}명", delta=f"제출 대비 {period_biz.get('refund_rate_pct')}%" if refunded else None, delta_color="inverse")
     c2.metric("유지(환불 제외)", f"{active}명", delta=f"{ret_pct}% 유지율" if ret_pct is not None else None)
     c3.metric("매칭 완료", f"{matched}명", delta=f"입금 대비 {match_pct}%" if match_pct is not None else None)
@@ -347,7 +366,8 @@ def _render_period_kpis(
     pv = period_ev["pv_unique"]
     ac = period_ev["ac_unique"]
     forms = int(period_biz.get("forms") or 0)
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2 = st.columns(2)
+    c3, c4 = st.columns(2)
     c1.metric("방문(순)", f"{pv:,}")
     c2.metric("신청 클릭", f"{ac:,}", delta=f"{round(ac/pv*100,1)}% 전환" if pv else None)
     c3.metric("폼 제출", f"{forms:,}", delta=f"{round(forms/ac*100,1)}% 전환" if ac else None)
@@ -398,8 +418,8 @@ def _render_trend_chart(
         barmode="group",
         bargap=0.25,
         bargroupgap=0.08,
-        height=300,
-        margin=dict(l=8, r=8, t=32, b=8),
+        height=280,
+        margin=dict(l=4, r=4, t=36, b=4),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color=_C["muted"], size=12),
@@ -649,13 +669,16 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
     )
 
     with tab_overview:
+        st.markdown("##### 📊 핵심 지표")
+        _render_at_a_glance(period_ev, period_biz)
         st.markdown("##### 🚨 지금 처리 필요")
         _render_action_alerts(snapshot)
         st.markdown("##### 전환 흐름")
         _render_conversion_flow(snapshot, period_ev, period_biz)
-        _render_period_kpis(period_ev, period_biz, period_days)
-        _render_traffic_quality(period_visitors)
-        _render_outcome_metrics(period_biz, snapshot)
+        with st.expander("상세 KPI · 유입 · 환불", expanded=False):
+            _render_period_kpis(period_ev, period_biz, period_days)
+            _render_traffic_quality(period_visitors)
+            _render_outcome_metrics(period_biz, snapshot)
 
     with tab_trend:
         st.markdown("##### 일별 비교")
@@ -665,13 +688,10 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
         _render_period_kpis(period_ev, period_biz, period_days)
 
     with tab_funnel:
-        left, right = st.columns([3, 2], gap="large")
-        with left:
-            st.markdown("##### 퍼널 상세")
-            _render_grouped_funnel(snapshot)
-        with right:
-            st.markdown("##### 단계 분포")
-            _render_stage_bars(snapshot)
+        st.markdown("##### 퍼널 상세")
+        _render_grouped_funnel(snapshot)
+        st.markdown("##### 단계 분포")
+        _render_stage_bars(snapshot)
 
     with tab_people:
         _render_applicant_table(snapshot)

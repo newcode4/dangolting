@@ -1041,10 +1041,19 @@ body:has(.auth-back-nav) [data-testid="stSidebarCollapsedControl"] {
 
   /* 탭 */
   .stTabs [data-baseweb="tab"] {
-    padding: 10px 12px !important;
-    font-size: 0.85rem !important;
-    min-height: 42px !important;
+    padding: 8px 10px !important;
+    font-size: 0.78rem !important;
+    min-height: 40px !important;
   }
+
+  .crm-glance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .crm-glance-val { font-size: 1.55rem; }
+  .crm-alert-grid { grid-template-columns: 1fr; }
+  .crm-conv-flow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .crm-conv-arrow { display: none; }
 }
 
 /* ── CRM 퍼널 ── */
@@ -1201,9 +1210,131 @@ body:has(.auth-back-nav) [data-testid="stSidebarCollapsedControl"] {
   pointer-events: none;
 }
 
+/* CRM — 한눈에 / 알림 / 전환 흐름 */
+.crm-glance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+.crm-glance-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-top: 3px solid var(--accent, #58a6ff);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.crm-glance-val {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #f0f6fc;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.crm-glance-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #8b949e;
+  margin-top: 4px;
+}
+
+.crm-alert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.crm-alert-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-left: 3px solid #58a6ff;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.crm-alert-num {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.crm-alert-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e6edf3;
+  margin-top: 4px;
+}
+.crm-alert-desc {
+  font-size: 11px;
+  color: #8b949e;
+  margin-top: 2px;
+}
+
+.crm-conv-flow {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin: 8px 0 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+.crm-conv-step {
+  flex: 1 1 0;
+  min-width: 72px;
+  text-align: center;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-top: 3px solid var(--step-color, #58a6ff);
+  border-radius: 8px;
+  padding: 10px 6px 8px;
+}
+.crm-conv-count {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #f0f6fc;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.crm-conv-label {
+  font-size: 11px;
+  color: #8b949e;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.crm-conv-rate {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+.crm-conv-rate--good { color: #3fb950; }
+.crm-conv-rate--mid { color: #d29922; }
+.crm-conv-rate--bad { color: #f85149; }
+.crm-conv-rate--warn { color: #f85149; }
+.crm-conv-arrow {
+  flex: 0 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6e7681;
+  font-size: 14px;
+  padding-bottom: 12px;
+}
+
 @media (max-width: 960px) {
   .crm-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .crm-glance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .crm-glance-val { font-size: 1.5rem; }
 }
 @media (max-width: 520px) {
   .crm-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .crm-conv-flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+  }
+  .crm-conv-arrow { display: none; }
+  .crm-conv-step { min-width: 0; padding: 12px 6px; }
+  .crm-conv-count { font-size: 1.25rem; }
 }

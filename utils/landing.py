@@ -953,7 +953,7 @@ def _landing_html(
     }});
 
     var climaxRight = document.querySelector(".hook-climax-right");
-    if (climaxRight) {{
+    if (climaxRight && window.innerWidth > 768) {{
       gsap.fromTo(
         climaxRight,
         {{ scale: 0.94, opacity: 0.6 }},
@@ -1121,6 +1121,11 @@ def _landing_html(
     el.addEventListener("click", function (e) {{
       e.preventDefault();
       var path = el.getAttribute("data-admin-go") || "/";
+      try {{
+        window.parent.scrollTo(0, 0);
+        var pel = window.parent.document.scrollingElement || window.parent.document.documentElement;
+        if (pel) pel.scrollTop = 0;
+      }} catch (err) {{}}
       try {{
         window.parent.location.href = path;
       }} catch (err) {{
