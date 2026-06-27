@@ -53,11 +53,11 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <div class="hero-glow"></div>
     <div class="hero-stars"></div>
     <div class="hero-inner">
-      <span class="eyebrow">단골 수집가가 직접 찾아드립니다 · 1기 한정 · 5만 원</span>
-      <h1>나랑 진짜 잘 맞는 사람,<br/>딱 <em>한 명</em>이면 됩니다</h1>
+      <span class="eyebrow">비즈니스 시너지 파트너 매칭 · 1기 한정 · 5만 원</span>
+      <h1>내 사업을 같이 키울 수 있는<br/>파트너 <em>한 명</em>이면 됩니다</h1>
       <p class="lead">
-        일은 늘어가는데, 마음 터놓고 얘기할 사람은 점점 없어집니다.<br/>
-        운영진이 직접 찾아 연결합니다. 못 찾으면 5만 원 그대로 돌려드립니다.
+        모임에 몇 번 나가봤자 명함만 쌓입니다. 실제로 서로 이득이 되는 비즈니스 관계는<br/>
+        운이 아니라 <strong style="color:#f1f5f9">기획</strong>입니다. 운영진이 직접 맞는 사람을 찾아 연결합니다.
       </p>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">
@@ -75,17 +75,17 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
   </section>
 
   <div class="trust-strip reveal-item" id="hook-section">
-    <strong>운영진이 직접 찾아줌</strong><span class="dot"></span>
-    <span>14일 안에 연결</span><span class="dot"></span>
-    <span>프로필 먼저 보고 결정</span><span class="dot"></span>
+    <strong>비즈니스 시너지 중심 매칭</strong><span class="dot"></span>
+    <span>운영진이 1:1로 직접 탐색</span><span class="dot"></span>
+    <span>익명 프로필 보고 내가 결정</span><span class="dot"></span>
     <span>운영진 미매칭 시 전액 환불</span>
   </div>
 
   <section class="hook-panel section--alt reveal">
     <div class="hook-head reveal-item">
       <span class="hook-kicker">잠깐, 이 숫자를 보세요 ↓</span>
-      <h2>평생 수만 명을 스쳐도,<br/>내 사람은 <em>한 명</em> 만나기도 어렵습니다</h2>
-      <p>아는 사람은 많은데, 정작 <strong>내 일을 진짜 아는 사람</strong>은 손에 꼽죠. 그 한 명을 빨리 만날수록 덜 외롭고, 덜 헤맵니다.</p>
+      <h2>아는 사람은 많아도,<br/>비즈니스로 <em>서로 이득</em>이 되는 사람은 드뭅니다</h2>
+      <p>인맥은 넓은데 막상 도움이 되는 사람은 손에 꼽죠. <strong>비즈니스 시너지가 나는 파트너 한 명</strong>이 생기면 성장 속도가 완전히 달라집니다.</p>
     </div>
 
     <div class="hook-flow reveal-item">
@@ -96,12 +96,12 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--mid">
         <div class="hook-step-num"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
-        <div class="hook-step-lbl">1년에 새로 만나는<br/>진짜 통하는 사람</div>
+        <div class="hook-step-lbl">1년에 새로 만나는<br/>진짜 시너지 파트너</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--hot">
         <div class="hook-step-num"><span class="count" data-count="3" data-suffix="배">0</span></div>
-        <div class="hook-step-lbl">그 한 명이 있을 때<br/>달라지는 속도</div>
+        <div class="hook-step-lbl">비즈니스 파트너가 생기면<br/>달라지는 성장 속도</div>
       </div>
     </div>
 
@@ -159,32 +159,29 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <div class="founder-body">
         <p class="founder-story">
           저도 오프라인 모임을 수십 번 나갔습니다.<br/>
-          그때마다 속으로 이런 생각을 했어요.<br/>
-          <em>&ldquo;여기서 나랑 진짜 통하는 사람을 찾을 수 있을까?&rdquo;</em>
+          목적은 하나였어요. <em>&ldquo;나랑 비즈니스로 시너지가 나는 사람을 만날 수 있을까?&rdquo;</em>
         </p>
         <p class="founder-story">
-          대부분은 명함만 바꾸고 끝났습니다.<br/>
-          가끔 좋아 보이는 분을 만나도 — 의견 조율하고, 시간 맞추고, 서로 원하는 걸 확인하는 게<br/>
-          생각보다 너무 피곤했어요. 결국 흐지부지됐고요.
+          하지만 대부분은 명함만 바꾸고 끝났습니다.<br/>
+          가끔 괜찮아 보이는 분을 만나도 — 서로 뭘 원하는지 확인하고, 의견 조율하고,<br/>
+          실제로 도움이 되는지 검증하는 과정이 너무 피곤했어요.
         </p>
         <p class="founder-story founder-story--highlight">
-          그런데 이상한 게 있어요.<br/>
-          저는 그 과정이 <strong>재밌었습니다.</strong><br/>
-          사람을 읽고, 대화하고, 조율하는 게 — 저한테는 일이 아니라 즐거움이에요.
+          그런데 저는 그 과정이 <strong>재밌었습니다.</strong><br/>
+          사람을 읽고, 비즈니스 맥락을 파악하고, 누가 누구에게 실질적 가치를 줄 수 있는지 조율하는 게<br/>
+          저한테는 일이 아니라 즐거움이에요.
         </p>
         <p class="founder-story">
-          그러다 깨달았습니다.<br/>
-          &ldquo;내가 즐거운 걸 다른 사람은 힘들어하는구나.<br/>
-          그러면 내가 하면 되잖아.&rdquo;
+          &ldquo;남들이 힘들어하는 걸 내가 즐긴다면 — 내가 하면 되잖아.&rdquo;<br/>
+          그래서 단골팅을 만들었습니다.
         </p>
         <p class="founder-story">
-          그래서 단골팅을 만들었습니다.<br/>
-          저는 실제로 단골을 만드는 걸 좋아하고, 사람을 보는 눈이 쌓여 있어요.<br/>
-          당신이 힘들어하는 그 과정을, 제가 대신 즐기겠습니다.
+          저는 실제로 단골을 만드는 걸 좋아하고, 비즈니스 관계에서 사람을 보는 눈이 쌓여 있습니다.<br/>
+          당신의 상황과 필요를 파악해, 실질적으로 이득이 되는 파트너를 제가 직접 찾겠습니다.
         </p>
         <div class="founder-sig">
           <div class="founder-sig-name">이주환</div>
-          <div class="founder-sig-title">단골팅 운영자 · 단골 수집가</div>
+          <div class="founder-sig-title">단골팅 운영자 · 비즈니스 단골 수집가</div>
         </div>
       </div>
     </div>
@@ -192,37 +189,66 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
 
   <section class="section reveal">
     <div class="section-head reveal-item">
-      <h2>어떤 사람을 만나게 되나요?</h2>
-      <p>직업이 같을 필요는 없어요. 서로 주고받을 게 있으면 됩니다</p>
+      <h2>어떤 비즈니스 파트너를 만나나요?</h2>
+      <p>직업이 같을 필요 없습니다. <strong>서로에게 실질적 가치를 줄 수 있으면</strong> 됩니다</p>
     </div>
     <div class="meet-grid">
       <div class="meet-card reveal-item">
-        <span class="icon-chip">동</span>
+        <span class="icon-chip">협</span>
         <div>
-          <h3>같은 고민을 나눌 동료</h3>
-          <p>혼자 새벽까지 끙끙대던 고민, 비슷한 길을 걷는 사람과 같이 풀어 갑니다.</p>
+          <h3>실질적으로 협업할 파트너</h3>
+          <p>내가 잘하는 것 + 상대가 잘하는 것이 맞물려, 둘 다 더 큰 결과물을 만드는 사이.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
         <span class="icon-chip">피</span>
         <div>
-          <h3>솔직하게 말해 줄 사람</h3>
-          <p>듣기 좋은 말만 하는 사이 말고, 내 일을 진짜로 봐주고 짚어 줄 한 사람.</p>
+          <h3>비즈니스 피드백 파트너</h3>
+          <p>"좋아요" 대신 "이건 왜 이렇게 했어요?"를 물어봐 줄, 성장에 직접 도움이 되는 관점.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
         <span class="icon-chip">멘</span>
         <div>
-          <h3>한발 앞서 걸어 본 사람</h3>
-          <p>내가 지금 막힌 그 길을 먼저 지나온 사람. 묻기만 해도 시간이 줄어듭니다.</p>
+          <h3>먼저 가 본 멘토 혹은 멘티</h3>
+          <p>내가 막힌 길을 이미 지나온 사람. 또는 내 경험을 필요로 하는 사람. 둘 다 이득입니다.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
-        <span class="icon-chip">파</span>
+        <span class="icon-chip">레</span>
         <div>
-          <h3>같이 일할 파트너</h3>
-          <p>내가 가진 것과 상대가 필요한 것이 맞물려, 서로를 끌어올리는 사이.</p>
+          <h3>서로 고객을 소개하는 레퍼럴</h3>
+          <p>내 고객이 상대에게 필요하고, 상대 고객이 나에게 필요한 — 비즈니스 이익이 일치하는 관계.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="target-section reveal">
+    <div class="section-head reveal-item">
+      <h2>이런 분께 맞습니다</h2>
+      <p>비즈니스 목적이 분명한 분만 신청해 주세요</p>
+    </div>
+    <div class="target-grid reveal-item">
+      <div class="target-chip">
+        <span class="target-icon">💼</span>
+        <span>프리랜서 · 1인 사업자</span>
+      </div>
+      <div class="target-chip">
+        <span class="target-icon">🚀</span>
+        <span>스타트업 창업자 · 사이드프로젝트 운영자</span>
+      </div>
+      <div class="target-chip">
+        <span class="target-icon">📈</span>
+        <span>직장인이지만 부업·외부 협업 원하는 분</span>
+      </div>
+      <div class="target-chip">
+        <span class="target-icon">🎯</span>
+        <span>특정 업종에서 레퍼럴 파트너가 필요한 분</span>
+      </div>
+      <div class="target-chip target-chip--no">
+        <span class="target-icon">✗</span>
+        <span>단순 친목·소개팅·일상적 친구 찾기</span>
       </div>
     </div>
   </section>
@@ -230,26 +256,26 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
   <section class="section section--alt reveal">
     <div class="section-head reveal-item">
       <h2>아무나 연결하지 않습니다</h2>
-      <p>운영진이 사람을 고를 때 보는 3가지</p>
+      <p>비즈니스 시너지가 나야 하니까 — 운영진이 세 가지를 먼저 봅니다</p>
     </div>
     <div class="card-grid-3">
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="num">01</div>
-        <h3>지금 뭐가 필요한지 또렷한 사람</h3>
-        <p>"인맥 넓히고 싶어요"는 거릅니다. 무엇이 필요한지 분명한 분만 정확히 연결합니다.</p>
+        <h3>비즈니스로 줄 수 있는 게 있는 사람</h3>
+        <p>"인맥 넓히고 싶어요"는 거릅니다. 상대에게 실질적 가치를 줄 수 있는 분만 연결합니다.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
         <div class="num">02</div>
-        <h3>받기만 하지 않는 사람</h3>
-        <p>줄 것도 있는 분끼리 잇습니다. 한쪽만 손해 보는 관계는 오래 못 가니까요.</p>
+        <h3>지금 뭐가 필요한지 또렷한 사람</h3>
+        <p>막연히 "좋은 사람"이 아니라, 어떤 협업·피드백·레퍼럴이 필요한지 구체적으로 아는 분.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <div class="num">03</div>
-        <h3>한 번 보고 끝낼 사람이 아닌</h3>
-        <p>명함만 바꾸고 사라지는 게 아니라, 계속 보고 싶은 사이를 진심으로 찾는 분.</p>
+        <h3>단골처럼 오래 볼 사람</h3>
+        <p>한 번 거래로 끝나는 관계가 아니라, 서로의 성장이 장기적으로 이어지는 단골 관계를 원하는 분.</p>
       </div>
     </div>
   </section>

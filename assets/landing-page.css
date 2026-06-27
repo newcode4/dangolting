@@ -1206,6 +1206,53 @@ a { color: inherit; text-decoration: none; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Target audience chips ── */
+.target-section {
+  padding: 44px 24px;
+}
+
+.target-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.target-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  background: rgba(20, 28, 48, 0.7);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.target-chip:hover {
+  border-color: rgba(96, 165, 250, 0.45);
+  background: rgba(30, 42, 72, 0.8);
+}
+
+.target-icon { font-size: 16px; line-height: 1; }
+
+.target-chip--no {
+  background: rgba(15, 10, 15, 0.5);
+  border: 1px dashed rgba(239, 68, 68, 0.3);
+  color: #94a3b8;
+}
+
+.target-chip--no .target-icon {
+  color: #f87171;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 /* ── Founder Story ── */
 .founder-section {
   padding: 48px 24px 52px;

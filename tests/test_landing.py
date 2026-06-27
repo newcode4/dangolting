@@ -79,11 +79,19 @@ def test_landing_kakao_link():
 
 
 def test_landing_founder_story():
-    """창업자 스토리 섹션 존재."""
+    """창업자 스토리 섹션 존재 + 비즈니스 컨텍스트."""
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "founder-card" in html
     assert "이주환" in html
-    assert "단골 수집가" in html
+    assert "비즈니스 단골 수집가" in html
+
+
+def test_landing_business_positioning():
+    """비즈니스 시너지 중심 포지셔닝 카피."""
+    html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
+    assert "비즈니스 시너지" in html
+    assert "target-grid" in html
+    assert "레퍼럴" in html
 
 
 def test_landing_refund_policy_accurate():
