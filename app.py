@@ -298,7 +298,8 @@ def render_settings_panel(*, key_prefix: str) -> None:
         _refresh_data()
         st.rerun()
 
-    render_telegram_controls(key_prefix=key_prefix)
+    with st.expander("📱 텔레그램 알림", expanded=False):
+        render_telegram_controls(key_prefix=key_prefix)
 
     with st.expander("오류 로그 (최근)", expanded=False):
         st.caption(f"파일: data/logs/app.log")

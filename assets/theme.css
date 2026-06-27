@@ -1060,6 +1060,12 @@ body:has(.auth-back-nav) [data-testid="stSidebarCollapsedControl"] {
   font-size: 0.72rem;
   color: #8b949e;
   margin-top: 4px;
+  font-weight: 600;
+}
+.crm-kpi-hint {
+  font-size: 0.65rem;
+  color: #6e7681;
+  margin-top: 2px;
 }
 .crm-kpi-blue { border-color: rgba(88,166,255,0.35); }
 .crm-kpi-indigo { border-color: rgba(121,133,255,0.35); }
@@ -1095,19 +1101,73 @@ body:has(.auth-back-nav) [data-testid="stSidebarCollapsedControl"] {
 
 .crm-section-gap { height: 8px; }
 
-.crm-funnel { display: flex; flex-direction: column; gap: 12px; }
-.crm-funnel-row { display: flex; flex-direction: column; gap: 4px; }
+/* ── 전환율 요약 바 ── */
+.crm-conv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  padding: 14px 16px;
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.crm-conv-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 68px;
+  text-align: center;
+}
+.crm-conv-icon { font-size: 1.1rem; line-height: 1; }
+.crm-conv-count {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f0f6fc;
+  line-height: 1.2;
+}
+.crm-conv-label {
+  font-size: 0.68rem;
+  color: #8b949e;
+  font-weight: 600;
+}
+.crm-conv-arrow {
+  font-size: 1rem;
+  color: #30363d;
+  padding: 0 4px;
+  margin-top: -8px;
+}
+
+/* ── 퍼널 ── */
+.crm-funnel { display: flex; flex-direction: column; gap: 10px; }
+.crm-funnel-row { display: flex; flex-direction: column; gap: 3px; }
 .crm-funnel-meta {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
 }
 .crm-funnel-label { font-size: 0.82rem; color: #c9d1d9; font-weight: 600; }
-.crm-funnel-count { font-size: 0.82rem; color: #8b949e; }
-.crm-funnel-count b { color: #f0f6fc; font-size: 1rem; }
+.crm-funnel-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.crm-rate-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(88,166,255,0.1);
+  border: 1px solid rgba(88,166,255,0.2);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.crm-rate-dim {
+  color: #6e7681 !important;
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.08);
+}
 .crm-funnel-track {
-  height: 8px;
+  position: relative;
+  height: 10px;
   background: #21262d;
   border-radius: 999px;
   overflow: hidden;
@@ -1115,9 +1175,20 @@ body:has(.auth-back-nav) [data-testid="stSidebarCollapsedControl"] {
 .crm-funnel-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #388bfd 0%, #58a6ff 100%);
+  background: linear-gradient(90deg, #1f6feb 0%, #58a6ff 100%);
+  transition: width 0.4s ease;
 }
-.crm-funnel-hint { font-size: 0.7rem; color: #6e7681; }
+.crm-funnel-cnt {
+  position: absolute;
+  right: 6px;
+  top: -1px;
+  font-size: 0.65rem;
+  color: #f0f6fc;
+  font-weight: 700;
+  line-height: 12px;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
 
 @media (max-width: 960px) {
   .crm-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
