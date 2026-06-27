@@ -56,8 +56,8 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <span class="eyebrow">비즈니스 시너지 파트너 매칭 · 1기 한정 · 5만 원</span>
       <h1>내 사업을 같이 키울 수 있는<br/>파트너 <em>한 명</em>이면 됩니다</h1>
       <p class="lead">
-        모임에 수십 번 나가도 실질적으로 도움이 되는 관계는 잘 생기지 않습니다.<br/>
-        운영진이 당신의 비즈니스를 파악하고, 서로 이득이 되는 파트너를 직접 찾아 연결합니다.
+        모임에 수십 번 나가도 진짜 파트너는 잘 생기지 않습니다.<br/>
+        운영진이 직접 나서서, 내 비즈니스에 맞는 사람을 찾아 연결합니다.
       </p>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">

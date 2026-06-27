@@ -1969,7 +1969,7 @@ a { color: inherit; text-decoration: none; }
   .meet-grid { grid-template-columns: 1fr; }
 
   /* ── Section spacing ── */
-  section { padding: 56px 20px !important; }
+  section { padding: 52px 16px !important; }
   .section-head { margin-bottom: 28px; }
 
   /* ── Section headings ── */
@@ -1984,7 +1984,7 @@ a { color: inherit; text-decoration: none; }
   }
 
   /* ── Hero ── */
-  .hero { padding: 48px 22px 72px; }
+  .hero { padding: 44px 16px 68px; }
   .hero h1 {
     font-size: clamp(26px, 7.5vw, 36px);
     line-height: 1.28;
@@ -1992,10 +1992,11 @@ a { color: inherit; text-decoration: none; }
     margin-bottom: 16px;
   }
   .hero .lead {
-    font-size: 14px;
-    line-height: 1.85;
+    font-size: 14.5px;
+    line-height: 1.8;
     margin-bottom: 28px;
     max-width: 100%;
+    text-align: center;
   }
   .hero-inner { max-width: 100%; }
 
@@ -2126,9 +2127,15 @@ a { color: inherit; text-decoration: none; }
   .meet-card, .value-card { padding: 18px; }
 
   /* ── Founder ── */
-  .founder-card { padding: 24px 20px; }
-  .founder-story { font-size: 14px; line-height: 1.85; }
-  .founder-story--highlight { font-size: 15px; }
+  .founder-section { padding: 40px 16px 44px !important; }
+  .founder-card {
+    padding: 28px 20px 24px;
+    border-radius: 18px;
+    overflow: visible;
+  }
+  .founder-card .founder-quote-mark { font-size: 56px; top: 12px; left: 16px; }
+  .founder-story { font-size: 14px; line-height: 1.85; overflow-wrap: break-word; word-break: keep-all; }
+  .founder-story--highlight { font-size: 14.5px; padding: 14px 16px; }
 
   /* ── Target chips ── */
   .target-grid { gap: 8px; }
@@ -2155,22 +2162,24 @@ a { color: inherit; text-decoration: none; }
 
 /* ── 480px 이하: 아이폰 SE 등 소형 폰 ── */
 @media (max-width: 480px) {
+  section { padding: 44px 14px !important; }
+
+  .hero { padding: 40px 14px 64px; }
   .hero h1 {
     font-size: clamp(24px, 8vw, 30px);
     line-height: 1.3;
   }
-  .hero .lead { font-size: 13.5px; }
+  .hero .lead { font-size: 13.5px; line-height: 1.82; }
 
-  .hook-head h2 {
-    font-size: clamp(18px, 6vw, 24px);
-  }
-  .section-head h2 {
-    font-size: clamp(18px, 6vw, 22px);
-  }
+  .hook-head h2 { font-size: clamp(18px, 6vw, 24px); }
+  .section-head h2 { font-size: clamp(18px, 6vw, 22px); }
 
   .hook-step-num { font-size: clamp(24px, 7vw, 32px); min-width: 70px; }
 
   .eyebrow { font-size: 11px; padding: 5px 12px; }
 
-  .founder-story--highlight { font-size: 14px; }
+  .founder-section { padding: 36px 14px 40px !important; }
+  .founder-card { padding: 22px 16px 20px; }
+  .founder-story { font-size: 13.5px; }
+  .founder-story--highlight { font-size: 14px; padding: 12px 14px; }
 }
