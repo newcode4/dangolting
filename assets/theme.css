@@ -16,13 +16,21 @@ header[data-testid="stHeader"] {
 }
 
 section.main > div.block-container {
+  width: 100% !important;
+  max-width: none !important;
   padding: 1.5rem 1.5rem 2rem 1.25rem !important;
-  max-width: 1400px;
 }
 @media (min-width: 769px) {
   section.main > div.block-container {
-    padding-left: 1.5rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2.5rem !important;
     padding-top: 1.75rem !important;
+  }
+  [data-testid="stAppViewContainer"] > section.main,
+  [data-testid="stMainBlockContainer"],
+  [data-testid="stMainBlockContainer"] > div {
+    width: 100% !important;
+    max-width: none !important;
   }
 }
 
@@ -164,11 +172,25 @@ div[data-testid="stButton"] > button[kind="primary"] {
 
 /* ── 레이아웃 ── */
 div[data-testid="stHorizontalBlock"] { gap: 16px !important; align-items: flex-start !important; }
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
-  flex: 0 0 260px !important; max-width: 260px !important;
-}
-div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child {
-  flex: 1 1 auto !important; min-width: 0 !important;
+
+/* 목록·상세 2열 — PC에서 사이드바 제외 전체 너비 */
+@media (min-width: 769px) {
+  [data-testid="stMarkdownContainer"]:has(.list-layout-anchor)
+    + div[data-testid="stHorizontalBlock"] {
+    width: 100% !important;
+  }
+  [data-testid="stMarkdownContainer"]:has(.list-layout-anchor)
+    + div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
+    flex: 0 0 min(340px, 28vw) !important;
+    max-width: 380px !important;
+    min-width: 280px !important;
+  }
+  [data-testid="stMarkdownContainer"]:has(.list-layout-anchor)
+    + div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
 }
 
 [data-testid="stVerticalBlockBorderWrapper"] {

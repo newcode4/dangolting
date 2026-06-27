@@ -81,9 +81,11 @@ def logo_data_uri() -> str:
     return "data:image/svg+xml," + quote(_read_logo_svg())
 
 
-@st.cache_resource
-def _load_theme_css() -> str:
-    return (ROOT / "assets" / "theme.css").read_text(encoding="utf-8")
+def _theme_css_inline() -> str:
+    """mtime 기반 — CSS 저장 후 새로고침 시 반영."""
+    path = ROOT / "assets" / "theme.css"
+    css = path.read_text(encoding="utf-8")
+    return f"/* rev:{path.stat().st_mtime:.0f} */\n{css}"
 
 
 def ensure_sidebar_visible() -> None:
@@ -182,7 +184,7 @@ from utils.scroll_top import reset_page_scroll
 
 reset_page_scroll()
 
-st.markdown(f"<style>{_load_theme_css()}</style>", unsafe_allow_html=True)
+st.markdown(f"<style>{_theme_css_inline()}</style>", unsafe_allow_html=True)
 
 ensure_sidebar_visible()
 
@@ -1410,7 +1412,7 @@ with tab1:
         if selected and mob_view == "list":
             list_marker = '<span class="mob-show-list-only"></span>'
         st.markdown('<span class="list-layout-anchor"></span>', unsafe_allow_html=True)
-        left, right = st.columns([22, 78], gap="large")
+        left, right = st.columns([1, 3], gap="large")
 
         with left:
             st.markdown(f'<span class="list-panel-col">{list_marker}</span>', unsafe_allow_html=True)

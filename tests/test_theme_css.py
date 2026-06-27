@@ -22,3 +22,13 @@ def test_sidebar_force_open_when_collapsed():
     assert '[aria-expanded="false"]' in text
     assert "margin-left: 0 !important" in text
     assert "width: 280px !important" in text
+
+
+def test_admin_desktop_full_width_layout():
+    text = THEME.read_text(encoding="utf-8")
+    assert "max-width: none !important" in text
+    assert "list-layout-anchor" in text
+    assert "flex: 0 0 min(340px" in text
+    idx = text.find("/* ── 레이아웃 ── */")
+    layout_chunk = text[idx : idx + 900]
+    assert "flex: 0 0 260px" not in layout_chunk
