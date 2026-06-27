@@ -105,6 +105,37 @@ def _landing_html(
     <span>최대 2회 소개 제공 · 소개 없으면 전액 환불</span>
   </div>
 
+  <section class="dangol-def-section reveal">
+    <div class="dangol-def-inner reveal-item">
+      <p class="dangol-def-kicker">단골팅이 말하는 단골</p>
+      <h2 class="dangol-def-title">
+        한 번 같이 일해보고 <em>말 안 해도 또 부르게 되는</em> 관계
+      </h2>
+      <p class="dangol-def-desc">
+        명함을 주고받은 사이가 아닙니다.<br/>
+        이해관계가 맞고, 결이 통해서 — 고민 없이 일을 맡기고, 자연스럽게 의뢰가 오가는 관계입니다.
+      </p>
+      <div class="dangol-def-pillars">
+        <div class="dangol-pillar">
+          <div class="dangol-pillar-icon" aria-hidden="true">01</div>
+          <h3>이해관계가 명확하다</h3>
+          <p>내가 줄 수 있는 것과 상대가 줄 수 있는 것이 분명합니다. 눈치 볼 필요가 없습니다.</p>
+        </div>
+        <div class="dangol-pillar">
+          <div class="dangol-pillar-icon" aria-hidden="true">02</div>
+          <h3>결이 서로 통한다</h3>
+          <p>일하는 방식, 생각하는 방향이 비슷합니다. 긴 설명 없이도 빠르게 맞아떨어집니다.</p>
+        </div>
+        <div class="dangol-pillar">
+          <div class="dangol-pillar-icon" aria-hidden="true">03</div>
+          <h3>고민 없이 또 부른다</h3>
+          <p>신뢰가 쌓이면 다음 의뢰는 고민이 아닙니다. 그냥 연락합니다. 그게 단골입니다.</p>
+        </div>
+      </div>
+      <p class="dangol-def-invite">이런 관계를 원한다면 — 단골팅이 찾아드립니다.</p>
+    </div>
+  </section>
+
   <section class="hook-panel section--alt reveal">
     <div class="hook-head reveal-item">
       <span class="hook-kicker">잠깐, 이 숫자를 보세요 ↓</span>
@@ -289,9 +320,9 @@ def _landing_html(
         <span class="target-icon">🎯</span>
         <span>특정 업종에서 레퍼럴 파트너가 필요한 분</span>
       </div>
-      <div class="target-chip target-chip--no">
-        <span class="target-icon">✗</span>
-        <span>단순 친목·소개팅·일상적 친구 찾기</span>
+      <div class="target-chip target-chip--no" aria-label="해당 없음: 단순 친목·소개팅·일상적 친구 찾기">
+        <span class="target-no-badge" aria-hidden="true">아닙니다</span>
+        <span class="target-no-text">단순 친목·소개팅·일상적 친구 찾기</span>
       </div>
     </div>
   </section>
