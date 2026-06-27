@@ -220,7 +220,7 @@ def render_telegram_controls(*, key_prefix: str) -> None:
                     _btn_baseline()
             st.caption("기준선 — 지금까지 신청은 알림에서 제외")
     else:
-        st.caption("알림: **시트 Apps Script** — 새 신청 즉시 · U열 입금 · **매일 12시** 입금대기 묶음")
+        st.caption("알림: **시트 Apps Script** — 새 신청 즉시 · V열 입금 · **매일 12시** 입금대기 묶음")
         st.caption("설정 · 알림 탭 → Code.gs · `installTriggers` 실행")
 
 
@@ -341,7 +341,7 @@ def _load_raw(url: str, ws: str, _ver: int) -> pd.DataFrame:
 
 def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> None:
     st.markdown("#### 입금 대기")
-    st.caption("시트 U열(입금확인) 체크 전 · 매칭 작업 탭에는 안 보입니다.")
+    st.caption("시트 V열(입금확인) 체크 전 · 매칭 작업 탭에는 안 보입니다.")
     if demo_mode:
         st.info("데모 모드 — 실제 시트 연동 후 목록이 표시됩니다.")
         return
@@ -357,7 +357,7 @@ def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> Non
     if pending.empty:
         st.success("입금 대기 중인 신청이 없습니다.")
         return
-    st.markdown(f"**{len(pending)}명** — 시트에서 U열 체크 후 **새로고침**")
+    st.markdown(f"**{len(pending)}명** — 시트에서 V열 체크 후 **새로고침**")
     rows = []
     for idx, row in pending.iterrows():
         rows.append(
@@ -384,7 +384,7 @@ def render_apps_script_guide() -> None:
     )
     st.markdown(
         "Streamlit 앱은 **새 행**만 (~2분, 앱 켜져 있을 때). "
-        "**입금 체크(U열)**·**폼 제출 즉시 알림**은 Apps Script가 담당합니다."
+        "**입금 체크(V열)**·**폼 제출 즉시 알림**은 Apps Script가 담당합니다."
     )
     with st.expander("📋 Apps Script 3단계", expanded=True):
         st.markdown(
@@ -393,7 +393,7 @@ def render_apps_script_guide() -> None:
             "**3.** `testTelegramPing` · `testUnpaidDigest` (묶음 테스트)"
         )
         st.caption(
-            "입금대기 묶음: U열 미체크 + 신청 **3시간+** 지난 사람만 · "
+            "입금대기 묶음: V열 미체크 + 신청 **3시간+** 지난 사람만 · "
             "시간 변경은 Code.gs 상단 `DIGEST_HOUR` · `UNPAID_MIN_HOURS`"
         )
     gs_path = ROOT / "docs" / "apps-script" / "Code.gs"
@@ -1245,7 +1245,7 @@ if df.empty:
     else:
         st.warning(
             "표시할 신청이 없습니다. 시트에 **입금확인**된 행만 보입니다. "
-            "U열(입금확인) 체크 · X열(환불) 미체크인지 확인하세요."
+            "V열(입금확인) 체크 · Y열(환불) 미체크인지 확인하세요."
         )
     st.stop()
 

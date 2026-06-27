@@ -112,7 +112,7 @@ def set_matched(
     matched_at: str,
     worksheet_name: str = DEFAULT_WORKSHEET,
 ) -> None:
-    """매칭 완료: W열=TRUE, Y열=매칭일."""
+    """매칭 완료: X열=TRUE, Z열=매칭일."""
     ws = _get_worksheet(sheet_url, worksheet_name)
     cells = [
         {"range": gspread.utils.rowcol_to_a1(row, COL["matched"]), "values": [["TRUE"]]},

@@ -25,7 +25,7 @@
 | 함수 | 역할 |
 |------|------|
 | `onFormSubmit` | 폼 제출 즉시 🆕 |
-| `onEdit` | U열 입금 💰 |
+| `onEdit` | V열 입금 💰 |
 | `sendUnpaidDailyDigest` | 매일 12시 입금대기 묶음 |
 
 ## 배포 버튼?

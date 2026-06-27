@@ -27,7 +27,7 @@ CN: dict[str, str] = {
     "dday":     "남은 D-day",
     "paid":     "입금확인",
     "matched":  "매칭 여부",
-    "reject":   "매칭횟수",      # 거절 누적 카운트로 사용
+    "reject":   "매칭횟수",      # 거절 누적 — 시트 헤더 '매칭 횟수'
     "matched_w": "_매칭상대",     # 가상 컬럼 (세션/매칭 시 기록)
     "matched_at": "매칭일",
     "refund":   "환불 여부",
@@ -50,12 +50,14 @@ COL: dict[str, int] = {
     "values":       13,
     "depth":        14,
     "want":         15,
-    "dday":         20,   # T: 남은 D-day
-    "paid":         21,   # U: 입금확인
-    "reject_count": 22,   # V: 매칭횟수
-    "matched":      23,   # W: 매칭 여부
-    "matched_at":   25,   # Y: 매칭일
-    "refund":       24,   # X: 환불 여부
+    "note":         16,
+    "refund_acct":  20,   # T: 환불 받을 계좌 (읽기 전용)
+    "dday":         21,   # U: 남은 D-day
+    "paid":         22,   # V: 입금확인
+    "reject_count": 23,   # W: 매칭 횟수(거절 카운트)
+    "matched":      24,   # X: 매칭 여부
+    "refund":       25,   # Y: 환불 여부
+    "matched_at":   26,   # Z: 매칭일
 }
 
 # gspread 1-based 열 → normalize 논리 키 (헤더 문구와 무관하게 고정 위치)
@@ -96,6 +98,8 @@ HEADER_ALIASES: dict[str, str] = {
     "거주 / 활동 지역": "region",
     "활동 지역": "region",
     "입금확인": "paid",
+    "매칭 횟수": "reject",
+    "매칭횟수": "reject",
 }
 
 # 헤더 부분 문자열 매칭 (구체적인 패턴을 먼저)
@@ -113,7 +117,7 @@ HEADER_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
     ("matched", ("매칭 여부", "매칭여부")),
     ("refund", ("환불",)),
     ("matched_at", ("매칭일",)),
-    ("reject", ("매칭횟수", "거절")),
+    ("reject", ("매칭 횟수", "매칭횟수", "거절")),
     ("dday", ("d-day", "d day", "남은 d")),
     ("ts", ("타임스탬프", "timestamp", "시간")),
     ("name", ("성함", "이름")),

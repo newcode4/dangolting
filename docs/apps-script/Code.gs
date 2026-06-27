@@ -13,8 +13,8 @@ const COL = {
   CONTACT: 4,
   JOB: 5,
   REGION: 6,
-  PAID: 21,
-  REFUND: 24,
+  PAID: 22,    // V 입금확인
+  REFUND: 25,  // Y 환불 여부
 };
 
 /** 신청 후 N시간 지난 입금 대기만 점심 알림에 포함 */
@@ -116,7 +116,7 @@ function installTriggers() {
     + list + '\n\n'
     + '왼쪽 ⏰ 트리거 메뉴에서 3개 보이면 OK.\n\n'
     + '· 폼 제출 → 즉시 🆕\n'
-    + '· U열 체크 → 💰\n'
+    + '· V열 체크 → 💰\n'
     + '· 매일 ' + DIGEST_HOUR + ':00 입금대기 묶음'
   );
 }
@@ -263,7 +263,7 @@ function formatUnpaidDigest_(items) {
   const now = Utilities.formatDate(new Date(), DIGEST_TZ, 'M/d HH:mm');
   const lines = [
     '📋 입금 대기 (점심 ' + DIGEST_HOUR + '시) — ' + items.length + '명',
-    '신청 ' + UNPAID_MIN_HOURS + '시간+ · U열 미체크 · ' + now,
+    '신청 ' + UNPAID_MIN_HOURS + '시간+ · V열 미체크 · ' + now,
     '',
   ];
   for (let i = 0; i < items.length; i++) {

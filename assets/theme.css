@@ -663,6 +663,9 @@ div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
 [data-testid="stVerticalBlockBorderWrapper"]:has(.global-date-head) [data-testid="stRadio"] [role="radiogroup"] {
   gap: 10px !important; row-gap: 10px !important; flex-wrap: wrap !important;
 }
+[data-testid="stVerticalBlockBorderWrapper"]:has(.global-date-head) .st-f2 {
+  gap: 10px;
+}
 [data-testid="stVerticalBlockBorderWrapper"]:has(.global-date-head) [data-testid="stRadio"] label {
   padding: 10px 16px !important;
   font-size: 0.82rem !important;
@@ -680,6 +683,7 @@ div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
   gap: 12px; flex-wrap: wrap;
   margin-top: 4px; padding: 16px 0 4px;
   border-top: 1px solid #30363d;
+  margin-bottom: 10px;
 }
 .date-range-chip {
   font-size: 0.78rem; font-weight: 600; color: #58a6ff;
