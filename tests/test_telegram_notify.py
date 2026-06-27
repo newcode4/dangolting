@@ -20,8 +20,19 @@ def test_format_applicant_message():
     )
     msg = format_applicant_message(row)
     assert "이주환" in msg
+    assert "전문 컨설턴트" in msg
+    assert "경기도" in msg
+    assert "2026" in msg
     assert "입금 대기" in msg
     assert "🆕" in msg
+
+
+def test_format_applicant_message_empty_fields_show_dash():
+    row = pd.Series({"name": "홍길동", "job": "", "region": "", "ts": "", "paid": True})
+    msg = format_applicant_message(row)
+    assert "이름: 홍길동" in msg
+    assert "직군: —" in msg
+    assert "입금 확인" in msg
 
 
 def test_process_new_applicants_notifies_unpaid_row():

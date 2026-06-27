@@ -222,13 +222,20 @@ def send_telegram(text: str) -> bool:
         return False
 
 
+def _disp(val, default: str = "—") -> str:
+    s = str(val if val is not None else "").strip()
+    if not s or s.lower() in ("nan", "none"):
+        return default
+    return s
+
+
 def format_applicant_message(row: pd.Series) -> str:
-    name = str(cell(row, "name", "—"))
-    job = str(cell(row, "job", "—"))
+    name = _disp(cell(row, "name"))
+    job = _disp(cell(row, "job"))
     if len(job) > 40:
         job = job[:37] + "…"
-    region = str(cell(row, "region", "—"))
-    ts = str(cell(row, "ts", "—"))
+    region = _disp(cell(row, "region"))
+    ts = _disp(cell(row, "ts"))
     paid = parse_checkbox(cell(row, "paid", False))
     paid_txt = "✅ 입금 확인" if paid else "⏳ 입금 대기"
 

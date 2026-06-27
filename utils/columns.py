@@ -58,6 +58,43 @@ COL: dict[str, int] = {
     "refund":       24,   # X: 환불 여부
 }
 
+# gspread 1-based 열 → normalize 논리 키 (헤더 문구와 무관하게 고정 위치)
+COL_TO_LOGIC: dict[int, str] = {
+    COL["timestamp"]: "ts",
+    COL["name"]: "name",
+    COL["gender"]: "gender",
+    COL["contact"]: "contact",
+    COL["job"]: "job",
+    COL["region"]: "region",
+    COL["years"]: "years",
+    COL["have"]: "have",
+    COL["want_region"]: "w_region",
+    COL["want_gender"]: "w_gender",
+    COL["want_job"]: "w_job",
+    COL["want_years"]: "w_years",
+    COL["values"]: "values",
+    COL["depth"]: "depth",
+    COL["want"]: "want",
+    16: "note",
+    COL["dday"]: "dday",
+    COL["paid"]: "paid",
+    COL["reject_count"]: "reject",
+    COL["matched"]: "matched",
+    COL["refund"]: "refund",
+    COL["matched_at"]: "matched_at",
+}
+
+# 구글 폼 헤더가 CN 기본값과 다를 때 (열 위치 보조)
+HEADER_ALIASES: dict[str, str] = {
+    "타임스탬프": "ts",
+    "Timestamp": "ts",
+    "timestamp": "ts",
+    "메인직군": "job",
+    "메인 직군": "job",
+    "거주/활동지역": "region",
+    "거주 / 활동 지역": "region",
+}
+
 # 논리 키 → 시트 열 (앱에서 편집 가능한 필드)
 EDIT_COL: dict[str, int] = {
     "name":     COL["name"],
@@ -155,6 +192,16 @@ def normalize_dataframe(df: pd.DataFrame, *, apply_eligibility: bool = True) -> 
             rename[header] = key
 
     df = df.rename(columns=rename)
+
+    alias_rename: dict[str, str] = {}
+    for col in df.columns:
+        if col in HEADER_ALIASES:
+            target = HEADER_ALIASES[col]
+            if target not in df.columns:
+                alias_rename[col] = target
+    if alias_rename:
+        df = df.rename(columns=alias_rename)
+
     df = ensure_columns(df)
 
     if "reject" in df.columns:

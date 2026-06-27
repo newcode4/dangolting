@@ -9,7 +9,14 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-from utils.columns import COL, EDIT_COL, normalize_dataframe, DEFAULT_WORKSHEET, parse_reject
+from utils.columns import (
+    COL,
+    COL_TO_LOGIC,
+    EDIT_COL,
+    normalize_dataframe,
+    DEFAULT_WORKSHEET,
+    parse_reject,
+)
 from utils.error_log import log_exception
 
 SCOPES = [
@@ -18,6 +25,22 @@ SCOPES = [
 ]
 
 HEADER_ROW = 1
+
+
+def records_from_sheet_values(all_values: list[list]) -> list[dict]:
+    """1행=헤더, 2행~=데이터. 열 번호(COL)로 논리 키 매핑 — 폼 헤더 문구와 무관."""
+    if len(all_values) <= HEADER_ROW:
+        return []
+    records: list[dict] = []
+    for row in all_values[HEADER_ROW:]:
+        if not any(str(c).strip() for c in row):
+            continue
+        rec: dict[str, object] = {}
+        for col_num, logic_key in COL_TO_LOGIC.items():
+            idx = col_num - 1
+            rec[logic_key] = row[idx] if idx < len(row) else ""
+        records.append(rec)
+    return records
 
 
 def _get_client() -> gspread.Client:
@@ -60,7 +83,7 @@ def load_data_raw(
 ) -> pd.DataFrame:
     try:
         ws = _get_worksheet(sheet_url, worksheet_name)
-        records = ws.get_all_records(head=HEADER_ROW)
+        records = records_from_sheet_values(ws.get_all_values())
         df = pd.DataFrame(records)
         if df.empty:
             return df
