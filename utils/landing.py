@@ -16,18 +16,9 @@ _PAGE_CSS_PATH = ROOT / "assets" / "landing-page.css"
 
 
 def _read_css(path: Path) -> str:
-    """렌더 시점에 읽어 CSS 변경이 새로고침만으로 반영되게 함."""
+    """렌더 시점에 디스크에서 읽음 — CSS 저장 후 새로고침만으로 반영."""
     try:
         return path.read_text(encoding="utf-8")
-    except OSError:
-        return ""
-
-
-@st.cache_resource
-def _read_css_cached(path_str: str, _mtime: float) -> str:
-    """배포 환경 CSS 캐시 — 파일 수정 시 mtime으로 무효화."""
-    try:
-        return Path(path_str).read_text(encoding="utf-8")
     except OSError:
         return ""
 
@@ -39,12 +30,18 @@ def _css_mtime(path: Path) -> float:
         return 0.0
 
 
+def _css_revision() -> str:
+    """CSS 파일 mtime 합 — iframe key·캐시 무효화."""
+    return f"{_css_mtime(_PAGE_CSS_PATH):.0f}_{_css_mtime(_SHELL_CSS_PATH):.0f}"
+
+
 def _landing_html(
     logo_uri: str,
     form_url: str,
     page_css: str,
     shell_css: str,
     *,
+    css_rev: str = "",
     admin_url: str = "/?p=dgt-manage",
     shell_preview: bool = False,
 ) -> str:
@@ -58,7 +55,9 @@ def _landing_html(
     return f"""<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="dgt-css-rev" content="{html.escape(css_rev)}"/>
 <style>{page_css}</style>
+<script>document.documentElement.setAttribute("data-hook-layout","desktop");</script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 </head>
@@ -116,30 +115,33 @@ def _landing_html(
 
     <div class="hook-climax reveal-item">
       <div class="hook-climax-band">
-        <div class="hook-band-stat">
+        <div class="hook-band-chip">
           <span class="hook-band-num"><span class="count" data-count="10" data-prefix="~" data-suffix="명">0</span></span>
-          <span class="hook-band-lbl">평생 비즈니스 파트너</span>
+          <span class="hook-band-txt">평생 비즈니스 파트너</span>
         </div>
         <span class="hook-band-arrow" aria-hidden="true">→</span>
-        <div class="hook-band-stat hook-band-stat--lit">
+        <div class="hook-band-chip hook-band-chip--lit">
           <span class="hook-band-num"><span class="count" data-count="1" data-prefix="~" data-suffix="명">0</span></span>
-          <span class="hook-band-lbl">1년에 새로 생기는 진짜 파트너</span>
+          <span class="hook-band-txt">1년에 새로 생기는 진짜 파트너</span>
         </div>
       </div>
       <div class="hook-climax-body">
-      <div class="hook-climax-left">
-        <span class="hook-climax-tag">혼자 성장할 때</span>
-        <div class="hook-climax-num hook-climax-num--dim">×1</div>
-        <p class="hook-climax-desc">6개월 뒤에도 비슷한 속도</p>
-      </div>
-      <div class="hook-climax-divider" aria-hidden="true"><span>VS</span></div>
-      <div class="hook-climax-right">
-        <span class="hook-climax-tag hook-climax-tag--hot">단골 1명 연결 후</span>
-        <div class="hook-climax-num hook-climax-num--hero">
-          <span class="count" data-count="10" data-suffix="배+">0</span>
+        <div class="hook-climax-left">
+          <span class="hook-climax-tag">혼자 성장할 때</span>
+          <div class="hook-climax-num hook-climax-num--dim">×1</div>
+          <p class="hook-climax-desc">6개월 뒤에도 비슷한 속도</p>
         </div>
-        <p class="hook-climax-desc hook-climax-desc--hot">성장 속도, 완전히 다른 레벨</p>
-      </div>
+        <div class="hook-climax-divider" aria-hidden="true"><span>VS</span></div>
+        <div class="hook-climax-right">
+          <span class="hook-climax-tag hook-climax-tag--hot">단골 1명 연결 후</span>
+          <div class="hook-hero-stack">
+            <div class="hook-hero-glow" aria-hidden="true"></div>
+            <div class="hook-climax-num hook-climax-num--hero">
+              <span class="count" data-count="10" data-suffix="배+">0</span>
+            </div>
+          </div>
+          <p class="hook-climax-desc hook-climax-desc--hot">성장 속도, 완전히 다른 레벨</p>
+        </div>
       </div>
     </div>
 
@@ -1161,7 +1163,20 @@ def _landing_html(
     sessionStorage.setItem("dgt_pv", "1");
     trackEvent("page_view");
   }}
+  function syncHookLayout() {{
+    var w = document.documentElement.clientWidth || window.innerWidth || 999;
+    try {{
+      var pw = window.parent.innerWidth || window.parent.document.documentElement.clientWidth;
+      if (pw && pw > 0) w = pw;
+    }} catch (err) {{}}
+    var mode = w < 560 ? "mobile" : "desktop";
+    if (document.documentElement.getAttribute("data-hook-layout") !== mode) {{
+      document.documentElement.setAttribute("data-hook-layout", mode);
+    }}
+  }}
+
   function boot() {{
+    syncHookLayout();
     setHeroHeight();
     syncFrameHeight();
     initMotion();
@@ -1175,8 +1190,9 @@ def _landing_html(
   }} else {{
     window.addEventListener("load", boot, {{ once: true }});
   }}
-  window.addEventListener("resize", function () {{ syncFrameHeight(); setHeroHeight(); }});
+  window.addEventListener("resize", function () {{ syncHookLayout(); syncFrameHeight(); setHeroHeight(); }});
   if (window.ResizeObserver) {{
+    new ResizeObserver(function () {{ syncHookLayout(); syncFrameHeight(); }}).observe(document.documentElement);
     new ResizeObserver(syncFrameHeight).observe(document.body);
   }}
   document.querySelectorAll("details").forEach(function (el) {{
@@ -1191,8 +1207,9 @@ def render_landing_page(logo_uri: str) -> None:
     """공개 랜딩. 관리자 미리보기(?view=landing + 로그인)일 때만 하단 네비."""
     from utils.admin_route import admin_entry_path, is_landing_preview_route
 
-    shell_css = _read_css_cached(str(_SHELL_CSS_PATH), _css_mtime(_SHELL_CSS_PATH))
-    page_css = _read_css_cached(str(_PAGE_CSS_PATH), _css_mtime(_PAGE_CSS_PATH))
+    page_css = _read_css(_PAGE_CSS_PATH)
+    shell_css = _read_css(_SHELL_CSS_PATH)
+    css_rev = _css_revision()
     preview = is_landing_preview_route() and bool(st.session_state.get("auth_user"))
 
     components.html(
@@ -1201,6 +1218,7 @@ def render_landing_page(logo_uri: str) -> None:
             APPLICATION_FORM_URL,
             page_css,
             shell_css,
+            css_rev=css_rev,
             admin_url=admin_entry_path(),
             shell_preview=preview,
         ),

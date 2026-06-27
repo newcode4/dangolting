@@ -37,6 +37,266 @@ _STAGE_COLOR = {
 
 _PERIOD_OPTIONS = ("이번 주", "이번 달", "3개월", "전체")
 
+# 모바일 우선 CRM 스타일 — theme.css 순서와 무관하게 항상 적용
+_CRM_STYLES = """
+<style>
+.crm-glance-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  margin: 8px 0 16px !important;
+  box-sizing: border-box !important;
+}
+.crm-glance-card {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-top: 3px solid var(--accent, #58a6ff) !important;
+  border-radius: 10px !important;
+  padding: 14px 10px !important;
+  text-align: center !important;
+  min-width: 0 !important;
+}
+.crm-glance-val {
+  font-size: 1.65rem !important;
+  font-weight: 900 !important;
+  color: #f0f6fc !important;
+  line-height: 1.1 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-glance-lbl {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: #8b949e !important;
+  margin-top: 6px !important;
+}
+.crm-alert-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+}
+.crm-alert-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 14px !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-left: 4px solid #58a6ff !important;
+  border-radius: 10px !important;
+  padding: 14px 16px !important;
+  min-width: 0 !important;
+}
+.crm-alert-num {
+  font-size: 1.85rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+  min-width: 2rem !important;
+  text-align: center !important;
+}
+.crm-alert-body { flex: 1 !important; min-width: 0 !important; }
+.crm-alert-title {
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  color: #e6edf3 !important;
+  line-height: 1.25 !important;
+}
+.crm-alert-desc {
+  font-size: 0.78rem !important;
+  color: #8b949e !important;
+  margin-top: 2px !important;
+  line-height: 1.3 !important;
+}
+.crm-conv-flow {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 8px 0 16px !important;
+  box-sizing: border-box !important;
+}
+.crm-conv-step {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-top: 3px solid var(--step-color, #58a6ff) !important;
+  border-radius: 10px !important;
+  padding: 12px 8px 10px !important;
+  text-align: center !important;
+  min-width: 0 !important;
+}
+.crm-conv-count {
+  font-size: 1.45rem !important;
+  font-weight: 900 !important;
+  color: #f0f6fc !important;
+  line-height: 1.1 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-conv-label {
+  font-size: 0.76rem !important;
+  color: #8b949e !important;
+  font-weight: 700 !important;
+  margin-top: 4px !important;
+}
+.crm-conv-rate {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  margin-top: 4px !important;
+}
+.crm-conv-rate--good { color: #3fb950 !important; }
+.crm-conv-rate--mid { color: #d29922 !important; }
+.crm-conv-rate--bad { color: #f85149 !important; }
+.crm-conv-rate--warn { color: #f85149 !important; }
+.crm-conv-arrow { display: none !important; }
+.crm-bar-row {
+  display: grid !important;
+  grid-template-columns: minmax(72px, 28%) 1fr minmax(36px, auto) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  width: 100% !important;
+}
+.crm-bar-label {
+  font-size: 0.78rem !important;
+  color: #c9d1d9 !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  word-break: keep-all !important;
+}
+.crm-bar-track {
+  height: 22px !important;
+  background: #21262d !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+}
+.crm-bar-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #1f6feb, #58a6ff) !important;
+  border-radius: 4px !important;
+}
+.crm-bar-cnt {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+.crm-bar-rate {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  margin-left: 4px !important;
+}
+.crm-metric-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 8px 0 12px !important;
+  width: 100% !important;
+}
+.crm-metric-card {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 10px !important;
+  padding: 12px 10px !important;
+  min-width: 0 !important;
+}
+.crm-metric-lbl {
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  color: #8b949e !important;
+  line-height: 1.2 !important;
+}
+.crm-metric-val {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  margin-top: 4px !important;
+  line-height: 1.15 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-metric-delta {
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  color: #3fb950 !important;
+  margin-top: 3px !important;
+}
+.crm-metric-delta--warn { color: #f85149 !important; }
+@media (min-width: 769px) {
+  .crm-glance-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .crm-alert-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important; }
+  .crm-conv-flow {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .crm-conv-step { flex: 1 1 0 !important; min-width: 72px !important; }
+  .crm-conv-arrow {
+    display: flex !important;
+    flex: 0 0 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #6e7681 !important;
+    font-size: 14px !important;
+    padding-bottom: 12px !important;
+  }
+  .crm-bar-row {
+    grid-template-columns: 110px 1fr 60px auto !important;
+    gap: 10px !important;
+  }
+}
+@media (max-width: 768px) {
+  [data-testid="stMarkdownContainer"]:has(.crm-filter-anchor)
+    + div[data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
+  }
+  [data-testid="stMarkdownContainer"]:has(.crm-filter-anchor)
+    + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  [data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
+    + div[data-testid="stHorizontalBlock"] > [data-testid="column"],
+  [data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
+    + div[data-testid="stHorizontalBlock"]
+    + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
+    flex: 1 1 calc(50% - 4px) !important;
+    max-width: calc(50% - 4px) !important;
+  }
+}
+</style>
+"""
+
+
+def _inject_crm_styles() -> None:
+    if st.session_state.get("_crm_styles_injected"):
+        return
+    st.session_state["_crm_styles_injected"] = True
+    st.markdown(_CRM_STYLES, unsafe_allow_html=True)
+
+
+def _render_metric_grid(items: list[tuple[str, str, str | None, bool]]) -> None:
+    """(label, value, delta, delta_warn) — st.metric 대신 모바일 안전 HTML."""
+    cards = []
+    for label, val, delta, warn in items:
+        delta_html = ""
+        if delta:
+            cls = "crm-metric-delta crm-metric-delta--warn" if warn else "crm-metric-delta"
+            delta_html = f'<div class="{cls}">{html_lib.escape(delta)}</div>'
+        cards.append(
+            f'<div class="crm-metric-card">'
+            f'<div class="crm-metric-lbl">{html_lib.escape(label)}</div>'
+            f'<div class="crm-metric-val">{html_lib.escape(val)}</div>'
+            f"{delta_html}"
+            f"</div>"
+        )
+    st.markdown(f'<div class="crm-metric-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+
 # 퍼널 카테고리 — 핵심 단계만
 _FUNNEL_GROUPS: list[tuple[str, list[str]]] = [
     ("📣 유입", ["visit_u", "apply_u"]),
@@ -164,6 +424,7 @@ def _render_period_selector(data_min: date | None, data_max: date | None) -> tup
     if "crm_period" not in st.session_state:
         st.session_state["crm_period"] = "이번 달"
 
+    st.markdown('<span class="crm-period-anchor" aria-hidden="true"></span>', unsafe_allow_html=True)
     row1 = st.columns(2)
     row2 = st.columns(2)
     slots = [row1[0], row1[1], row2[0], row2[1]]
@@ -204,9 +465,10 @@ def _render_action_alerts(snapshot: CrmSnapshot) -> None:
         cards.append(
             f'<div class="crm-alert-card" style="border-left-color:{clr}">'
             f'<div class="crm-alert-num" style="color:{clr}">{n}</div>'
+            f'<div class="crm-alert-body">'
             f'<div class="crm-alert-title">{html_lib.escape(title)}</div>'
             f'<div class="crm-alert-desc">{html_lib.escape(desc)}</div>'
-            f"</div>"
+            f"</div></div>"
         )
     st.markdown(f'<div class="crm-alert-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
@@ -255,7 +517,11 @@ def _render_at_a_glance(
             f'<div class="crm-glance-lbl">{html_lib.escape(label)}</div>'
             f"</div>"
         )
-    st.markdown(f'<div class="crm-glance-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="crm-glance-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%">'
+        f'{"".join(cards)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_conversion_flow(
@@ -285,7 +551,8 @@ def _render_conversion_flow(
         if i < len(_KEY_FLOW) - 1:
             parts.append('<div class="crm-conv-arrow" aria-hidden="true">→</div>')
     st.markdown(
-        f'<div class="crm-conv-flow">{"".join(parts)}</div>',
+        f'<div class="crm-conv-flow" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%">'
+        f'{"".join(parts)}</div>',
         unsafe_allow_html=True,
     )
 
@@ -306,17 +573,12 @@ def _render_traffic_quality(visitors: dict[str, int | float | None]) -> None:
     avg = visitors.get("avg_views_per_visitor") or 0
     total_pv = int(visitors.get("total_page_views") or 0)
 
-    c1, c2 = st.columns(2)
-    c3, c4 = st.columns(2)
-    c1.metric("순 방문자", f"{uv:,}명")
-    c2.metric(
-        "재방문",
-        f"{ret:,}명",
-        delta=f"{ret_pct}% 재방문율" if ret_pct is not None else None,
-        delta_color="normal",
-    )
-    c3.metric("여러 날 방문", f"{multi:,}명", help="2일 이상 다른 날에 다시 온 방문자")
-    c4.metric("평균 방문 횟수", f"{avg}회", help=f"총 페이지뷰 {total_pv:,}회")
+    _render_metric_grid([
+        ("순 방문자", f"{uv:,}명", None, False),
+        ("재방문", f"{ret:,}명", f"{ret_pct}% 재방문율" if ret_pct is not None else None, False),
+        ("여러 날 방문", f"{multi:,}명", "2일+ 재방문", False),
+        ("평균 방문 횟수", f"{avg}회", f"PV {total_pv:,}회", False),
+    ])
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -344,12 +606,12 @@ def _render_outcome_metrics(
     period_refund_amt = refunded * fee
     period_net = (int(period_biz.get("paid") or 0) - refunded) * fee
 
-    c1, c2 = st.columns(2)
-    c3, c4 = st.columns(2)
-    c1.metric("환불", f"{refunded}명", delta=f"제출 대비 {period_biz.get('refund_rate_pct')}%" if refunded else None, delta_color="inverse")
-    c2.metric("유지(환불 제외)", f"{active}명", delta=f"{ret_pct}% 유지율" if ret_pct is not None else None)
-    c3.metric("매칭 완료", f"{matched}명", delta=f"입금 대비 {match_pct}%" if match_pct is not None else None)
-    c4.metric("기간 순수익", f"{period_net:,}원", help=f"환불 {period_refund_amt:,}원 반영")
+    _render_metric_grid([
+        ("환불", f"{refunded}명", f"제출 대비 {period_biz.get('refund_rate_pct')}%" if refunded else None, True),
+        ("유지(환불 제외)", f"{active}명", f"{ret_pct}% 유지율" if ret_pct is not None else None, False),
+        ("매칭 완료", f"{matched}명", f"입금 대비 {match_pct}%" if match_pct is not None else None, False),
+        ("기간 순수익", f"{period_net:,}원", f"환불 {period_refund_amt:,}원" if period_refund_amt else None, True),
+    ])
 
     if closed:
         st.caption(f"종료(거절 2회) **{closed}**명 — 환불 없이 퍼널 종료")
@@ -366,12 +628,12 @@ def _render_period_kpis(
     pv = period_ev["pv_unique"]
     ac = period_ev["ac_unique"]
     forms = int(period_biz.get("forms") or 0)
-    c1, c2 = st.columns(2)
-    c3, c4 = st.columns(2)
-    c1.metric("방문(순)", f"{pv:,}")
-    c2.metric("신청 클릭", f"{ac:,}", delta=f"{round(ac/pv*100,1)}% 전환" if pv else None)
-    c3.metric("폼 제출", f"{forms:,}", delta=f"{round(forms/ac*100,1)}% 전환" if ac else None)
-    c4.metric("조회 기간", f"{days}일")
+    _render_metric_grid([
+        ("방문(순)", f"{pv:,}", None, False),
+        ("신청 클릭", f"{ac:,}", f"{round(ac/pv*100,1)}% 전환" if pv else None, False),
+        ("폼 제출", f"{forms:,}", f"{round(forms/ac*100,1)}% 전환" if ac else None, False),
+        ("조회 기간", f"{days}일", None, False),
+    ])
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -466,18 +728,16 @@ def _render_grouped_funnel(snapshot: CrmSnapshot) -> None:
             rate_txt = ""
             if step.rate_from_prev is not None:
                 clr = "#3fb950" if step.rate_from_prev >= 30 else "#d29922" if step.rate_from_prev >= 10 else "#f85149"
-                rate_txt = f'<span style="color:{clr};font-size:11px;font-weight:700;margin-left:8px">{step.rate_from_prev}%</span>'
+                rate_txt = f'<span class="crm-bar-rate" style="color:{clr}">{step.rate_from_prev}%</span>'
 
             rows.append(
-                f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
-                f'<div style="width:110px;flex-shrink:0;font-size:12px;color:{_C["text"]};font-weight:600">'
-                f'{html_lib.escape(step.label)}</div>'
-                f'<div style="flex:1;height:22px;background:#21262d;border-radius:4px;overflow:hidden">'
-                f'<div style="height:100%;width:{w}%;background:linear-gradient(90deg,#1f6feb,#58a6ff);border-radius:4px"></div>'
-                f'</div>'
-                f'<div style="width:60px;text-align:right;font-size:14px;font-weight:800;color:{_C["text"]}">{step.count}</div>'
-                f'{rate_txt}'
-                f'</div>'
+                f'<div class="crm-bar-row">'
+                f'<div class="crm-bar-label">{html_lib.escape(step.label)}</div>'
+                f'<div class="crm-bar-track">'
+                f'<div class="crm-bar-fill" style="width:{w}%"></div>'
+                f"</div>"
+                f'<div class="crm-bar-cnt">{step.count}{rate_txt}</div>'
+                f"</div>"
             )
         st.markdown("".join(rows), unsafe_allow_html=True)
 
@@ -532,6 +792,7 @@ def _render_applicant_table(snapshot: CrmSnapshot) -> None:
         st.session_state["crm_hidden_rows"] = set()
     hidden: set = st.session_state["crm_hidden_rows"]
 
+    st.markdown('<span class="crm-filter-anchor" aria-hidden="true"></span>', unsafe_allow_html=True)
     fa, fb, fc, fd = st.columns([3, 2, 1, 1])
     with fa:
         stage_filter = st.multiselect(
@@ -625,6 +886,7 @@ def _render_event_reset() -> None:
 # MAIN
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
+    _inject_crm_styles()
     events = crm_events_for_mode(demo_mode=demo_mode)
     snapshot = build_crm_snapshot(raw_df, events=events)
 

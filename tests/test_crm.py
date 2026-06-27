@@ -67,3 +67,23 @@ def test_visitor_metrics_return_visitors():
     assert m["return_rate_pct"] == 50.0
     assert m["multi_day_visitors"] == 1
     assert m["avg_views_per_visitor"] == 1.5
+
+
+def test_crm_mobile_styles_defined():
+    from utils import crm_ui
+
+    css = crm_ui._CRM_STYLES
+    assert "crm-glance-grid" in css
+    assert "repeat(2, minmax(0, 1fr))" in css
+    assert "crm-alert-body" in css
+    assert "crm-metric-grid" in css
+    assert "_inject_crm_styles" in crm_ui.render_crm_tab.__code__.co_names
+
+
+def test_crm_alert_html_uses_horizontal_layout():
+    import inspect
+
+    from utils import crm_ui
+
+    src = inspect.getsource(crm_ui._render_action_alerts)
+    assert "crm-alert-body" in src

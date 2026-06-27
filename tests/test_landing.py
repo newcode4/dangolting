@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from utils.landing import _landing_html
 from utils.landing_config import APPLICATION_FORM_URL, CONTENT_MAX_WIDTH
 
@@ -17,6 +19,33 @@ def test_landing_hook_section():
     assert 'data-suffix="배+"' in html
     assert "평생 비즈니스 파트너" in html
     assert "initHookCounters" in html
+    assert "syncHookLayout" in html
+    assert "data-hook-layout" in html
+    assert "hook-hero-stack" in html
+    assert "hook-hero-glow" in html
+
+
+def test_landing_css_revision_meta():
+    html = _landing_html("logo.png", APPLICATION_FORM_URL, "/*a*/", "", css_rev="123_456")
+    assert 'name="dgt-css-rev" content="123_456"' in html
+
+
+def test_landing_reads_css_fresh():
+    import inspect
+
+    from utils import landing
+
+    src = inspect.getsource(landing.render_landing_page)
+    assert "_read_css(_PAGE_CSS_PATH)" in src
+    assert "_css_revision()" in src
+    assert "dgt-css-rev" in inspect.getsource(landing._landing_html)
+
+
+def test_landing_hook_css_uses_layout_attribute():
+    css = (Path(__file__).resolve().parents[1] / "assets" / "landing-page.css").read_text(encoding="utf-8")
+    assert 'html[data-hook-layout="desktop"]' in css
+    assert 'html[data-hook-layout="mobile"]' in css
+    assert "@media (max-width: 520px)" not in css.split(".hook-climax")[1].split(".hook-cta")[0]
 
 
 def test_landing_offer_box():

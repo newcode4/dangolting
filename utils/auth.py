@@ -19,7 +19,9 @@ ROOT = Path(__file__).resolve().parent.parent
 USERS_FILE = ROOT / "data" / "users.json"
 COOKIE_NAME = "dgt_auth"
 COOKIE_WIDGET_KEY = "dgt_cookie_mgr"
+SESSION_CM_KEY = "_dgt_cookie_manager"
 TOKEN_DAYS = 30
+COOKIE_RETRY_MAX = 6
 
 def _auth_cfg() -> dict:
     try:
@@ -159,8 +161,37 @@ def parse_token(token: str) -> str | None:
 
 
 def _get_cookie_manager() -> CookieManager:
-    """CookieManager 1회 생성 — __init__에서 getAll 1번만 (key=COOKIE_WIDGET_KEY)."""
-    return CookieManager(key=COOKIE_WIDGET_KEY)
+    """세션당 CookieManager 1개 — 모바일에서 쿠키 재조회 안정화."""
+    mgr = st.session_state.get(SESSION_CM_KEY)
+    if mgr is not None:
+        return mgr
+    mgr = CookieManager(key=COOKIE_WIDGET_KEY)
+    st.session_state[SESSION_CM_KEY] = mgr
+    return mgr
+
+
+def _cookie_secure() -> bool:
+    """HTTPS 배포(Streamlit Cloud)에서는 true 권장. 로컬은 secrets에서 false."""
+    raw = _auth_cfg().get("cookie_secure")
+    if raw is not None:
+        return bool(raw)
+    return False
+
+
+def _refresh_cookies(cm: CookieManager) -> tuple[dict, bool]:
+    """(cookies, ready). ready=False면 CookieManager 아직 마운트 전."""
+    retry = int(st.session_state.get("_auth_cookie_retries", 0))
+    try:
+        data = cm.get_all(key=f"dgt_auth_read_{retry}")
+        if isinstance(data, dict):
+            cm.cookies = data
+            return data, True
+    except Exception as exc:
+        log_exception(exc, where="auth.refresh_cookies")
+    safe = _read_cookies_safe(cm)
+    if safe is None:
+        return {}, False
+    return safe, True
 
 
 def _read_cookies_safe(cm: CookieManager) -> dict | None:
@@ -213,7 +244,16 @@ def set_auth_cookie(username: str, remember: bool, *, cm: CookieManager | None =
     try:
         manager = cm or _get_cookie_manager()
         expires = datetime.now(timezone.utc) + timedelta(days=TOKEN_DAYS)
-        manager.set(COOKIE_NAME, make_token(username), expires_at=expires, key="dgt_set")
+        manager.set(
+            COOKIE_NAME,
+            make_token(username),
+            expires_at=expires,
+            max_age=TOKEN_DAYS * 86400,
+            path="/",
+            same_site="lax",
+            secure=_cookie_secure(),
+            key="dgt_set",
+        )
     except Exception as exc:
         log_exception(exc, where="auth.set_cookie")
 
@@ -232,12 +272,37 @@ def clear_auth_cookie() -> None:
 
 def logout() -> None:
     st.session_state.pop("auth_user", None)
-    st.session_state.pop("_auth_cookie_tried", None)
+    st.session_state.pop("_auth_cookie_gave_up", None)
+    st.session_state.pop("_auth_cookie_retries", None)
     clear_auth_cookie()
 
 
 def current_user() -> str | None:
     return st.session_state.get("auth_user")
+
+
+def _attempt_cookie_auto_login(cm: CookieManager) -> None:
+    """자동 로그인 — CookieManager 준비될 때까지 짧게 재시도 (모바일 대응)."""
+    if st.session_state.get("auth_user") or st.session_state.get("_auth_cookie_gave_up"):
+        return
+
+    cookies, ready = _refresh_cookies(cm)
+    token = _token_from_cookies(cookies)
+    if token:
+        st.session_state["_auth_cookie_gave_up"] = True
+        if _try_cookie_login(cm, cookies=cookies):
+            st.session_state.pop("_auth_cookie_retries", None)
+            st.rerun()
+        return
+
+    # 컴포넌트 미준비 또는 첫 getAll={} — 모바일에서 쿠키 동기화 전까지 재시도
+    retries = int(st.session_state.get("_auth_cookie_retries", 0))
+    if (not ready or not cookies) and retries < COOKIE_RETRY_MAX:
+        st.session_state["_auth_cookie_retries"] = retries + 1
+        st.rerun()
+        return
+
+    st.session_state["_auth_cookie_gave_up"] = True
 
 
 def _render_login_form(*, cm: CookieManager) -> None:
@@ -252,6 +317,8 @@ def _render_login_form(*, cm: CookieManager) -> None:
                 st.session_state["auth_user"] = uid.strip()
                 set_auth_cookie(uid.strip(), remember, cm=cm)
                 st.session_state.pop("_admin_scroll_reset", None)
+                st.session_state.pop("_auth_cookie_gave_up", None)
+                st.session_state.pop("_auth_cookie_retries", None)
                 st.rerun()
             else:
                 st.error("아이디 또는 비밀번호가 올바르지 않습니다.")
@@ -327,14 +394,7 @@ def render_auth_page(logo_uri: str) -> None:
     )
 
     cm = _get_cookie_manager()
-
-    # 쿠키 자동로그인 — 준비됐을 때만 시도. None이면 폼을 먼저 보여줌 (st.stop 금지).
-    if not st.session_state.get("_auth_cookie_tried"):
-        cookies = _read_cookies_safe(cm)
-        if cookies is not None:
-            st.session_state["_auth_cookie_tried"] = True
-            if _try_cookie_login(cm, cookies=cookies):
-                st.rerun()
+    _attempt_cookie_auto_login(cm)
 
     _sp, main, _sp2 = st.columns([2.2, 1.6, 2.2], gap="small")
 
