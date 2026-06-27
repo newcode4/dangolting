@@ -1,26 +1,39 @@
-# Apps Script — 알림 전용 (Streamlit enabled=false)
+# Apps Script — 트리거 설치 (필수!)
 
-| 알림 | 시점 |
+> **⏰ 트리거 화면이 비어 있으면 알림이 절대 안 옵니다.**  
+> `setupTelegram`만 하고 끝낸 상태입니다. **`installTriggers`를 실행**하세요.
+
+## 지금 바로 (30초)
+
+1. **스프레드시트** 탭으로 이동 (Apps Script가 아닌 **시트**)
+2. **새로고침** (F5) → 상단에 **「단골팅 알림」** 메뉴 생김
+3. **단골팅 알림 → 2. 트리거 설치 ★필수** 클릭
+4. 권한 물으면 **허용**
+5. 「트리거 3개 설치 완료」 팝업 확인
+6. Apps Script **⏰ 트리거** 메뉴 → **3개** 보이면 OK
+
+### 메뉴가 없을 때 (에디터에서)
+
+1. Apps Script **코드** 탭
+2. 상단 함수 드롭다운 → **`installTriggers`** 선택
+3. **▶ 실행** 클릭
+4. 권한 허용 → 완료 팝업
+5. **⏰ 트리거** 탭에서 3개 확인
+
+## 설치되면 보이는 3개
+
+| 함수 | 역할 |
 |------|------|
-| 🆕 새 신청 | 폼 제출 즉시 |
-| 💰 입금 확인 | U열 체크 |
-| 📋 입금 대기 묶음 | **매일 12:00** (신청 3시간+ & 미입금) |
+| `onFormSubmit` | 폼 제출 즉시 🆕 |
+| `onEdit` | U열 입금 💰 |
+| `sendUnpaidDailyDigest` | 매일 12시 입금대기 묶음 |
 
-## 설치
+## 배포 버튼?
 
-1. `setupTelegram`
-2. **`installTriggers`** ★ (위 3가지 트리거 한 번에)
-3. `testTelegramPing` · `testUnpaidDigest`
+**누르지 마세요.** 트리거만 있으면 24시간 자동 실행됩니다.
 
-## 설정 변경 (Code.gs 상단)
+## 전체 순서
 
-```javascript
-const UNPAID_MIN_HOURS = 3;  // N시간 지난 사람만 점심 알림
-const DIGEST_HOUR = 12;      // 점심 몇 시 (한국)
-```
-
-코드 수정 후 **`installTriggers` 다시 실행**.
-
-## Streamlit
-
-`data/telegram.toml` → `enabled = false` (중복·2분 지연 방지)
+1. `setupTelegram` — token · chat_id (끝나면 「트리거 설치?」 → **예**)
+2. `installTriggers` — ★ 위와 동일
+3. `testTelegramPing` — 텔레그램 테스트

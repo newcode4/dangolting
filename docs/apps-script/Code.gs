@@ -32,6 +32,18 @@ function onOpen() {
     .addItem('4. 새 신청 테스트 (마지막 행)', 'testLastRowNotify')
     .addItem('5. 입금대기 묶음 테스트', 'testUnpaidDigest')
     .addToUi();
+  warnIfNoTriggers_();
+}
+
+function warnIfNoTriggers_() {
+  if (ScriptApp.getProjectTriggers().length === 0) {
+    SpreadsheetApp.getUi().alert(
+      '⚠️ 트리거가 없습니다 — 알림이 안 옵니다!\n\n'
+      + '① 상단 메뉴 「단골팅 알림」\n'
+      + '② 「2. 트리거 설치 ★필수」 클릭\n\n'
+      + '(또는 함수 installTriggers 선택 → ▶ 실행)'
+    );
+  }
 }
 
 function setupTelegram() {
@@ -46,16 +58,25 @@ function setupTelegram() {
     TELEGRAM_BOT_TOKEN: token,
     TELEGRAM_CHAT_ID: chatId,
   });
-  ui.alert(
+  const go = ui.alert(
     '토큰 저장됨.\n\n'
-    + '다음: installTriggers() 실행 ★\n\n'
-    + '· 폼 제출 → 즉시 알림\n'
-    + '· U열 입금 체크 → 💰 알림\n'
-    + '· 매일 ' + DIGEST_HOUR + '시 — 입금 대기 ' + UNPAID_MIN_HOURS + '시간+ 묶음 알림'
+    + '지금 트리거를 설치할까요?\n'
+    + '(안 하면 폼 제출해도 알림 없음)',
+    ui.ButtonSet.YES_NO
   );
+  if (go === ui.Button.YES) {
+    installTriggers();
+  } else {
+    ui.alert(
+      '나중에 꼭 실행하세요:\n\n'
+      + '메뉴 「단골팅 알림」→ 「2. 트리거 설치 ★필수」\n'
+      + '또는 installTriggers → ▶ 실행'
+    );
+  }
 }
 
 function installTriggers() {
+  const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActive();
   ScriptApp.getProjectTriggers().forEach(function (t) {
     const fn = t.getHandlerFunction();
@@ -67,27 +88,36 @@ function installTriggers() {
       ScriptApp.deleteTrigger(t);
     }
   });
-  ScriptApp.newTrigger('onFormSubmit')
-    .forSpreadsheet(ss)
-    .onFormSubmit()
-    .create();
-  ScriptApp.newTrigger('onEdit')
-    .forSpreadsheet(ss)
-    .onEdit()
-    .create();
-  ScriptApp.newTrigger('sendUnpaidDailyDigest')
-    .timeBased()
-    .everyDays(1)
-    .atHour(DIGEST_HOUR)
-    .inTimezone(DIGEST_TZ)
-    .create();
-  SpreadsheetApp.getUi().alert(
-    '트리거 설치 완료!\n\n'
-    + '· 폼 제출 → 즉시 🆕 알림\n'
-    + '· U열 체크 → 💰 알림\n'
-    + '· 매일 ' + DIGEST_HOUR + ':00 — 입금 대기 '
-    + UNPAID_MIN_HOURS + '시간+ 묶음 알림\n\n'
-    + 'Streamlit 앱 telegram enabled=false 권장'
+  try {
+    ScriptApp.newTrigger('onFormSubmit')
+      .forSpreadsheet(ss)
+      .onFormSubmit()
+      .create();
+    ScriptApp.newTrigger('onEdit')
+      .forSpreadsheet(ss)
+      .onEdit()
+      .create();
+    ScriptApp.newTrigger('sendUnpaidDailyDigest')
+      .timeBased()
+      .everyDays(1)
+      .atHour(DIGEST_HOUR)
+      .inTimezone(DIGEST_TZ)
+      .create();
+  } catch (err) {
+    ui.alert('트리거 설치 실패:\n' + err.message + '\n\n권한 허용 후 다시 실행하세요.');
+    throw err;
+  }
+  const triggers = ScriptApp.getProjectTriggers();
+  const list = triggers.map(function (t) {
+    return '· ' + t.getHandlerFunction();
+  }).join('\n');
+  ui.alert(
+    '트리거 ' + triggers.length + '개 설치 완료!\n\n'
+    + list + '\n\n'
+    + '왼쪽 ⏰ 트리거 메뉴에서 3개 보이면 OK.\n\n'
+    + '· 폼 제출 → 즉시 🆕\n'
+    + '· U열 체크 → 💰\n'
+    + '· 매일 ' + DIGEST_HOUR + ':00 입금대기 묶음'
   );
 }
 
