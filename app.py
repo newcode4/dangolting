@@ -17,8 +17,8 @@ from utils.matching import recommend, score_label, evaluate
 from utils.value_match import story_block_html, value_badge_html
 from utils.ui_components import recommendation_card_html
 from utils.match_display import keywords_html, apply_keyword_filter, MatchKeyword, analyze_pair, _theme
-from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, EDIT_LABELS, now_matched_at, format_matched_at
-from utils.sheets import load_data, load_demo_data, set_matched, increment_reject, update_profile_fields
+from utils.columns import DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, parse_checkbox, EDIT_LABELS, now_matched_at, format_matched_at
+from utils.sheets import load_data, load_data_raw, load_demo_data, set_matched, increment_reject, update_profile_fields
 from utils.filters import (
     FILTER_FIELDS,
     field_options,
@@ -34,6 +34,7 @@ from utils.data_loader import expected_data_source, should_reload_df
 from utils.sheet_prefs import active_sheet_config, load_sheet_prefs, save_sheet_prefs
 from utils.auth import ensure_authenticated, current_user, logout
 from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
+from utils.unpaid import unpaid_applicants
 from utils.telegram_notify import (
     telegram_enabled,
     telegram_config_status,
@@ -151,6 +152,7 @@ def render_telegram_controls(*, key_prefix: str) -> None:
     st.caption(f"📱 텔레그램 — {telegram_config_status()}")
     if telegram_enabled():
         st.caption(f"신규 신청 폴링 · 약 {poll_interval_seconds() // 60}분 (앱 켜져 있을 때)")
+        st.caption("U열 **입금 체크** 알림은 앱이 못 봅니다 → **설정 · 알림** 탭 Apps Script 안내")
         stacked = key_prefix.startswith("side_")
 
         def _btn_test() -> None:
@@ -306,6 +308,71 @@ if telegram_enabled():
 @st.cache_data(ttl=60)
 def _load(url: str, ws: str, _ver: int) -> pd.DataFrame:
     return load_data(url, ws)
+
+
+@st.cache_data(ttl=30)
+def _load_raw(url: str, ws: str, _ver: int) -> pd.DataFrame:
+    return load_data_raw(url, ws, apply_eligibility=False)
+
+
+def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> None:
+    st.markdown("#### 입금 대기")
+    st.caption("시트 U열(입금확인) 체크 전 · 매칭 작업 탭에는 안 보입니다.")
+    if demo_mode:
+        st.info("데모 모드 — 실제 시트 연동 후 목록이 표시됩니다.")
+        return
+    if not sheet_url:
+        st.warning("시트 URL을 입력하세요.")
+        return
+    try:
+        raw = _load_raw(sheet_url, ws_name, st.session_state["load_ver"])
+    except Exception as exc:
+        ui_error(exc, where="입금 대기 목록", streamlit_module=st)
+        return
+    pending = unpaid_applicants(raw)
+    if pending.empty:
+        st.success("입금 대기 중인 신청이 없습니다.")
+        return
+    st.markdown(f"**{len(pending)}명** — 시트에서 U열 체크 후 **새로고침**")
+    rows = []
+    for idx, row in pending.iterrows():
+        rows.append(
+            {
+                "행": int(idx),
+                "신청일": str(row.get("ts", "") or "—"),
+                "이름": str(row.get("name", "") or "—"),
+                "연락처": str(row.get("contact", "") or "—"),
+                "직군": str(row.get("job", "") or "—")[:40],
+                "지역": str(row.get("region", "") or "—"),
+            }
+        )
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    if st.button("입금 대기 목록 새로고침", key="unpaid_refresh"):
+        _load_raw.clear()
+        st.rerun()
+
+
+def render_apps_script_guide() -> None:
+    st.markdown("#### 시트 Apps Script (추천)")
+    st.markdown(
+        "Streamlit 앱은 **새 행 추가**만 감지합니다. "
+        "시트에서 **입금 체크**·**폼 제출 즉시 알림**은 Google Apps Script가 맞습니다."
+    )
+    st.markdown(
+        "1. 스프레드시트 → **확장 프로그램 → Apps Script**  \n"
+        "2. `docs/apps-script/Code.gs` 내용 붙여넣기  \n"
+        "3. `setupTelegram()` 실행 → bot_token · chat_id 입력  \n"
+        "4. **트리거** 추가: `onFormSubmit` (폼 제출), `onEdit` (U열 체크)"
+    )
+    gs_path = ROOT / "docs" / "apps-script" / "Code.gs"
+    if gs_path.is_file():
+        st.download_button(
+            "Code.gs 다운로드",
+            data=gs_path.read_text(encoding="utf-8"),
+            file_name="Code.gs",
+            mime="text/plain",
+            key="dl_apps_script",
+        )
 
 
 def get_df() -> pd.DataFrame:
@@ -1313,3 +1380,7 @@ with tab4:
         "아래 설정은 사이드바와 동일합니다."
     )
     render_settings_panel(key_prefix="tab_")
+    st.divider()
+    render_unpaid_panel(sheet_url=sheet_url, ws_name=ws_name, demo_mode=demo_mode)
+    st.divider()
+    render_apps_script_guide()

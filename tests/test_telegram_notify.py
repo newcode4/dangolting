@@ -12,6 +12,7 @@ def test_format_applicant_message():
     row = pd.Series(
         {
             "name": "이주환",
+            "contact": "01045678978",
             "job": "전문 컨설턴트 / 강사",
             "region": "경기도",
             "ts": "2026. 6. 26 오후 8:07:14",
@@ -20,6 +21,7 @@ def test_format_applicant_message():
     )
     msg = format_applicant_message(row)
     assert "이주환" in msg
+    assert "01045678978" in msg
     assert "전문 컨설턴트" in msg
     assert "경기도" in msg
     assert "2026" in msg

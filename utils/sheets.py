@@ -13,6 +13,8 @@ from utils.columns import (
     COL,
     COL_TO_LOGIC,
     EDIT_COL,
+    LOGIC_KEYS,
+    build_column_map,
     normalize_dataframe,
     DEFAULT_WORKSHEET,
     parse_reject,
@@ -28,17 +30,19 @@ HEADER_ROW = 1
 
 
 def records_from_sheet_values(all_values: list[list]) -> list[dict]:
-    """1행=헤더, 2행~=데이터. 열 번호(COL)로 논리 키 매핑 — 폼 헤더 문구와 무관."""
+    """1행=헤더, 2행~=데이터. 헤더 매칭 우선 + 고정 열 번호 보조."""
     if len(all_values) <= HEADER_ROW:
         return []
+    headers = all_values[0]
+    col_map = build_column_map(headers)
     records: list[dict] = []
     for row in all_values[HEADER_ROW:]:
         if not any(str(c).strip() for c in row):
             continue
         rec: dict[str, object] = {}
-        for col_num, logic_key in COL_TO_LOGIC.items():
-            idx = col_num - 1
-            rec[logic_key] = row[idx] if idx < len(row) else ""
+        for logic_key in LOGIC_KEYS:
+            idx = col_map.get(logic_key, -1)
+            rec[logic_key] = row[idx] if 0 <= idx < len(row) else ""
         records.append(rec)
     return records
 

@@ -89,11 +89,40 @@ HEADER_ALIASES: dict[str, str] = {
     "타임스탬프": "ts",
     "Timestamp": "ts",
     "timestamp": "ts",
+    "이름": "name",
     "메인직군": "job",
     "메인 직군": "job",
     "거주/활동지역": "region",
     "거주 / 활동 지역": "region",
+    "활동 지역": "region",
+    "입금확인": "paid",
 }
+
+# 헤더 부분 문자열 매칭 (구체적인 패턴을 먼저)
+HEADER_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
+    ("w_job", ("찾으시는", "상대방의 직군", "희망직")),
+    ("w_region", ("매칭 희망", "희망하는 지역", "희망활동")),
+    ("w_gender", ("타겟 성별", "희망성별")),
+    ("w_years", ("타겟 연차", "희망연차")),
+    ("want", ("가장 해결받고", "want")),
+    ("depth", ("깊이", "해결의")),
+    ("values", ("가치 기준", "가치관")),
+    ("have", ("제공가치", "have")),
+    ("note", ("하고 싶은 말",)),
+    ("paid", ("입금",)),
+    ("matched", ("매칭 여부", "매칭여부")),
+    ("refund", ("환불",)),
+    ("matched_at", ("매칭일",)),
+    ("reject", ("매칭횟수", "거절")),
+    ("dday", ("d-day", "d day", "남은 d")),
+    ("ts", ("타임스탬프", "timestamp", "시간")),
+    ("name", ("성함", "이름")),
+    ("contact", ("연락", "전화")),
+    ("gender", ("성별",)),
+    ("years", ("연차",)),
+    ("job", ("메인", "직군")),
+    ("region", ("거주", "활동지", "지역")),
+]
 
 # 논리 키 → 시트 열 (앱에서 편집 가능한 필드)
 EDIT_COL: dict[str, int] = {
@@ -168,6 +197,49 @@ COLUMN_DEFAULTS: dict[str, object] = {
     "matched_at": "",
     "refund": False,
 }
+
+LOGIC_KEYS: tuple[str, ...] = tuple(k for k in COLUMN_DEFAULTS if k != "matched_w")
+
+
+def build_column_map(headers: list[str]) -> dict[str, int]:
+    """헤더 1행 → 논리 키별 0-based 열 인덱스 (고정 열 번호는 마지막 보조)."""
+    stripped = [str(h).strip() for h in headers]
+    col_map: dict[str, int] = {}
+
+    def claim(key: str, idx: int) -> None:
+        if key not in col_map and 0 <= idx < len(stripped):
+            col_map[key] = idx
+
+    cn_items = sorted(
+        ((k, v) for k, v in CN.items() if k != "matched_w"),
+        key=lambda x: len(x[1]),
+        reverse=True,
+    )
+    for key, header in cn_items:
+        for i, h in enumerate(stripped):
+            if h == header:
+                claim(key, i)
+                break
+
+    for i, h in enumerate(stripped):
+        if h in HEADER_ALIASES:
+            claim(HEADER_ALIASES[h], i)
+
+    for key, needles in HEADER_PATTERNS:
+        if key in col_map:
+            continue
+        for i, h in enumerate(stripped):
+            if not h:
+                continue
+            hl = h.lower()
+            if any(n.lower() in hl for n in needles):
+                claim(key, i)
+                break
+
+    for col_num, key in COL_TO_LOGIC.items():
+        claim(key, col_num - 1)
+
+    return col_map
 
 
 def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:

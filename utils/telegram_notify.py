@@ -236,12 +236,14 @@ def format_applicant_message(row: pd.Series) -> str:
         job = job[:37] + "…"
     region = _disp(cell(row, "region"))
     ts = _disp(cell(row, "ts"))
+    contact = _disp(cell(row, "contact"))
     paid = parse_checkbox(cell(row, "paid", False))
     paid_txt = "✅ 입금 확인" if paid else "⏳ 입금 대기"
 
     return (
         "🆕 단골팅 새 신청\n"
         f"이름: {name}\n"
+        f"연락: {contact}\n"
         f"직군: {job}\n"
         f"지역: {region}\n"
         f"신청: {ts}\n"
