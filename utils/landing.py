@@ -56,8 +56,8 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <span class="eyebrow">비즈니스 시너지 파트너 매칭 · 1기 한정 · 5만 원</span>
       <h1>내 사업을 같이 키울 수 있는<br/>파트너 <em>한 명</em>이면 됩니다</h1>
       <p class="lead">
-        모임에 몇 번 나가봤자 명함만 쌓입니다. 실제로 서로 이득이 되는 비즈니스 관계는<br/>
-        운이 아니라 <strong style="color:#f1f5f9">기획</strong>입니다. 운영진이 직접 맞는 사람을 찾아 연결합니다.
+        모임에 수십 번 나가도 실질적으로 도움이 되는 관계는 잘 생기지 않습니다.<br/>
+        운영진이 당신의 비즈니스를 파악하고, 서로 이득이 되는 파트너를 직접 찾아 연결합니다.
       </p>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">
@@ -78,7 +78,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     <strong>비즈니스 시너지 중심 매칭</strong><span class="dot"></span>
     <span>운영진이 1:1로 직접 탐색</span><span class="dot"></span>
     <span>익명 프로필 보고 내가 결정</span><span class="dot"></span>
-    <span>운영진 미매칭 시 전액 환불</span>
+    <span>최대 2회 소개 제공 · 소개 없으면 전액 환불</span>
   </div>
 
   <section class="hook-panel section--alt reveal">
@@ -90,13 +90,13 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
 
     <div class="hook-flow reveal-item">
       <div class="hook-step">
-        <div class="hook-step-num"><span class="count" data-count="80000" data-suffix="+">0</span></div>
-        <div class="hook-step-lbl">평생 스쳐가는<br/>사람 수</div>
+        <div class="hook-step-num"><span class="count" data-count="1000" data-suffix="+">0</span></div>
+        <div class="hook-step-lbl">평생 알게 되는<br/>비즈니스 지인 수</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--mid">
         <div class="hook-step-num"><span class="count" data-count="2" data-prefix="~" data-suffix="명">0</span></div>
-        <div class="hook-step-lbl">1년에 새로 만나는<br/>진짜 시너지 파트너</div>
+        <div class="hook-step-lbl">1년에 새로 생기는<br/>진짜 비즈니스 파트너</div>
       </div>
       <div class="hook-arrow" aria-hidden="true"><span>→</span></div>
       <div class="hook-step hook-step--hot">
@@ -124,11 +124,11 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
             <line x1="0" y1="90" x2="480" y2="90" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
             <line x1="0" y1="140" x2="480" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
             <line x1="180" y1="10" x2="180" y2="172" stroke="rgba(96,165,250,0.25)" stroke-width="1.5" stroke-dasharray="5 4"/>
-            <path class="chart-area-duo" d="M 0,165 C 70,163 130,158 180,148 C 250,118 360,42 480,8 L480,172 L0,172 Z" fill="url(#duoAreaGrad)" opacity="0"/>
-            <path class="chart-path-solo" d="M 0,165 C 120,160 240,142 480,98" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
-            <path class="chart-path-duo" d="M 0,165 C 70,163 130,158 180,148 C 250,118 360,42 480,8" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
-            <circle class="chart-dot-solo" cx="480" cy="98" r="5" fill="#64748b" opacity="0"/>
-            <circle class="chart-dot-duo" cx="480" cy="8" r="6" fill="#60a5fa" opacity="0" filter="url(#dotBlue)"/>
+            <path class="chart-area-duo" d="M 0,165 C 70,163 130,158 180,148 C 265,108 380,20 480,3 L480,172 L0,172 Z" fill="url(#duoAreaGrad)" opacity="0"/>
+            <path class="chart-path-solo" d="M 0,165 C 160,163 310,158 480,138" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+            <path class="chart-path-duo" d="M 0,165 C 70,163 130,158 180,148 C 265,108 380,20 480,3" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+            <circle class="chart-dot-solo" cx="480" cy="138" r="5" fill="#64748b" opacity="0"/>
+            <circle class="chart-dot-duo" cx="480" cy="3" r="6" fill="#60a5fa" opacity="0" filter="url(#dotBlue)"/>
             <text x="185" y="142" font-size="10.5" fill="rgba(96,165,250,0.75)" font-family="Pretendard,Apple SD Gothic Neo,sans-serif" font-weight="700">↗ 단골 연결</text>
           </svg>
           <div class="chart-end-labels">
@@ -147,7 +147,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       </div>
     </div>
 
-    <a href="#offer" class="hook-cta reveal-item">
+    <a href="#offer" data-scroll-to="offer" class="hook-cta reveal-item" style="margin-top:32px">
       <span>그래서, 5만 원에 뭘 받나요?</span>
       <span class="hook-cta-arrow">→</span>
     </a>
@@ -168,8 +168,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         </p>
         <p class="founder-story founder-story--highlight">
           그런데 저는 그 과정이 <strong>재밌었습니다.</strong><br/>
-          사람을 읽고, 비즈니스 맥락을 파악하고, 누가 누구에게 실질적 가치를 줄 수 있는지 조율하는 게<br/>
-          저한테는 일이 아니라 즐거움이에요.
+          사람을 읽고, 비즈니스 맥락을 파악하고, 누가 누구에게 어떤 가치를 줄 수 있는지 찾는 게 — 저한테는 놀이예요.
         </p>
         <p class="founder-story">
           &ldquo;남들이 힘들어하는 걸 내가 즐긴다면 — 내가 하면 되잖아.&rdquo;<br/>
@@ -181,7 +180,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         </p>
         <div class="founder-sig">
           <div class="founder-sig-name">이주환</div>
-          <div class="founder-sig-title">단골팅 운영자 · 비즈니스 단골 수집가</div>
+          <div class="founder-sig-title">단골팅 CEO · 비즈니스 단골 수집가</div>
         </div>
       </div>
     </div>
@@ -358,7 +357,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
           </li>
           <li>
             <span class="vs-icon vs-icon--ok">✓</span>
-            <div><strong>못 찾으면 전액 환불</strong><span>운영진이 끝내 못 찾으면 5만 원 그대로</span></div>
+            <div><strong>소개 없으면 전액 환불</strong><span>1회도 못 소개하면 5만 원 그대로</span></div>
           </li>
         </ul>
       </div>
@@ -374,9 +373,9 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <ul class="offer-list">
         <li><span class="offer-check">✓</span><span>운영진이 <b>직접</b> 신청서 읽고 맞는 사람 찾기 (14일 밀착)</span></li>
         <li><span class="offer-check">✓</span><span>상대 <b>익명 프로필 카드</b> 먼저 확인 후 내가 결정</span></li>
-        <li><span class="offer-check">✓</span><span>안 맞으면 <b>다시</b> — 최대 2회 재매칭</span></li>
+        <li><span class="offer-check">✓</span><span>최대 <b>2회 소개</b> 제공 — 1회씩 단계 진행</span></li>
         <li><span class="offer-check">✓</span><span>서로 좋으면 <b>1:1 단톡방</b> 바로 개설·연결</span></li>
-        <li><span class="offer-check">✓</span><span>14일 안에 못 찾으면 <b>5만 원 전액 환불</b></span></li>
+        <li><span class="offer-check">✓</span><span>소개 1회도 못 받으면 <b>5만 원 전액 환불</b></span></li>
       </ul>
 
       <div class="offer-price">
@@ -389,7 +388,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         <span>지금 신청하고 내 사람 찾기</span>
         <span class="arrow">&rarr;</span>
       </a>
-      <p class="offer-fine">잃을 게 없습니다. 만나면 천금, 못 만나면 환불.</p>
+      <p class="offer-fine">잃을 게 없습니다. 소개받으면 가능성, 소개도 못 받으면 전액 환불.</p>
     </div>
   </section>
 
@@ -427,7 +426,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       </details>
       <details class="faq reveal-item">
         <summary>환불은 어떻게 되나요?</summary>
-        <p>운영진이 <strong>14일 안에</strong> 맞는 분을 못 찾으면 <strong>5만 원 전액 환불</strong>합니다. 소개받은 프로필을 <strong>1회 거절</strong>하시면 <strong>50% 환불</strong>, <strong>2회 거절</strong>하시면 기회 소진으로 간주해 환불이 되지 않습니다. (자세한 내용은 아래 환불 규정 확인)</p>
+        <p>운영진은 최대 <strong>2회 소개</strong>를 제공합니다. <strong>소개를 1회도 못 받으면 전액 환불</strong>, 1회 소개받으면 <strong>50% 환불</strong>, 2회 소개 모두 받으면 환불 없음입니다. (자세한 내용은 아래 환불 규정 확인)</p>
       </details>
       <details class="faq reveal-item">
         <summary>신청서는 어떻게 쓰나요?</summary>
@@ -454,7 +453,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
       <span>지금 신청하고 내 사람 찾기</span>
       <span class="arrow">&rarr;</span>
     </a>
-    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 운영진 미매칭 시 전액 환불</p>
+    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 소개 없으면 전액 환불</p>
   </section>
 
   <footer class="site-footer">
@@ -480,16 +479,14 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
         <button type="button" class="dlg-close" data-close="refundModal" aria-label="닫기">&times;</button>
       </div>
       <div class="dlg-body">
-        <h4>전액 환불</h4>
-        <p>신청일 기준 14일 이내에 조건에 부합하는 상대를 찾지 못하거나, 주최자의 1:1 조율 과정에서 매칭이 최종 결렬될 경우 참가비 {fee} 전액을 조건 없이 즉시 환불해 드립니다. 단, 대표님의 1:1 밀착 조율을 거쳐 최종 3인 매칭 단톡방이 개설된 이후에는 어떤 이유로도 환불이 불가능합니다.</p>
-        <h4>거절 · 재매칭 · 부분 환불</h4>
-        <p>운영진이 소개해 드리는 익명 프로필 카드를 확인 후 맞지 않으시면 거절하실 수 있습니다. 거절 횟수에 따라 환불 기준이 달라집니다.</p>
+        <h4>소개 횟수별 환불 기준</h4>
+        <p>운영진은 신청자에게 최대 <b>2회 소개</b>를 제공합니다. 소개 횟수에 따라 환불 기준이 달라집니다.</p>
         <ul style="margin: 10px 0 10px 16px; line-height: 1.9; font-size: 14px; color: #94a3b8;">
-          <li><b style="color:#f1f5f9">1회 거절</b> → 참가비의 50% 환불</li>
-          <li><b style="color:#f1f5f9">2회 거절</b> → 기회 소진으로 간주, 환불 없음</li>
-          <li><b style="color:#f1f5f9">운영진 미매칭</b> (14일 내 상대를 못 찾은 경우) → 전액 환불</li>
+          <li><b style="color:#f1f5f9">소개 0회</b> (운영진이 소개를 못 해드린 경우) → 참가비 <b style="color:#f1f5f9">전액 환불</b></li>
+          <li><b style="color:#f1f5f9">소개 1회</b> 제공받은 경우 → 참가비의 <b style="color:#f1f5f9">50% 환불</b></li>
+          <li><b style="color:#f1f5f9">소개 2회</b> 모두 제공받은 경우 → 기회 소진, <b style="color:#f1f5f9">환불 없음</b></li>
         </ul>
-        <p>매칭 단톡방이 개설된 이후에는 어떤 이유로도 환불이 불가합니다. 원활한 진행을 위해 조율 과정에 적극적으로 협조 부탁드립니다.</p>
+        <p>소개받은 프로필이 맞지 않더라도 소개 제공 자체가 이루어진 경우에는 위 기준이 적용됩니다. 1:1 단톡방 개설 이후에는 환불이 불가합니다. 조율 과정에 적극적으로 협조 부탁드립니다.</p>
         <div class="acct">
           <b>입금 계좌</b><br/>
           국민은행 942902-00-243479 (예금주: 이주환)<br/>
@@ -519,9 +516,6 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     </div>
   </div>
 
-  <button class="fab-top" id="fabTop" aria-label="맨 위로">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
-  </button>
 
 </div>
 </div>
@@ -647,6 +641,48 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     }} catch (e) {{}}
   }}
 
+  function injectFAB() {{
+    try {{
+      var pdoc = window.parent.document;
+      var existing = pdoc.getElementById("dgt-fab-top");
+      if (existing) existing.remove();
+      var existingStyle = pdoc.getElementById("dgt-fab-style");
+      if (existingStyle) existingStyle.remove();
+
+      var styleEl = pdoc.createElement("style");
+      styleEl.id = "dgt-fab-style";
+      styleEl.textContent = [
+        "#dgt-fab-top{{position:fixed;bottom:28px;right:24px;width:46px;height:46px;border-radius:50%;",
+        "background:rgba(15,22,42,0.92);border:1px solid rgba(96,165,250,0.4);color:#93c5fd;",
+        "display:flex;align-items:center;justify-content:center;cursor:pointer;",
+        "backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,0.45);",
+        "opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s;",
+        "pointer-events:none;z-index:9999;}}",
+        "#dgt-fab-top svg{{width:20px;height:20px;stroke-width:2.5;stroke-linecap:round;}}",
+        "#dgt-fab-top.dgt-fab-visible{{opacity:1;transform:translateY(0);pointer-events:auto;}}",
+        "#dgt-fab-top:hover{{background:rgba(25,38,72,0.96);border-color:rgba(96,165,250,0.65);}}"
+      ].join("");
+      pdoc.head.appendChild(styleEl);
+
+      var fab = pdoc.createElement("button");
+      fab.id = "dgt-fab-top";
+      fab.setAttribute("aria-label", "맨 위로");
+      fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="18 15 12 9 6 15"/></svg>';
+      pdoc.body.appendChild(fab);
+      fab.addEventListener("click", scrollParentToTop);
+
+      var scr = getParentScroller();
+      function updateFAB() {{
+        var top = (scr === pdoc.documentElement || scr === pdoc.body)
+          ? window.parent.scrollY : scr.scrollTop;
+        if (top > 320) fab.classList.add("dgt-fab-visible");
+        else fab.classList.remove("dgt-fab-visible");
+      }}
+      scr.addEventListener("scroll", updateFAB, {{ passive: true }});
+      window.parent.addEventListener("scroll", updateFAB, {{ passive: true }});
+    }} catch (e) {{}}
+  }}
+
   function scrollParentToTop() {{
     try {{
       var scr = getParentScroller();
@@ -733,10 +769,20 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
   function openModal(id) {{
     var el = document.getElementById(id);
     if (!el) return;
+    try {{
+      var pwin = window.parent;
+      var scr = getParentScroller();
+      var scrollTop = (scr === pwin.document.documentElement || scr === pwin.document.body)
+        ? pwin.scrollY : scr.scrollTop;
+      el.style.top = scrollTop + "px";
+      el.style.height = pwin.innerHeight + "px";
+    }} catch (e) {{
+      el.style.top = "0";
+      el.style.height = "100vh";
+    }}
     el.classList.add("is-open");
     el.setAttribute("aria-hidden", "false");
     lockParentScroll(true);
-    refreshMotion();
   }}
 
   function closeModal(id) {{
@@ -744,8 +790,9 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     if (!el) return;
     el.classList.remove("is-open");
     el.setAttribute("aria-hidden", "true");
+    el.style.top = "";
+    el.style.height = "";
     lockParentScroll(false);
-    refreshMotion();
   }}
 
   function openExternal(url) {{
@@ -1057,6 +1104,7 @@ def _landing_html(logo_uri: str, form_url: str, page_css: str, shell_css: str, *
     setHeroHeight();
     syncFrameHeight();
     initMotion();
+    injectFAB();
     setTimeout(syncFrameHeight, 120);
     setTimeout(syncFrameHeight, 600);
     setTimeout(setHeroHeight, 200);

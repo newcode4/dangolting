@@ -13,8 +13,7 @@ def test_content_max_width():
 def test_landing_hook_section():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "hook-panel" in html
-    assert 'data-count="80000"' in html
-    assert "initHookCounters" in html
+    assert 'data-count="1000"' in html
     assert "initHookCounters" in html
 
 
@@ -66,10 +65,11 @@ def test_landing_hero_fullscreen():
 
 
 def test_landing_fab():
-    """FAB 위로 버튼 존재."""
+    """FAB 위로 버튼 — injectFAB 함수로 부모 document에 주입."""
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
-    assert "fab-top" in html
+    assert "injectFAB" in html
     assert "scrollParentToTop" in html
+    assert "dgt-fab-top" in html
 
 
 def test_landing_kakao_link():
@@ -95,7 +95,10 @@ def test_landing_business_positioning():
 
 
 def test_landing_refund_policy_accurate():
-    """환불 정책에 1회=50%, 2회=0% 명시."""
+    """환불 정책: 소개0회=전액환불, 1회=50%, 2회=0%."""
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "50%" in html
-    assert "1회 거절" in html
+    assert "소개 1회" in html
+    assert "소개 2회" in html
+    assert "소개 0회" in html
+    assert "전액 환불" in html
