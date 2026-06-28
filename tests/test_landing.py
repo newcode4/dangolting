@@ -105,10 +105,13 @@ def test_landing_fab():
 
 
 def test_landing_footer_admin_link():
-    """푸터 관리자 진입 링크."""
+    """푸터 관리자 진입 링크 — admin_entry_path 쿼리 포함."""
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", admin_url="/?p=dangol-admin")
     assert "footer-link-admin" in html
     assert 'data-admin-go="/?p=dangol-admin"' in html
+    assert 'name="dgt-admin-entry" content="/?p=dangol-admin"' in html
+    assert "adminEntryUrl" in html
+    assert "location.assign(target)" in html
     assert "관리자" in html
 
 

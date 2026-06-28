@@ -56,6 +56,7 @@ def _landing_html(
 <html lang="ko"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="dgt-css-rev" content="{html.escape(css_rev)}"/>
+<meta name="dgt-admin-entry" content="{admin}"/>
 <style>{page_css}</style>
 <script>document.documentElement.setAttribute("data-hook-layout","desktop");</script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -539,7 +540,7 @@ def _landing_html(
       <button type="button" data-modal="refundModal">환불 규정</button>
       <button type="button" data-modal="privacyModal">개인정보처리방침</button>
       <a href="https://open.kakao.com/me/dangolgrow" data-external-raw="https://open.kakao.com/me/dangolgrow" class="footer-link-kakao">카카오로 문의하기</a>
-      <a href="{admin}" class="footer-link-admin" data-admin-go="{admin}">관리자</a>
+      <a href="#" class="footer-link-admin" data-admin-go="{admin}">관리자</a>
     </nav>
   </footer>
 
@@ -1150,19 +1151,36 @@ def _landing_html(
     }});
   }});
 
+  function adminEntryUrl(rel) {{
+    if (!rel) {{
+      var meta = document.querySelector('meta[name="dgt-admin-entry"]');
+      rel = meta ? meta.getAttribute("content") : "";
+    }}
+    if (!rel) return null;
+    if (rel.indexOf("http://") === 0 || rel.indexOf("https://") === 0) return rel;
+    try {{
+      return window.parent.location.origin + (rel.charAt(0) === "/" ? rel : "/" + rel);
+    }} catch (e) {{
+      return rel.charAt(0) === "/" ? rel : "/" + rel;
+    }}
+  }}
+
   document.querySelectorAll("[data-admin-go]").forEach(function (el) {{
+    var url = adminEntryUrl(el.getAttribute("data-admin-go"));
+    if (url) el.setAttribute("href", url);
     el.addEventListener("click", function (e) {{
       e.preventDefault();
-      var path = el.getAttribute("data-admin-go") || "/";
+      var target = adminEntryUrl(el.getAttribute("data-admin-go"));
+      if (!target) return;
       try {{
         window.parent.scrollTo(0, 0);
         var pel = window.parent.document.scrollingElement || window.parent.document.documentElement;
         if (pel) pel.scrollTop = 0;
       }} catch (err) {{}}
       try {{
-        window.parent.location.href = path;
+        window.parent.location.assign(target);
       }} catch (err) {{
-        window.location.href = path;
+        window.location.assign(target);
       }}
     }});
   }});
