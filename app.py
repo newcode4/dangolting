@@ -268,6 +268,10 @@ if is_admin_route():
 
 def _public_entry_gate(logo_uri: str) -> None:
     """공개 URL → 랜딩만. 관리자 URL(?p=…) → 로그인·대시보드."""
+    from utils.streamlit_cleanup import cleanup_stale_streamlit_shell
+
+    cleanup_stale_streamlit_shell()
+
     if "auth_user" not in st.session_state:
         st.session_state["auth_user"] = None
 
@@ -553,9 +557,12 @@ def get_crm_raw_df() -> pd.DataFrame:
     return raw
 
 
-df, crm_raw = get_sheet_dataframes()
+if is_admin_route():
+    df, crm_raw = get_sheet_dataframes()
+else:
+    df, crm_raw = pd.DataFrame(), pd.DataFrame()
 
-if telegram_enabled():
+if telegram_enabled() and is_admin_route():
     _poll = poll_interval_seconds()
 
     if not demo_mode and sheet_url and not st.session_state.get("_tg_boot_watch"):

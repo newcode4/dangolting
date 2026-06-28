@@ -804,6 +804,16 @@ def _landing_html(
     try {{
       var css = {shell_js};
       var doc = window.parent.document;
+      if (doc.__dgtShellObserver) {{
+        doc.__dgtShellObserver.disconnect();
+        doc.__dgtShellObserver = null;
+      }}
+      if (doc.__dgtBadgeObserver) {{
+        doc.__dgtBadgeObserver.disconnect();
+        doc.__dgtBadgeObserver = null;
+      }}
+      var stale = doc.getElementById("dgt-shell-hide");
+      if (stale) stale.remove();
       var id = "dgt-landing-shell-css";
       var el = doc.getElementById(id);
       if (!el) {{
