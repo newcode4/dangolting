@@ -74,10 +74,23 @@ def test_crm_mobile_styles_defined():
 
     css = crm_ui._CRM_STYLES
     assert "crm-glance-grid" in css
-    assert "repeat(2, minmax(0, 1fr))" in css
+    assert "repeat(4, minmax(0, 1fr))" in css
+    assert "crm-toolbar" in css
+    assert "crm-head-bar" in css
     assert "crm-alert-body" in css
     assert "crm-metric-grid" in css
     assert "_inject_crm_styles" in crm_ui.render_crm_tab.__code__.co_names
+
+
+def test_crm_period_selector_single_row():
+    import inspect
+
+    from utils import crm_ui
+
+    src = inspect.getsource(crm_ui._render_period_selector)
+    assert "st.columns(4" in src
+    assert "row2" not in src
+    assert "crm-toolbar" in src
 
 
 def test_crm_alert_html_uses_horizontal_layout():

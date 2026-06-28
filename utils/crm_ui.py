@@ -40,116 +40,168 @@ _PERIOD_OPTIONS = ("이번 주", "이번 달", "3개월", "전체")
 # 모바일 우선 CRM 스타일 — theme.css 순서와 무관하게 항상 적용
 _CRM_STYLES = """
 <style>
+.crm-head-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 6px 16px !important;
+  margin: 0 0 10px !important;
+}
+.crm-head-title {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  line-height: 1.2 !important;
+}
+.crm-head-revenue {
+  font-size: 0.76rem !important;
+  color: #8b949e !important;
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-head-revenue b { color: #c9d1d9 !important; font-weight: 700 !important; }
+.crm-toolbar { margin: 0 0 4px !important; }
+.crm-toolbar-range {
+  font-size: 0.74rem !important;
+  color: #6e7681 !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-section-title {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: #8b949e !important;
+  letter-spacing: 0.02em !important;
+  margin: 14px 0 6px !important;
+  padding: 0 !important;
+}
+.crm-section-title:first-child { margin-top: 0 !important; }
 .crm-glance-grid {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 10px !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
   width: 100% !important;
-  margin: 8px 0 16px !important;
+  margin: 0 0 10px !important;
   box-sizing: border-box !important;
 }
 .crm-glance-card {
   background: #161b22 !important;
   border: 1px solid #30363d !important;
-  border-top: 3px solid var(--accent, #58a6ff) !important;
-  border-radius: 10px !important;
-  padding: 14px 10px !important;
+  border-top: 2px solid var(--accent, #58a6ff) !important;
+  border-radius: 8px !important;
+  padding: 10px 8px !important;
   text-align: center !important;
   min-width: 0 !important;
 }
 .crm-glance-val {
-  font-size: 1.65rem !important;
-  font-weight: 900 !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
   color: #f0f6fc !important;
   line-height: 1.1 !important;
   font-variant-numeric: tabular-nums !important;
 }
 .crm-glance-lbl {
-  font-size: 0.78rem !important;
-  font-weight: 700 !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
   color: #8b949e !important;
-  margin-top: 6px !important;
+  margin-top: 3px !important;
 }
 .crm-alert-grid {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 8px !important;
-  margin-bottom: 12px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
   width: 100% !important;
 }
 .crm-alert-card {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 14px !important;
+  gap: 10px !important;
   background: #161b22 !important;
   border: 1px solid #30363d !important;
-  border-left: 4px solid #58a6ff !important;
-  border-radius: 10px !important;
-  padding: 14px 16px !important;
+  border-left: 3px solid #58a6ff !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
   min-width: 0 !important;
+  flex: 1 1 160px !important;
+  max-width: 100% !important;
 }
 .crm-alert-num {
-  font-size: 1.85rem !important;
-  font-weight: 900 !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
   line-height: 1 !important;
   flex-shrink: 0 !important;
-  min-width: 2rem !important;
+  min-width: 1.5rem !important;
   text-align: center !important;
+  font-variant-numeric: tabular-nums !important;
 }
 .crm-alert-body { flex: 1 !important; min-width: 0 !important; }
 .crm-alert-title {
-  font-size: 0.92rem !important;
+  font-size: 0.82rem !important;
   font-weight: 700 !important;
   color: #e6edf3 !important;
-  line-height: 1.25 !important;
+  line-height: 1.2 !important;
 }
 .crm-alert-desc {
-  font-size: 0.78rem !important;
-  color: #8b949e !important;
-  margin-top: 2px !important;
-  line-height: 1.3 !important;
+  font-size: 0.72rem !important;
+  color: #6e7681 !important;
+  margin-top: 1px !important;
+  line-height: 1.25 !important;
 }
 .crm-conv-flow {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  gap: 4px !important;
   width: 100% !important;
-  margin: 8px 0 16px !important;
+  margin: 0 0 10px !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   box-sizing: border-box !important;
 }
 .crm-conv-step {
   background: #161b22 !important;
   border: 1px solid #30363d !important;
-  border-top: 3px solid var(--step-color, #58a6ff) !important;
-  border-radius: 10px !important;
-  padding: 12px 8px 10px !important;
+  border-top: 2px solid var(--step-color, #58a6ff) !important;
+  border-radius: 8px !important;
+  padding: 8px 6px 6px !important;
   text-align: center !important;
   min-width: 0 !important;
+  flex: 1 1 0 !important;
 }
 .crm-conv-count {
-  font-size: 1.45rem !important;
-  font-weight: 900 !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
   color: #f0f6fc !important;
   line-height: 1.1 !important;
   font-variant-numeric: tabular-nums !important;
 }
 .crm-conv-label {
-  font-size: 0.76rem !important;
+  font-size: 0.68rem !important;
   color: #8b949e !important;
-  font-weight: 700 !important;
-  margin-top: 4px !important;
+  font-weight: 600 !important;
+  margin-top: 2px !important;
 }
 .crm-conv-rate {
-  font-size: 0.72rem !important;
+  font-size: 0.65rem !important;
   font-weight: 700 !important;
-  margin-top: 4px !important;
+  margin-top: 2px !important;
 }
 .crm-conv-rate--good { color: #3fb950 !important; }
 .crm-conv-rate--mid { color: #d29922 !important; }
 .crm-conv-rate--bad { color: #f85149 !important; }
 .crm-conv-rate--warn { color: #f85149 !important; }
-.crm-conv-arrow { display: none !important; }
+.crm-conv-arrow {
+  display: flex !important;
+  flex: 0 0 12px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #484f58 !important;
+  font-size: 12px !important;
+  padding-bottom: 8px !important;
+}
 .crm-bar-row {
   display: grid !important;
   grid-template-columns: minmax(72px, 28%) 1fr minmax(36px, auto) !important;
@@ -191,65 +243,69 @@ _CRM_STYLES = """
 }
 .crm-metric-grid {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  margin: 8px 0 12px !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin: 6px 0 10px !important;
   width: 100% !important;
 }
 .crm-metric-card {
   background: #161b22 !important;
   border: 1px solid #30363d !important;
-  border-radius: 10px !important;
-  padding: 12px 10px !important;
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
   min-width: 0 !important;
 }
 .crm-metric-lbl {
-  font-size: 0.72rem !important;
+  font-size: 0.68rem !important;
   font-weight: 600 !important;
   color: #8b949e !important;
   line-height: 1.2 !important;
 }
 .crm-metric-val {
-  font-size: 1.25rem !important;
+  font-size: 1.05rem !important;
   font-weight: 800 !important;
   color: #f0f6fc !important;
-  margin-top: 4px !important;
+  margin-top: 2px !important;
   line-height: 1.15 !important;
   font-variant-numeric: tabular-nums !important;
 }
 .crm-metric-delta {
-  font-size: 0.68rem !important;
+  font-size: 0.64rem !important;
   font-weight: 600 !important;
   color: #3fb950 !important;
-  margin-top: 3px !important;
+  margin-top: 2px !important;
 }
 .crm-metric-delta--warn { color: #f85149 !important; }
+/* 기간 버튼 — 한 줄 컴팩트 */
+[data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
+  + div[data-testid="stHorizontalBlock"] {
+  gap: 6px !important;
+  margin-bottom: 6px !important;
+}
+[data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
+  + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+[data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
+  + div[data-testid="stHorizontalBlock"] button {
+  min-height: 32px !important;
+  padding: 0.2rem 0.4rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
 @media (min-width: 769px) {
-  .crm-glance-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-  .crm-alert-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important; }
-  .crm-conv-flow {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 4px !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-  .crm-conv-step { flex: 1 1 0 !important; min-width: 72px !important; }
-  .crm-conv-arrow {
-    display: flex !important;
-    flex: 0 0 16px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    color: #6e7681 !important;
-    font-size: 14px !important;
-    padding-bottom: 12px !important;
-  }
   .crm-bar-row {
     grid-template-columns: 110px 1fr 60px auto !important;
     gap: 10px !important;
   }
 }
 @media (max-width: 768px) {
+  .crm-glance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .crm-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .crm-conv-step { flex: 0 0 72px !important; min-width: 72px !important; }
   [data-testid="stMarkdownContainer"]:has(.crm-filter-anchor)
     + div[data-testid="stHorizontalBlock"] {
     flex-wrap: wrap !important;
@@ -260,13 +316,17 @@ _CRM_STYLES = """
     max-width: 100% !important;
     min-width: 0 !important;
   }
+}
+@media (max-width: 480px) {
   [data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-    + div[data-testid="stHorizontalBlock"] > [data-testid="column"],
+    + div[data-testid="stHorizontalBlock"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
   [data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-    + div[data-testid="stHorizontalBlock"]
     + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
-    flex: 1 1 calc(50% - 4px) !important;
-    max-width: calc(50% - 4px) !important;
+    flex: 0 0 auto !important;
+    min-width: 68px !important;
   }
 }
 </style>
@@ -424,30 +484,39 @@ def _render_period_selector(data_min: date | None, data_max: date | None) -> tup
     if "crm_period" not in st.session_state:
         st.session_state["crm_period"] = "이번 달"
 
+    preset = st.session_state["crm_period"]
+    d_start, d_end = _period_bounds(preset, data_min, data_max)
+    range_txt = f"{d_start.strftime('%Y.%m.%d')} – {d_end.strftime('%Y.%m.%d')}"
+
     st.markdown('<span class="crm-period-anchor" aria-hidden="true"></span>', unsafe_allow_html=True)
-    row1 = st.columns(2)
-    row2 = st.columns(2)
-    slots = [row1[0], row1[1], row2[0], row2[1]]
-    for col, label in zip(slots, _PERIOD_OPTIONS):
+    st.markdown(
+        f'<div class="crm-toolbar">'
+        f'<span class="crm-toolbar-range">{html_lib.escape(preset)} · {range_txt}</span>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+    cols = st.columns(4, gap="small")
+    for col, label in zip(cols, _PERIOD_OPTIONS, strict=True):
         with col:
             if st.button(
                 label,
                 key=f"crm_period_{label}",
                 use_container_width=True,
-                type="primary" if st.session_state["crm_period"] == label else "secondary",
+                type="primary" if preset == label else "secondary",
             ):
                 st.session_state["crm_period"] = label
                 st.rerun()
 
-    preset = st.session_state["crm_period"]
-    d_start, d_end = _period_bounds(preset, data_min, data_max)
-    st.caption(f"**{preset}** · {d_start.strftime('%Y.%m.%d')} ~ {d_end.strftime('%Y.%m.%d')}")
     return d_start, d_end, preset
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 1. 처리 필요
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+def _section(title: str) -> None:
+    st.markdown(f'<p class="crm-section-title">{html_lib.escape(title)}</p>', unsafe_allow_html=True)
+
+
 def _render_action_alerts(snapshot: CrmSnapshot) -> None:
     sc = snapshot.stage_counts
     items = [
@@ -458,7 +527,7 @@ def _render_action_alerts(snapshot: CrmSnapshot) -> None:
     ]
     active = [(n, t, d, c) for n, t, d, c in items if n > 0]
     if not active:
-        st.success("✅ 처리 대기 없음")
+        st.caption("✅ 처리 대기 없음")
         return
     cards = []
     for n, title, desc, clr in active:
@@ -517,11 +586,7 @@ def _render_at_a_glance(
             f'<div class="crm-glance-lbl">{html_lib.escape(label)}</div>'
             f"</div>"
         )
-    st.markdown(
-        f'<div class="crm-glance-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%">'
-        f'{"".join(cards)}</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="crm-glance-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
 def _render_conversion_flow(
@@ -550,11 +615,7 @@ def _render_conversion_flow(
         )
         if i < len(_KEY_FLOW) - 1:
             parts.append('<div class="crm-conv-arrow" aria-hidden="true">→</div>')
-    st.markdown(
-        f'<div class="crm-conv-flow" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%">'
-        f'{"".join(parts)}</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="crm-conv-flow">{"".join(parts)}</div>', unsafe_allow_html=True)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -898,15 +959,20 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
     data_min = date.fromisoformat(all_days[0]) if all_days else None
     data_max = date.fromisoformat(all_days[-1]) if all_days else None
 
-    # ── 헤더 ──
-    st.markdown("#### CRM · 전환 퍼널")
+    # ── 헤더 + 기간 ──
     net = snapshot.revenue_paid - snapshot.revenue_refunded
-    st.caption(
-        f"참가비 {PARTICIPATION_FEE} · 입금 **{snapshot.revenue_paid:,}원** · "
-        f"환불 **{snapshot.revenue_refunded:,}원** · 순수익 **{net:,}원**"
+    st.markdown(
+        f'<div class="crm-head-bar">'
+        f'<div class="crm-head-title">CRM · 전환 퍼널</div>'
+        f'<div class="crm-head-revenue">'
+        f"참가비 {html_lib.escape(PARTICIPATION_FEE)} · "
+        f'입금 <b>{snapshot.revenue_paid:,}</b> · '
+        f'환불 <b>{snapshot.revenue_refunded:,}</b> · '
+        f"순수익 <b>{net:,}</b>원"
+        f"</div></div>",
+        unsafe_allow_html=True,
     )
 
-    # ── 기간 선택 ──
     d_start, d_end, preset = _render_period_selector(data_min, data_max)
     period_events = _filter_events(events, d_start, d_end)
     period_ev = _period_event_totals(period_events)
@@ -923,19 +989,16 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
             key = d.isoformat()
             daily_forms[key] = daily_forms.get(key, 0) + 1
 
-    st.markdown("---")
-
-    # ── 카테고리 탭 ──
     tab_overview, tab_trend, tab_funnel, tab_people = st.tabs(
-        ["👁 한눈에", "📈 추이", "🔽 퍼널·단계", "📋 신청자"]
+        ["한눈에", "추이", "퍼널", "신청자"]
     )
 
     with tab_overview:
-        st.markdown("##### 📊 핵심 지표")
+        _section("핵심 지표")
         _render_at_a_glance(period_ev, period_biz)
-        st.markdown("##### 🚨 지금 처리 필요")
+        _section("지금 처리 필요")
         _render_action_alerts(snapshot)
-        st.markdown("##### 전환 흐름")
+        _section("전환 흐름")
         _render_conversion_flow(snapshot, period_ev, period_biz)
         with st.expander("상세 KPI · 유입 · 환불", expanded=False):
             _render_period_kpis(period_ev, period_biz, period_days)
@@ -943,20 +1006,19 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
             _render_outcome_metrics(period_biz, snapshot)
 
     with tab_trend:
-        st.markdown("##### 일별 비교")
-        st.caption("방문 · 클릭 · 제출을 날짜별로 나란히 비교합니다.")
+        _section("일별 비교")
+        st.caption("방문 · 클릭 · 제출 날짜별")
         _render_trend_chart(by_day, daily_forms, d_start, d_end)
         _render_traffic_quality(period_visitors)
         _render_period_kpis(period_ev, period_biz, period_days)
 
     with tab_funnel:
-        st.markdown("##### 퍼널 상세")
+        _section("퍼널 상세")
         _render_grouped_funnel(snapshot)
-        st.markdown("##### 단계 분포")
+        _section("단계 분포")
         _render_stage_bars(snapshot)
 
     with tab_people:
         _render_applicant_table(snapshot)
 
-    st.markdown("---")
     _render_event_reset()
