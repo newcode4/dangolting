@@ -84,7 +84,8 @@ def _landing_html(
       <span class="eyebrow">서로 이익이 되는 비즈니스 파트너 매칭 · 1기 한정 · 5만 원</span>
       <h1>서로에게 <em>진짜 도움이 되는</em><br/>비즈니스 파트너, 한 명이면 충분합니다</h1>
       <p class="lead">
-        모임에 수십 번 나가도 — 이해관계가 맞고, 결이 통하는 사람은 잘 안 생깁니다.<br/>
+        모임에 수십 번 나가도 —<br class="br-sm"/>
+        이해관계가 맞고, 결이 통하는 사람은 잘 안 생깁니다.<br/>
         운영진이 직접 나서서, 딱 맞는 파트너를 찾아 연결합니다.
       </p>
       <div class="hero-cta">
@@ -113,11 +114,14 @@ def _landing_html(
     <div class="dangol-def-inner reveal-item">
       <p class="dangol-def-kicker">단골팅이 말하는 단골</p>
       <h2 class="dangol-def-title">
-        한 번 같이 일해보고 <em>말 안 해도 또 부르게 되는</em> 관계
+        한 번 같이 일해보고<br/>
+        <em>말 안 해도 또 부르게 되는</em> 관계
       </h2>
       <p class="dangol-def-desc">
-        명함을 주고받은 사이가 아닙니다.<br/>
-        이해관계가 맞고, 결이 통해서 — 고민 없이 일을 맡기고, 자연스럽게 의뢰가 오가는 관계입니다.
+        명함을 주고받은 사이가 아닙니다.<br class="br-sm"/>
+        이해관계가 맞고, 결이 통해서 —<br class="br-sm"/>
+        고민 없이 일을 맡기고,<br class="br-sm"/>
+        자연스럽게 의뢰가 오가는 관계입니다.
       </p>
       <div class="dangol-def-pillars">
         <div class="dangol-pillar">

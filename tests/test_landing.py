@@ -25,7 +25,16 @@ def test_landing_hook_section():
     assert "hook-hero-glow" in html
 
 
-def test_landing_css_revision_meta():
+def test_landing_mobile_line_breaks():
+    html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
+    assert "한 번 같이 일해보고<br/>" in html
+    assert "모임에 수십 번 나가도 —<br class=\"br-sm\"/>" in html
+    assert "고민 없이 일을 맡기고,<br class=\"br-sm\"/>" in html
+    css = Path(__file__).resolve().parents[1].joinpath("assets", "landing-page.css").read_text(
+        encoding="utf-8"
+    )
+    assert "br.br-sm" in css
+
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "/*a*/", "", css_rev="123_456")
     assert 'name="dgt-css-rev" content="123_456"' in html
 
