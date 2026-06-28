@@ -89,26 +89,50 @@ def _theme_css_inline() -> str:
 
 
 def _force_admin_full_width() -> None:
-    """Streamlit emotion CSS가 나중에 max-width를 주입하므로 JS로 직접 제거."""
+    """Streamlit emotion CSS + React 재렌더 후에도 max-width 제거 유지."""
     components.html(
         """<script>
         (function () {
-          var pd = window.parent.document;
+          try {
+            var pd = window.parent.document;
+          } catch (e) { return; }
+
+          var SELS = [
+            '[data-testid="stMainBlockContainer"]',
+            '[data-testid="stMain"] > div.block-container',
+            'section.main > div.block-container'
+          ];
+
           function fix() {
-            [
-              '[data-testid="stMainBlockContainer"]',
-              'section.main > div.block-container',
-              '[data-testid="stMain"] > div'
-            ].forEach(function (sel) {
+            SELS.forEach(function (sel) {
               pd.querySelectorAll(sel).forEach(function (el) {
                 el.style.setProperty('max-width', 'none', 'important');
                 el.style.setProperty('width',     '100%',  'important');
+                el.style.setProperty('box-sizing','border-box','important');
               });
             });
           }
+
           fix();
-          [200, 600, 1500].forEach(function (ms) { setTimeout(fix, ms); });
-          new MutationObserver(fix).observe(pd.body, { childList: true, subtree: false });
+
+          /* React가 style attribute를 덮어쓸 때마다 재적용 */
+          function watchEl() {
+            var el = pd.querySelector('[data-testid="stMainBlockContainer"]');
+            if (!el) return;
+            fix();
+            new MutationObserver(fix).observe(el, {
+              attributes: true,
+              attributeFilter: ['class', 'style']
+            });
+          }
+          [50, 200, 600, 1500, 3000].forEach(function (ms) {
+            setTimeout(watchEl, ms);
+          });
+
+          /* 페이지 전체 리렌더(stApp class 변경) 감지 */
+          var stApp = pd.querySelector('[data-testid="stApp"]') || pd.body;
+          new MutationObserver(function () { fix(); watchEl(); })
+            .observe(stApp, { childList: true, subtree: false });
         })();
         </script>""",
         height=0,
