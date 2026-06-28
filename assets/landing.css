@@ -9,27 +9,14 @@ body.dgt-landing footer {
   display: none !important;
 }
 
-/* Streamlit Cloud "Hosted with Streamlit" · GitHub repo 배지 — FAB·브랜딩 노출 방지 */
+/* Streamlit Cloud "Hosted with Streamlit" 배지 — FAB 가림 방지 */
 body.dgt-landing [data-testid="stBottom"],
-body.dgt-landing [data-testid="stBottomBlockContainer"],
 body.dgt-landing .stAppDeployButton,
-body.dgt-landing [data-testid="stAppDeployButton"],
-body.dgt-landing [data-testid="manageAppButton"],
 body.dgt-landing [class*="viewerBadge"],
-body.dgt-landing #GithubIcon,
-body.dgt-landing [class*="GithubIcon"],
-body.dgt-landing a[href*="github.com"],
-body.dgt-landing a[href*="streamlit.io"][target="_blank"],
-body.dgt-landing [class*="profileContainer"] {
+body.dgt-landing a[href*="streamlit.io"][target="_blank"] {
   display: none !important;
   visibility: hidden !important;
-  opacity: 0 !important;
   pointer-events: none !important;
-  max-height: 0 !important;
-  max-width: 0 !important;
-  overflow: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
 }
 
 /* Streamlit 내부 스크롤·뷰포트 고정 해제 → 브라우저 단일 스크롤 */

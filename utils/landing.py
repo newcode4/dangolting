@@ -831,49 +831,6 @@ def _landing_html(
         node.style.marginTop = "0";
       }});
       syncFrameHeight();
-      hideCloudBadges(doc);
-      if (!doc.__dgtBadgeObserver) {{
-        doc.__dgtBadgeObserver = new MutationObserver(function () {{ hideCloudBadges(doc); }});
-        doc.__dgtBadgeObserver.observe(doc.body, {{ childList: true, subtree: true }});
-      }}
-    }} catch (e) {{}}
-  }}
-
-  function hideCloudBadges(doc) {{
-    if (!doc) return;
-    var sel = [
-      "#GithubIcon",
-      '[class*="GithubIcon"]',
-      '[class*="viewerBadge"]',
-      '[data-testid="stBottom"]',
-      '[data-testid="stBottomBlockContainer"]',
-      ".stAppDeployButton",
-      '[data-testid="stAppDeployButton"]',
-      '[data-testid="manageAppButton"]',
-      'a[href*="github.com"]',
-      '[class*="profileContainer"]'
-    ].join(",");
-    doc.querySelectorAll(sel).forEach(function (node) {{
-      node.style.setProperty("display", "none", "important");
-      node.style.setProperty("visibility", "hidden", "important");
-      node.style.setProperty("pointer-events", "none", "important");
-    }});
-  }}
-
-  function injectParentShellEarly() {{
-    try {{
-      var doc = window.parent.document;
-      var css = {shell_js};
-      var id = "dgt-landing-shell-css";
-      var el = doc.getElementById(id);
-      if (!el) {{
-        el = doc.createElement("style");
-        el.id = id;
-        doc.head.appendChild(el);
-      }}
-      el.textContent = css;
-      doc.body.classList.add("dgt-landing");
-      hideCloudBadges(doc);
     }} catch (e) {{}}
   }}
 
@@ -1269,7 +1226,6 @@ def _landing_html(
     }});
   }});
 
-  injectParentShellEarly();
   injectShell();
   if (!sessionStorage.getItem("dgt_pv")) {{
     sessionStorage.setItem("dgt_pv", "1");
@@ -1315,46 +1271,6 @@ def _landing_html(
 </body></html>"""
 
 
-def _inject_landing_parent_shell_early(shell_css: str) -> None:
-    """iframe 로드 전 부모 document에 shell CSS·GitHub 배지 숨김 (모바일 깜빡임 방지)."""
-    css_js = json.dumps(shell_css)
-    components.html(
-        f"""<script>
-(function () {{
-  try {{
-    var doc = window.parent.document;
-    var id = "dgt-landing-shell-css";
-    var el = doc.getElementById(id);
-    if (!el) {{
-      el = doc.createElement("style");
-      el.id = id;
-      doc.head.appendChild(el);
-    }}
-    el.textContent = {css_js};
-    doc.body.classList.add("dgt-landing");
-    var sel = [
-      "#GithubIcon",
-      '[class*="GithubIcon"]',
-      '[class*="viewerBadge"]',
-      '[data-testid="stBottom"]',
-      '[data-testid="stBottomBlockContainer"]',
-      ".stAppDeployButton",
-      'a[href*="github.com"]',
-      '[class*="profileContainer"]'
-    ].join(",");
-    doc.querySelectorAll(sel).forEach(function (n) {{
-      n.style.setProperty("display", "none", "important");
-      n.style.setProperty("visibility", "hidden", "important");
-      n.style.setProperty("pointer-events", "none", "important");
-    }});
-  }} catch (e) {{}}
-}})();
-</script>""",
-        height=0,
-        width=0,
-    )
-
-
 def render_landing_page(logo_uri: str) -> None:
     """공개 랜딩 (components.html iframe)."""
     from utils.admin_route import admin_entry_path, admin_path_slug
@@ -1362,8 +1278,6 @@ def render_landing_page(logo_uri: str) -> None:
     page_css = _read_css(_PAGE_CSS_PATH)
     shell_css = _read_css(_SHELL_CSS_PATH)
     css_rev = _css_revision()
-
-    _inject_landing_parent_shell_early(shell_css)
 
     components.html(
         _landing_html(
