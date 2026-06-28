@@ -42,6 +42,7 @@ from utils.error_log import setup_logging, install_excepthook, ui_error, tail_lo
 from utils.unpaid import unpaid_applicants
 from utils.crm_ui import render_crm_tab
 from utils.og_meta import inject_og_meta
+from utils.streamlit_shell import inject_streamlit_cloud_chrome_hide
 from utils.crm_state import validate_match, validate_reject_increment
 from utils.telegram_notify import (
     telegram_enabled,
@@ -183,6 +184,7 @@ st.set_page_config(
 )
 
 # OG / SNS 메타 (Kakao·Facebook 크롤러 — JS 없이 읽히도록 정적 meta)
+inject_streamlit_cloud_chrome_hide()
 inject_og_meta()
 
 

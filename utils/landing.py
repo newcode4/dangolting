@@ -851,7 +851,10 @@ def _landing_html(
       '[data-testid="stAppDeployButton"]',
       '[data-testid="manageAppButton"]',
       'a[href*="github.com"]',
-      '[class*="profileContainer"]'
+      '[class*="profileContainer"]',
+      '[class*="profilePreview"]',
+      '[data-testid="appCreatorAvatar"]',
+      'a[href*="share.streamlit.io/user"]'
     ].join(",");
     doc.querySelectorAll(sel).forEach(function (node) {{
       node.style.setProperty("display", "none", "important");
@@ -1340,7 +1343,10 @@ def _inject_landing_parent_shell_early(shell_css: str) -> None:
       '[data-testid="stBottomBlockContainer"]',
       ".stAppDeployButton",
       'a[href*="github.com"]',
-      '[class*="profileContainer"]'
+      '[class*="profileContainer"]',
+      '[class*="profilePreview"]',
+      '[data-testid="appCreatorAvatar"]',
+      'a[href*="share.streamlit.io/user"]'
     ].join(",");
     doc.querySelectorAll(sel).forEach(function (n) {{
       n.style.setProperty("display", "none", "important");
