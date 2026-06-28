@@ -7,6 +7,11 @@ import pandas as pd
 import streamlit as st
 
 from utils.crm import STAGE_LABELS, CrmSnapshot, build_crm_snapshot, crm_events_for_mode
+from utils.crm_config import sla_unpaid_hours
+from utils.crm_queue import QueueItem, build_today_queue
+from utils.crm_styles import inject_crm_styles
+from utils.crm_timeline import build_applicant_timeline
+from utils.crm_truth import detect_sheet_anomalies, stage_labels_for_keys
 from utils.crm_events import EVENTS_PATH, load_events, visitor_metrics
 from utils.date_filter import parse_ts
 from utils.landing_config import PARTICIPATION_FEE
@@ -36,308 +41,52 @@ _STAGE_COLOR = {
 }
 
 _PERIOD_OPTIONS = ("이번 주", "이번 달", "3개월", "전체")
+_CRM_SUBTABS = ("한눈에", "추이", "퍼널", "신청자")
 
-# 모바일 우선 CRM 스타일 — theme.css 순서와 무관하게 항상 적용
-_CRM_STYLES = """
-<style>
-.crm-head-bar {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: baseline !important;
-  justify-content: space-between !important;
-  gap: 6px 16px !important;
-  margin: 0 0 10px !important;
-}
-.crm-head-title {
-  font-size: 1rem !important;
-  font-weight: 800 !important;
-  color: #f0f6fc !important;
-  line-height: 1.2 !important;
-}
-.crm-head-revenue {
-  font-size: 0.76rem !important;
-  color: #8b949e !important;
-  font-weight: 500 !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.crm-head-revenue b { color: #c9d1d9 !important; font-weight: 700 !important; }
-.crm-toolbar { margin: 0 0 4px !important; }
-.crm-toolbar-range {
-  font-size: 0.74rem !important;
-  color: #6e7681 !important;
-  font-weight: 600 !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.crm-section-title {
-  font-size: 0.8rem !important;
-  font-weight: 700 !important;
-  color: #8b949e !important;
-  letter-spacing: 0.02em !important;
-  margin: 14px 0 6px !important;
-  padding: 0 !important;
-}
-.crm-section-title:first-child { margin-top: 0 !important; }
-.crm-glance-grid {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  width: 100% !important;
-  margin: 0 0 10px !important;
-  box-sizing: border-box !important;
-}
-.crm-glance-card {
-  background: #161b22 !important;
-  border: 1px solid #30363d !important;
-  border-top: 2px solid var(--accent, #58a6ff) !important;
-  border-radius: 8px !important;
-  padding: 10px 8px !important;
-  text-align: center !important;
-  min-width: 0 !important;
-}
-.crm-glance-val {
-  font-size: 1.35rem !important;
-  font-weight: 800 !important;
-  color: #f0f6fc !important;
-  line-height: 1.1 !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.crm-glance-lbl {
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  color: #8b949e !important;
-  margin-top: 3px !important;
-}
-.crm-alert-grid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 6px !important;
-  margin-bottom: 10px !important;
-  width: 100% !important;
-}
-.crm-alert-card {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 10px !important;
-  background: #161b22 !important;
-  border: 1px solid #30363d !important;
-  border-left: 3px solid #58a6ff !important;
-  border-radius: 8px !important;
-  padding: 8px 12px !important;
-  min-width: 0 !important;
-  flex: 1 1 160px !important;
-  max-width: 100% !important;
-}
-.crm-alert-num {
-  font-size: 1.35rem !important;
-  font-weight: 800 !important;
-  line-height: 1 !important;
-  flex-shrink: 0 !important;
-  min-width: 1.5rem !important;
-  text-align: center !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.crm-alert-body { flex: 1 !important; min-width: 0 !important; }
-.crm-alert-title {
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  color: #e6edf3 !important;
-  line-height: 1.2 !important;
-}
-.crm-alert-desc {
-  font-size: 0.72rem !important;
-  color: #6e7681 !important;
-  margin-top: 1px !important;
-  line-height: 1.25 !important;
-}
-.crm-conv-flow {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  align-items: stretch !important;
-  gap: 4px !important;
-  width: 100% !important;
-  margin: 0 0 10px !important;
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  box-sizing: border-box !important;
-}
-.crm-conv-step {
-  background: #161b22 !important;
-  border: 1px solid #30363d !important;
-  border-top: 2px solid var(--step-color, #58a6ff) !important;
-  border-radius: 8px !important;
-  padding: 8px 6px 6px !important;
-  text-align: center !important;
-  min-width: 0 !important;
-  flex: 1 1 0 !important;
-}
-.crm-conv-count {
-  font-size: 1.15rem !important;
-  font-weight: 800 !important;
-  color: #f0f6fc !important;
-  line-height: 1.1 !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.crm-conv-label {
-  font-size: 0.68rem !important;
-  color: #8b949e !important;
-  font-weight: 600 !important;
-  margin-top: 2px !important;
-}
-.crm-conv-rate {
-  font-size: 0.65rem !important;
-  font-weight: 700 !important;
-  margin-top: 2px !important;
-}
-.crm-conv-rate--good { color: #3fb950 !important; }
-.crm-conv-rate--mid { color: #d29922 !important; }
-.crm-conv-rate--bad { color: #f85149 !important; }
-.crm-conv-rate--warn { color: #f85149 !important; }
-.crm-conv-arrow {
-  display: flex !important;
-  flex: 0 0 12px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  color: #484f58 !important;
-  font-size: 12px !important;
-  padding-bottom: 8px !important;
-}
-.crm-bar-row {
-  display: grid !important;
-  grid-template-columns: minmax(72px, 28%) 1fr minmax(36px, auto) !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin-bottom: 10px !important;
-  width: 100% !important;
-}
-.crm-bar-label {
-  font-size: 0.78rem !important;
-  color: #c9d1d9 !important;
-  font-weight: 600 !important;
-  line-height: 1.25 !important;
-  word-break: keep-all !important;
-}
-.crm-bar-track {
-  height: 22px !important;
-  background: #21262d !important;
-  border-radius: 4px !important;
-  overflow: hidden !important;
-  min-width: 0 !important;
-}
-.crm-bar-fill {
-  height: 100% !important;
-  background: linear-gradient(90deg, #1f6feb, #58a6ff) !important;
-  border-radius: 4px !important;
-}
-.crm-bar-cnt {
-  font-size: 0.95rem !important;
-  font-weight: 800 !important;
-  color: #f0f6fc !important;
-  text-align: right !important;
-  white-space: nowrap !important;
-}
-.crm-bar-rate {
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  margin-left: 4px !important;
-}
-.crm-metric-grid {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 6px !important;
-  margin: 6px 0 10px !important;
-  width: 100% !important;
-}
-.crm-metric-card {
-  background: #161b22 !important;
-  border: 1px solid #30363d !important;
-  border-radius: 8px !important;
-  padding: 8px 10px !important;
-  min-width: 0 !important;
-}
-.crm-metric-lbl {
-  font-size: 0.68rem !important;
-  font-weight: 600 !important;
-  color: #8b949e !important;
-  line-height: 1.2 !important;
-}
-.crm-metric-val {
-  font-size: 1.05rem !important;
-  font-weight: 800 !important;
-  color: #f0f6fc !important;
-  margin-top: 2px !important;
-  line-height: 1.15 !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.crm-metric-delta {
-  font-size: 0.64rem !important;
-  font-weight: 600 !important;
-  color: #3fb950 !important;
-  margin-top: 2px !important;
-}
-.crm-metric-delta--warn { color: #f85149 !important; }
-/* 기간 버튼 — 한 줄 컴팩트 */
-[data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-  + div[data-testid="stHorizontalBlock"] {
-  gap: 6px !important;
-  margin-bottom: 6px !important;
-}
-[data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-  + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
-  flex: 1 1 0 !important;
-  min-width: 0 !important;
-  max-width: none !important;
-}
-[data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-  + div[data-testid="stHorizontalBlock"] button {
-  min-height: 32px !important;
-  padding: 0.2rem 0.4rem !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
-}
-@media (min-width: 769px) {
-  .crm-bar-row {
-    grid-template-columns: 110px 1fr 60px auto !important;
-    gap: 10px !important;
-  }
-}
-@media (max-width: 768px) {
-  .crm-glance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .crm-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .crm-conv-step { flex: 0 0 72px !important; min-width: 72px !important; }
-  [data-testid="stMarkdownContainer"]:has(.crm-filter-anchor)
-    + div[data-testid="stHorizontalBlock"] {
-    flex-wrap: wrap !important;
-  }
-  [data-testid="stMarkdownContainer"]:has(.crm-filter-anchor)
-    + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
-    flex: 1 1 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-  }
-}
-@media (max-width: 480px) {
-  [data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-    + div[data-testid="stHorizontalBlock"] {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-  }
-  [data-testid="stMarkdownContainer"]:has(.crm-period-anchor)
-    + div[data-testid="stHorizontalBlock"] > [data-testid="column"] {
-    flex: 0 0 auto !important;
-    min-width: 68px !important;
-  }
-}
-</style>
-"""
+
+def _events_mtime() -> float:
+    if not EVENTS_PATH.is_file():
+        return 0.0
+    return EVENTS_PATH.stat().st_mtime
+
+
+def _get_cached_events(demo_mode: bool) -> list[dict]:
+    if demo_mode:
+        return crm_events_for_mode(demo_mode=True)
+    mt = _events_mtime()
+    key = ("ev", mt)
+    if st.session_state.get("_crm_ev_key") == key and "_crm_ev" in st.session_state:
+        return st.session_state["_crm_ev"]
+    ev = load_events()
+    st.session_state["_crm_ev_key"] = key
+    st.session_state["_crm_ev"] = ev
+    return ev
+
+
+def _get_cached_snapshot(raw_df: pd.DataFrame, demo_mode: bool) -> tuple[CrmSnapshot, list[dict]]:
+    events = _get_cached_events(demo_mode)
+    load_ver = int(st.session_state.get("load_ver", 0))
+    n = len(raw_df)
+    max_row = int(raw_df.index.max()) if not raw_df.empty else 0
+    key = (load_ver, demo_mode, n, max_row, st.session_state.get("_crm_ev_key"))
+    if st.session_state.get("_crm_snap_key") == key and "_crm_snap" in st.session_state:
+        return st.session_state["_crm_snap"], events
+    snap = build_crm_snapshot(raw_df, events=events)
+    st.session_state["_crm_snap_key"] = key
+    st.session_state["_crm_snap"] = snap
+    return snap, events
 
 
 def _inject_crm_styles() -> None:
-    if st.session_state.get("_crm_styles_injected"):
-        return
-    st.session_state["_crm_styles_injected"] = True
-    st.markdown(_CRM_STYLES, unsafe_allow_html=True)
+    inject_crm_styles()
+
+
+def _fmt_step_rate(rate: float | None) -> str:
+    """이전 단계 0일 때 200%+ 같은 misleading % 숨김."""
+    if rate is None or rate < 0 or rate > 100:
+        return ""
+    clr = "#3fb950" if rate >= 30 else "#d29922" if rate >= 10 else "#f85149"
+    return f'<span class="crm-bar-rate" style="color:{clr}">{rate}%</span>'
 
 
 def _render_metric_grid(items: list[tuple[str, str, str | None, bool]]) -> None:
@@ -484,29 +233,27 @@ def _render_period_selector(data_min: date | None, data_max: date | None) -> tup
     if "crm_period" not in st.session_state:
         st.session_state["crm_period"] = "이번 달"
 
-    preset = st.session_state["crm_period"]
-    d_start, d_end = _period_bounds(preset, data_min, data_max)
-    range_txt = f"{d_start.strftime('%Y.%m.%d')} – {d_end.strftime('%Y.%m.%d')}"
-
-    st.markdown('<span class="crm-period-anchor" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.markdown(
         f'<div class="crm-toolbar">'
-        f'<span class="crm-toolbar-range">{html_lib.escape(preset)} · {range_txt}</span>'
-        f"</div>",
+        f'<span class="crm-toolbar-range">'
+        f'{html_lib.escape(st.session_state["crm_period"])} · '
+        f'{_period_bounds(st.session_state["crm_period"], data_min, data_max)[0].strftime("%Y.%m.%d")} – '
+        f'{_period_bounds(st.session_state["crm_period"], data_min, data_max)[1].strftime("%Y.%m.%d")}'
+        f"</span></div>",
         unsafe_allow_html=True,
     )
-    cols = st.columns(4, gap="small")
-    for col, label in zip(cols, _PERIOD_OPTIONS, strict=True):
-        with col:
-            if st.button(
-                label,
-                key=f"crm_period_{label}",
-                use_container_width=True,
-                type="primary" if preset == label else "secondary",
-            ):
-                st.session_state["crm_period"] = label
-                st.rerun()
+    st.markdown('<div class="crm-period-wrap">', unsafe_allow_html=True)
+    st.radio(
+        "기간",
+        _PERIOD_OPTIONS,
+        horizontal=True,
+        key="crm_period",
+        label_visibility="collapsed",
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
 
+    preset = str(st.session_state["crm_period"])
+    d_start, d_end = _period_bounds(preset, data_min, data_max)
     return d_start, d_end, preset
 
 
@@ -515,6 +262,66 @@ def _render_period_selector(data_min: date | None, data_max: date | None) -> tup
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def _section(title: str) -> None:
     st.markdown(f'<p class="crm-section-title">{html_lib.escape(title)}</p>', unsafe_allow_html=True)
+
+
+def _apply_queue_filter(item: QueueItem) -> None:
+    labels = stage_labels_for_keys(*item.stage_keys)
+    st.session_state["crm_stage_filter"] = labels
+    st.session_state["crm_queue_hint"] = f"「{item.title}」{item.count}명 · 신청자 탭에서 필터 적용됨"
+
+
+def _render_anomaly_banner(raw_df: pd.DataFrame) -> None:
+    anomalies = detect_sheet_anomalies(raw_df)
+    if not anomalies:
+        return
+    st.markdown(
+        f'<div class="crm-anomaly-banner">⚠ 시트 불일치 {len(anomalies)}건 — '
+        f"입금·환불·매칭 상태를 확인하세요</div>",
+        unsafe_allow_html=True,
+    )
+    with st.expander("불일치 행 보기", expanded=False):
+        for a in anomalies[:20]:
+            st.caption(f"행 {a.row_index + 2} · {a.name} · {a.message}")
+
+
+def _render_today_queue(raw_df: pd.DataFrame) -> None:
+    items = build_today_queue(raw_df, sla_hours=sla_unpaid_hours())
+    _section("오늘 할 일")
+    if not items:
+        st.markdown(
+            '<div class="crm-queue-empty">✅ 오늘 처리 대기 없음</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    cards = []
+    for item in items:
+        urgent = " crm-queue-card--urgent" if item.urgent else ""
+        sla = ""
+        if item.sla_over:
+            sla = f' · <span class="crm-queue-sla">{item.sla_over}명 SLA+</span>'
+        cards.append(
+            f'<div class="crm-queue-card{urgent}" style="--q-accent:{item.color}">'
+            f'<div class="crm-queue-num" style="color:{item.color}">{item.count}</div>'
+            f'<div class="crm-queue-body">'
+            f'<div class="crm-queue-title">{html_lib.escape(item.title)}</div>'
+            f'<div class="crm-queue-hint">{html_lib.escape(item.hint)}{sla}</div>'
+            f"</div></div>"
+        )
+    st.markdown(f'<div class="crm-queue-block"><div class="crm-queue-grid">{"".join(cards)}</div></div>', unsafe_allow_html=True)
+
+    n = len(items)
+    cols = st.columns(min(n, 4))
+    for i, item in enumerate(items):
+        with cols[i % len(cols)]:
+            label = item.title if item.count <= 99 else f"{item.title[:6]}…"
+            if st.button(f"{label} ({item.count})", key=f"crm_queue_{item.key}", use_container_width=True):
+                _apply_queue_filter(item)
+                st.rerun()
+
+    hint = st.session_state.pop("crm_queue_hint", None)
+    if hint:
+        st.caption(hint)
 
 
 def _render_action_alerts(snapshot: CrmSnapshot) -> None:
@@ -604,8 +411,9 @@ def _render_conversion_flow(
                 conv = f'<div class="crm-conv-rate crm-conv-rate--warn">제출 대비 {r}%</div>'
         elif i > 0 and counts[i - 1] > 0:
             r = round(cnt / counts[i - 1] * 100, 1)
-            conv_cls = "crm-conv-rate--good" if r >= 30 else "crm-conv-rate--mid" if r >= 10 else "crm-conv-rate--bad"
-            conv = f'<div class="crm-conv-rate {conv_cls}">{r}%</div>'
+            if 0 <= r <= 100:
+                conv_cls = "crm-conv-rate--good" if r >= 30 else "crm-conv-rate--mid" if r >= 10 else "crm-conv-rate--bad"
+                conv = f'<div class="crm-conv-rate {conv_cls}">{r}%</div>'
         parts.append(
             f'<div class="crm-conv-step" style="--step-color:{clr}">'
             f'<div class="crm-conv-count">{cnt:,}</div>'
@@ -775,21 +583,13 @@ def _render_grouped_funnel(snapshot: CrmSnapshot) -> None:
     max_count = max((s.count for s in snapshot.funnel), default=1) or 1
 
     for group_title, keys in _FUNNEL_GROUPS:
-        st.markdown(
-            f'<div style="font-size:12px;font-weight:700;color:{_C["muted"]};'
-            f'margin:12px 0 8px;letter-spacing:0.04em">{group_title}</div>',
-            unsafe_allow_html=True,
-        )
         rows: list[str] = []
         for key in keys:
             step = step_map.get(key)
             if not step:
                 continue
             w = max(4, int(step.count / max_count * 100))
-            rate_txt = ""
-            if step.rate_from_prev is not None:
-                clr = "#3fb950" if step.rate_from_prev >= 30 else "#d29922" if step.rate_from_prev >= 10 else "#f85149"
-                rate_txt = f'<span class="crm-bar-rate" style="color:{clr}">{step.rate_from_prev}%</span>'
+            rate_txt = _fmt_step_rate(step.rate_from_prev)
 
             rows.append(
                 f'<div class="crm-bar-row">'
@@ -800,7 +600,15 @@ def _render_grouped_funnel(snapshot: CrmSnapshot) -> None:
                 f'<div class="crm-bar-cnt">{step.count}{rate_txt}</div>'
                 f"</div>"
             )
-        st.markdown("".join(rows), unsafe_allow_html=True)
+        if not rows:
+            continue
+        st.markdown(
+            f'<div class="crm-funnel-group">'
+            f'<div class="crm-funnel-group-title">{group_title}</div>'
+            f'{"".join(rows)}'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -846,9 +654,37 @@ def _render_stage_bars(snapshot: CrmSnapshot) -> None:
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 7. 신청자 테이블
+# 7. 신청자 테이블 + 타임라인
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def _render_applicant_table(snapshot: CrmSnapshot) -> None:
+def _render_applicant_timeline(raw_df: pd.DataFrame, row_index: int, name: str) -> None:
+    if raw_df.empty or row_index not in raw_df.index:
+        return
+    events = build_applicant_timeline(raw_df.loc[row_index])
+    if not events:
+        return
+    items = []
+    for ev in events:
+        meta = html_lib.escape(ev.at)
+        if ev.detail:
+            meta = f"{meta} · {html_lib.escape(ev.detail)}" if meta != "—" else html_lib.escape(ev.detail)
+        items.append(
+            f'<li class="crm-timeline-item">'
+            f'<span class="crm-timeline-dot"></span>'
+            f'<div class="crm-timeline-body">'
+            f'<div class="crm-timeline-label">{html_lib.escape(ev.label)}</div>'
+            f'<div class="crm-timeline-meta">{meta}</div>'
+            f"</div></li>"
+        )
+    st.markdown(
+        f'<div class="crm-timeline">'
+        f'<p class="crm-timeline-title">{html_lib.escape(name)} · 진행 이력</p>'
+        f'<ul class="crm-timeline-list">{"".join(items)}</ul>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _render_applicant_table(snapshot: CrmSnapshot, *, raw_df: pd.DataFrame) -> None:
     if "crm_hidden_rows" not in st.session_state:
         st.session_state["crm_hidden_rows"] = set()
     hidden: set = st.session_state["crm_hidden_rows"]
@@ -906,6 +742,10 @@ def _render_applicant_table(snapshot: CrmSnapshot) -> None:
                     hidden.add(rn)
             st.session_state["crm_hidden_rows"] = hidden
             st.rerun()
+        first = rows[sel_idx[0]]
+        row_i = first.get("행")
+        if row_i is not None:
+            _render_applicant_timeline(raw_df, int(row_i), str(first.get("이름", "")))
 
     st.caption(
         f"표시 **{len(rows)}**명 · 입금 대기 **{snapshot.stage_counts.get('unpaid', 0)}** · "
@@ -917,9 +757,8 @@ def _render_applicant_table(snapshot: CrmSnapshot) -> None:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 8. 데이터 관리
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def _render_event_reset() -> None:
+def _render_event_reset(*, event_count: int) -> None:
     with st.expander("⚙️ 데이터 관리", expanded=False):
-        event_count = len(load_events())
         st.caption(f"랜딩 이벤트 **{event_count}**건 · `{EVENTS_PATH.name}`")
         if "crm_reset_confirm" not in st.session_state:
             st.session_state["crm_reset_confirm"] = False
@@ -946,12 +785,74 @@ def _render_event_reset() -> None:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MAIN
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+@st.fragment
+def _render_crm_period_and_body(
+    *,
+    raw_df: pd.DataFrame,
+    snapshot: CrmSnapshot,
+    events: list[dict],
+    data_min: date | None,
+    data_max: date | None,
+) -> None:
+    """기간·서브탭만 fragment — 이번 주/3개월 전환 시 전체 앱 rerun 방지."""
+    d_start, d_end, _preset = _render_period_selector(data_min, data_max)
+
+    period_events = _filter_events(events, d_start, d_end)
+    period_ev = _period_event_totals(period_events)
+    period_biz = _period_applicant_metrics(snapshot, d_start, d_end)
+    period_visitors = visitor_metrics(period_events)
+    period_days = (d_end - d_start).days + 1
+    by_day = _period_by_day(period_events, d_start, d_end)
+
+    daily_forms: dict[str, int] = {}
+    for a in snapshot.applicants:
+        d = parse_ts(a.get("신청일", ""))
+        if d and d_start <= d <= d_end:
+            key = d.isoformat()
+            daily_forms[key] = daily_forms.get(key, 0) + 1
+
+    sub = st.radio(
+        "CRM 섹션",
+        _CRM_SUBTABS,
+        horizontal=True,
+        key="crm_subtab",
+        label_visibility="collapsed",
+    )
+
+    if sub == "한눈에":
+        _section("핵심 지표")
+        _render_at_a_glance(period_ev, period_biz)
+        _section("단계별 현황")
+        _render_action_alerts(snapshot)
+        _section("전환 흐름")
+        _render_conversion_flow(snapshot, period_ev, period_biz)
+        with st.expander("상세 KPI · 유입 · 환불", expanded=False):
+            _render_period_kpis(period_ev, period_biz, period_days)
+            _render_traffic_quality(period_visitors)
+            _render_outcome_metrics(period_biz, snapshot)
+    elif sub == "추이":
+        _section("일별 비교")
+        st.caption("방문 · 클릭 · 제출 날짜별")
+        _render_trend_chart(by_day, daily_forms, d_start, d_end)
+        _render_traffic_quality(period_visitors)
+        _render_period_kpis(period_ev, period_biz, period_days)
+    elif sub == "퍼널":
+        _section("퍼널 상세")
+        _render_grouped_funnel(snapshot)
+        _section("단계 분포")
+        _render_stage_bars(snapshot)
+    else:
+        _render_applicant_table(snapshot, raw_df=raw_df)
+
+    _render_event_reset(event_count=len(events))
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
     _inject_crm_styles()
-    events = crm_events_for_mode(demo_mode=demo_mode)
-    snapshot = build_crm_snapshot(raw_df, events=events)
+    st.markdown('<div class="crm-root">', unsafe_allow_html=True)
+    snapshot, events = _get_cached_snapshot(raw_df, demo_mode)
 
-    # 데이터 범위
     all_days = sorted(
         set(snapshot.event_summary.get("by_day", {}).keys())
         | set(snapshot.daily_applicants.keys())
@@ -959,7 +860,6 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
     data_min = date.fromisoformat(all_days[0]) if all_days else None
     data_max = date.fromisoformat(all_days[-1]) if all_days else None
 
-    # ── 헤더 + 기간 ──
     net = snapshot.revenue_paid - snapshot.revenue_refunded
     st.markdown(
         f'<div class="crm-head-bar">'
@@ -973,52 +873,12 @@ def render_crm_tab(*, raw_df: pd.DataFrame, demo_mode: bool) -> None:
         unsafe_allow_html=True,
     )
 
-    d_start, d_end, preset = _render_period_selector(data_min, data_max)
-    period_events = _filter_events(events, d_start, d_end)
-    period_ev = _period_event_totals(period_events)
-    period_biz = _period_applicant_metrics(snapshot, d_start, d_end)
-    period_visitors = visitor_metrics(period_events)
-    period_days = (d_end - d_start).days + 1
-    by_day = _period_by_day(period_events, d_start, d_end)
-
-    # 기간별 폼 제출 일별
-    daily_forms: dict[str, int] = {}
-    for a in snapshot.applicants:
-        d = parse_ts(a.get("신청일", ""))
-        if d and d_start <= d <= d_end:
-            key = d.isoformat()
-            daily_forms[key] = daily_forms.get(key, 0) + 1
-
-    tab_overview, tab_trend, tab_funnel, tab_people = st.tabs(
-        ["한눈에", "추이", "퍼널", "신청자"]
+    _render_today_queue(raw_df)
+    _render_anomaly_banner(raw_df)
+    _render_crm_period_and_body(
+        raw_df=raw_df,
+        snapshot=snapshot,
+        events=events,
+        data_min=data_min,
+        data_max=data_max,
     )
-
-    with tab_overview:
-        _section("핵심 지표")
-        _render_at_a_glance(period_ev, period_biz)
-        _section("지금 처리 필요")
-        _render_action_alerts(snapshot)
-        _section("전환 흐름")
-        _render_conversion_flow(snapshot, period_ev, period_biz)
-        with st.expander("상세 KPI · 유입 · 환불", expanded=False):
-            _render_period_kpis(period_ev, period_biz, period_days)
-            _render_traffic_quality(period_visitors)
-            _render_outcome_metrics(period_biz, snapshot)
-
-    with tab_trend:
-        _section("일별 비교")
-        st.caption("방문 · 클릭 · 제출 날짜별")
-        _render_trend_chart(by_day, daily_forms, d_start, d_end)
-        _render_traffic_quality(period_visitors)
-        _render_period_kpis(period_ev, period_biz, period_days)
-
-    with tab_funnel:
-        _section("퍼널 상세")
-        _render_grouped_funnel(snapshot)
-        _section("단계 분포")
-        _render_stage_bars(snapshot)
-
-    with tab_people:
-        _render_applicant_table(snapshot)
-
-    _render_event_reset()

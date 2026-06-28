@@ -21,7 +21,7 @@ from utils.columns import (
     DEFAULT_SHEET_URL, DEFAULT_WORKSHEET, parse_reject, parse_checkbox, EDIT_LABELS,
     now_matched_at, format_matched_at, apply_eligibility_filter,
 )
-from utils.sheets import load_data_raw, load_demo_data, set_matched, increment_reject, update_profile_fields
+from utils.sheets import load_data_raw, load_demo_data, load_demo_data_cached, set_matched, increment_reject, update_profile_fields
 from utils.filters import (
     FILTER_FIELDS,
     field_options,
@@ -37,10 +37,11 @@ from utils.data_loader import expected_data_source, should_reload_df
 from utils.sheet_prefs import active_sheet_config, load_sheet_prefs, save_sheet_prefs
 from utils.auth import ensure_authenticated, current_user, logout
 from utils.landing import render_landing_page
-from utils.admin_route import admin_entry_path, is_admin_route, is_landing_preview_route, landing_preview_path
+from utils.admin_route import admin_entry_path, is_admin_route, is_landing_preview_route
 from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
 from utils.unpaid import unpaid_applicants
 from utils.crm_ui import render_crm_tab
+from utils.crm_state import validate_match, validate_reject_increment
 from utils.telegram_notify import (
     telegram_enabled,
     telegram_config_status,
@@ -226,6 +227,34 @@ def _crm_beacon_gate() -> None:
 _crm_beacon_gate()
 
 
+def _inject_landing_parent_nav_bridge() -> None:
+    """iframe sandbox는 top navigation 불가 — 부모 document에 스크립트 주입."""
+    components.html(
+        """
+<script>
+(function () {
+  try {
+    var doc = window.parent.document;
+    if (doc.getElementById("dgt-nav-bridge")) return;
+    var s = doc.createElement("script");
+    s.id = "dgt-nav-bridge";
+    s.textContent = "(function(){if(window.__dgtNavBridge)return;"
+      + "window.__dgtNavBridge=true;"
+      + "window.addEventListener('message',function(e){"
+      + "var d=e.data;"
+      + "if(!d||d.type!=='dgt-navigate'||typeof d.url!=='string')return;"
+      + "window.location.assign(d.url);"
+      + "});})();";
+    doc.head.appendChild(s);
+  } catch (err) {}
+})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+
+
 def _inject_admin_theme() -> None:
     """관리자·로그인 — gate에서 st.stop() 되기 전 theme.css + shell 정리."""
     st.markdown('<span class="dgt-admin-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
@@ -243,11 +272,17 @@ def _public_entry_gate(logo_uri: str) -> None:
         st.session_state["auth_user"] = None
 
     if is_landing_preview_route():
-        render_landing_page(logo_uri)
-        st.stop()
+        st.query_params.clear()
+        st.rerun()
 
     if not is_admin_route():
+        _inject_landing_parent_nav_bridge()
         render_landing_page(logo_uri)
+        if st.session_state.get("auth_user"):
+            st.markdown('<div class="lnd-footer-nav lnd-footer-nav--preview">', unsafe_allow_html=True)
+            st.link_button("← 관리자 대시보드", admin_entry_path(), use_container_width=True)
+            st.caption("신청자에게 보이는 공개 페이지입니다.")
+            st.markdown("</div>", unsafe_allow_html=True)
         st.stop()
 
     if not st.session_state.get("auth_user"):
@@ -265,7 +300,7 @@ reset_page_scroll()
 ensure_sidebar_visible()
 
 for k, v in [
-    ("df", None), ("selected", []), ("demo_mode", False), ("load_ver", 0), ("flash", ""),
+    ("df", None), ("selected", []), ("demo_mode", False), ("load_ver", 0), ("flash", ""), ("flash_error", ""),
     ("chip_filter", None), ("mob_view", "list"), ("focus_settings", False),
     ("_df_source", None), ("_sheet_raw", None),
 ]:
@@ -288,6 +323,10 @@ def _refresh_data() -> None:
     st.session_state["df"] = None
     st.session_state.pop("_df_source", None)
     st.session_state.pop("_sheet_raw", None)
+    st.session_state.pop("_crm_snap_key", None)
+    st.session_state.pop("_crm_snap", None)
+    st.session_state.pop("_crm_ev_key", None)
+    st.session_state.pop("_crm_ev", None)
     st.session_state["selected"] = []
     st.session_state["mob_view"] = "list"
 
@@ -361,10 +400,9 @@ def render_telegram_controls(*, key_prefix: str) -> None:
 
 
 def render_settings_panel(*, key_prefix: str) -> None:
-    preview = landing_preview_path()
     st.markdown(
-        f'<a class="admin-landing-link" href="{preview}" target="_blank" rel="noopener">'
-        f"공개 랜딩 보기 ↗</a>",
+        '<a class="admin-landing-link" href="/" target="_blank" rel="noopener">'
+        "공개 랜딩 보기 ↗</a>",
         unsafe_allow_html=True,
     )
     st.caption(f"접속: {current_user()}")
@@ -445,42 +483,14 @@ sheet_url, ws_name = active_sheet_config(
     saved_ws=_saved_ws_name(),
 )
 
-if telegram_enabled():
-    _poll = poll_interval_seconds()
-
-    if not demo_mode and sheet_url and not st.session_state.get("_tg_boot_watch"):
-        st.session_state["_tg_boot_watch"] = True
-        try:
-            run_applicant_watch(sheet_url, ws_name)
-        except Exception as exc:
-            log_exception(exc, where="telegram.boot")
-
-    @st.fragment(run_every=timedelta(seconds=_poll))
-    def applicant_telegram_watch() -> None:
-        try:
-            url, ws = active_sheet_config(
-                demo_mode=st.session_state.get("demo_mode", False),
-                saved_url=_saved_sheet_url(),
-                saved_ws=_saved_ws_name(),
-            )
-            if url:
-                run_applicant_watch(url, ws)
-        except Exception as exc:
-            log_exception(exc, where="telegram.fragment")
-
-    if not demo_mode and sheet_url:
-        applicant_telegram_watch()
-
-
-
-def _fetch_sheet_with_progress(url: str, ws: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+def _fetch_sheet_with_progress(url: str, ws: str, *, cache_version: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     """시트 1회 읽기 + 프로그레스 바 → (전체 raw, 매칭용 filtered)."""
     slot = st.empty()
     bar = slot.progress(0, text="구글 시트 연결 중…")
     try:
         bar.progress(12, text="인증 확인 중…")
         bar.progress(28, text="시트 데이터 읽는 중…")
-        raw = load_data_raw(url, ws, apply_eligibility=False)
+        raw = load_data_raw(url, ws, apply_eligibility=False, cache_version=cache_version)
         bar.progress(72, text="데이터 정리 중…")
         filtered = apply_eligibility_filter(raw)
         bar.progress(100, text="불러오기 완료")
@@ -491,8 +501,9 @@ def _fetch_sheet_with_progress(url: str, ws: str) -> tuple[pd.DataFrame, pd.Data
 
 def get_sheet_dataframes() -> tuple[pd.DataFrame, pd.DataFrame]:
     """매칭용 df + CRM용 raw df. 캐시 hit 시 프로그레스 없음."""
+    load_ver = int(st.session_state.get("load_ver", 0))
     if demo_mode:
-        demo = load_demo_data()
+        demo = load_demo_data_cached()
         indexed = ensure_search_index(demo)
         st.session_state["_sheet_raw"] = demo
         st.session_state["_df_source"] = "demo"
@@ -520,7 +531,7 @@ def get_sheet_dataframes() -> tuple[pd.DataFrame, pd.DataFrame]:
         return cached, raw_cached
 
     try:
-        raw, filtered = _fetch_sheet_with_progress(sheet_url, ws_name)
+        raw, filtered = _fetch_sheet_with_progress(sheet_url, ws_name, cache_version=load_ver)
     except Exception as exc:
         ui_error(exc, where="시트 로드", streamlit_module=st)
         empty = pd.DataFrame()
@@ -540,6 +551,35 @@ def get_df() -> pd.DataFrame:
 def get_crm_raw_df() -> pd.DataFrame:
     _, raw = get_sheet_dataframes()
     return raw
+
+
+df, crm_raw = get_sheet_dataframes()
+
+if telegram_enabled():
+    _poll = poll_interval_seconds()
+
+    if not demo_mode and sheet_url and not st.session_state.get("_tg_boot_watch"):
+        st.session_state["_tg_boot_watch"] = True
+        try:
+            run_applicant_watch(sheet_url, ws_name, df=crm_raw)
+        except Exception as exc:
+            log_exception(exc, where="telegram.boot")
+
+    @st.fragment(run_every=timedelta(seconds=_poll))
+    def applicant_telegram_watch() -> None:
+        try:
+            url, ws = active_sheet_config(
+                demo_mode=st.session_state.get("demo_mode", False),
+                saved_url=_saved_sheet_url(),
+                saved_ws=_saved_ws_name(),
+            )
+            if url:
+                run_applicant_watch(url, ws, force_refresh=True)
+        except Exception as exc:
+            log_exception(exc, where="telegram.fragment")
+
+    if not demo_mode and sheet_url:
+        applicant_telegram_watch()
 
 
 def render_unpaid_panel(*, sheet_url: str, ws_name: str, demo_mode: bool) -> None:
@@ -872,6 +912,11 @@ def render_done_card(pair: dict) -> str:
 
 def do_match(a: int, b: int) -> None:
     df = st.session_state["df"]
+    for i in (a, b):
+        err = validate_match(df.loc[i])
+        if err:
+            st.session_state["flash_error"] = err
+            return
     na, nb = df.loc[a, "name"], df.loc[b, "name"]
     at = now_matched_at()
     if not demo_mode:
@@ -1309,6 +1354,10 @@ def render_person(idx: int, slot: int, show_recommend: bool = True, *, include_b
 
 def do_reject(i: int) -> None:
     df = st.session_state["df"]
+    err = validate_reject_increment(df.loc[i])
+    if err:
+        st.session_state["flash_error"] = err
+        return
     cur = parse_reject(df.loc[i, "reject"])
     df.loc[i, "reject"] = increment_reject(sheet_url, i, cur, ws_name) if not demo_mode else cur + 1
     st.session_state["df"] = df
@@ -1409,7 +1458,6 @@ def render_profile_editor(idx: int, slot: int) -> None:
             st.caption("데모 모드: 시트에는 반영되지 않고 이 세션에만 저장됩니다.")
 
 
-df, crm_raw = get_sheet_dataframes()
 df_empty = df.empty
 
 if df_empty:
@@ -1454,6 +1502,9 @@ st.markdown(
     f'</div></div>',
     unsafe_allow_html=True,
 )
+if st.session_state.get("flash_error"):
+    st.error(st.session_state["flash_error"])
+    st.session_state["flash_error"] = ""
 if st.session_state.get("flash"):
     st.success(st.session_state["flash"])
     st.session_state["flash"] = ""

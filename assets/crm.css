@@ -1,0 +1,412 @@
+/* CRM 대시보드 — crm_ui.py HTML 클래스와 1:1 */
+.crm-root {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}
+
+.crm-head-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 6px 16px !important;
+  margin: 0 0 10px !important;
+}
+.crm-head-title {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  line-height: 1.2 !important;
+}
+.crm-head-revenue {
+  font-size: 0.76rem !important;
+  color: #8b949e !important;
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-head-revenue b { color: #c9d1d9 !important; font-weight: 700 !important; }
+.crm-toolbar { margin: 0 0 6px !important; }
+.crm-toolbar-range {
+  font-size: 0.74rem !important;
+  color: #6e7681 !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-section-title {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: #8b949e !important;
+  letter-spacing: 0.02em !important;
+  margin: 14px 0 6px !important;
+  padding: 0 !important;
+}
+.crm-section-title:first-child { margin-top: 0 !important; }
+
+/* 기간 — st.radio horizontal (DOM 구조 변경에도 안전) */
+.crm-root .crm-period-wrap [data-testid="stRadio"] > div {
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+.crm-root .crm-period-wrap [data-testid="stRadio"] label {
+  flex: 1 1 0 !important;
+  min-width: 72px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px !important;
+  justify-content: center !important;
+}
+.crm-root .crm-period-wrap [data-testid="stRadio"] label[data-checked="true"],
+.crm-root .crm-period-wrap [data-testid="stRadio"] label:has(input:checked) {
+  border-color: #1f6feb !important;
+  background: rgba(31, 111, 235, 0.12) !important;
+}
+
+.crm-glance-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 0 10px !important;
+  box-sizing: border-box !important;
+}
+.crm-glance-card {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-top: 2px solid var(--accent, #58a6ff) !important;
+  border-radius: 8px !important;
+  padding: 10px 8px !important;
+  text-align: center !important;
+  min-width: 0 !important;
+}
+.crm-glance-val {
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  line-height: 1.1 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-glance-lbl {
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  color: #8b949e !important;
+  margin-top: 3px !important;
+}
+
+.crm-alert-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+  width: 100% !important;
+}
+.crm-alert-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-left: 3px solid #58a6ff !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  min-width: 0 !important;
+  flex: 1 1 160px !important;
+  max-width: 100% !important;
+}
+.crm-alert-num {
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+  min-width: 1.5rem !important;
+  text-align: center !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-alert-body { flex: 1 !important; min-width: 0 !important; }
+.crm-alert-title {
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  color: #e6edf3 !important;
+  line-height: 1.2 !important;
+}
+.crm-alert-desc {
+  font-size: 0.68rem !important;
+  color: #6e7681 !important;
+  line-height: 1.35 !important;
+}
+
+.crm-queue-block { margin: 0 0 12px !important; }
+.crm-queue-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+.crm-queue-card {
+  flex: 1 1 160px !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-left: 3px solid var(--q-accent, #58a6ff) !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+}
+.crm-queue-card--urgent {
+  border-left-color: #f85149 !important;
+  background: rgba(248, 81, 73, 0.06) !important;
+}
+.crm-queue-num {
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  font-variant-numeric: tabular-nums !important;
+  color: #f0f6fc !important;
+  min-width: 1.6rem !important;
+}
+.crm-queue-body { flex: 1 !important; min-width: 0 !important; }
+.crm-queue-title {
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  color: #e6edf3 !important;
+  line-height: 1.25 !important;
+}
+.crm-queue-hint {
+  font-size: 0.68rem !important;
+  color: #8b949e !important;
+  margin-top: 2px !important;
+  line-height: 1.35 !important;
+}
+.crm-queue-sla {
+  color: #f85149 !important;
+  font-weight: 700 !important;
+}
+.crm-queue-empty {
+  padding: 12px 14px !important;
+  border-radius: 8px !important;
+  background: rgba(63, 185, 80, 0.08) !important;
+  border: 1px solid rgba(63, 185, 80, 0.25) !important;
+  color: #3fb950 !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 10px !important;
+}
+
+.crm-anomaly-banner {
+  padding: 8px 12px !important;
+  margin: 0 0 10px !important;
+  border-radius: 8px !important;
+  background: rgba(210, 153, 34, 0.1) !important;
+  border: 1px solid rgba(210, 153, 34, 0.35) !important;
+  color: #d29922 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+}
+
+.crm-timeline {
+  margin: 10px 0 6px !important;
+  padding: 10px 12px !important;
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px !important;
+}
+.crm-timeline-title {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: #8b949e !important;
+  margin: 0 0 8px !important;
+}
+.crm-timeline-list { list-style: none !important; margin: 0 !important; padding: 0 !important; }
+.crm-timeline-item {
+  display: flex !important;
+  gap: 10px !important;
+  padding: 6px 0 !important;
+  border-left: 2px solid #30363d !important;
+  margin-left: 6px !important;
+  padding-left: 12px !important;
+}
+.crm-timeline-item:first-child { border-left-color: #58a6ff !important; }
+.crm-timeline-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #58a6ff !important;
+  margin-top: 5px !important;
+  flex-shrink: 0 !important;
+  margin-left: -17px !important;
+}
+.crm-timeline-body { flex: 1 !important; min-width: 0 !important; }
+.crm-timeline-label {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: #e6edf3 !important;
+}
+.crm-timeline-meta {
+  font-size: 0.68rem !important;
+  color: #6e7681 !important;
+  margin-top: 1px !important;
+}
+
+.crm-conv-flow {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+  width: 100% !important;
+  margin: 0 0 10px !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+}
+.crm-conv-step {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-top: 2px solid var(--step-color, #58a6ff) !important;
+  border-radius: 8px !important;
+  padding: 8px 6px 6px !important;
+  text-align: center !important;
+  min-width: 0 !important;
+  flex: 1 1 0 !important;
+}
+.crm-conv-count {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  line-height: 1.1 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-conv-label {
+  font-size: 0.68rem !important;
+  color: #8b949e !important;
+  font-weight: 600 !important;
+  margin-top: 2px !important;
+}
+.crm-conv-rate {
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  margin-top: 2px !important;
+}
+.crm-conv-rate--good { color: #3fb950 !important; }
+.crm-conv-rate--mid { color: #d29922 !important; }
+.crm-conv-rate--bad { color: #f85149 !important; }
+.crm-conv-rate--warn { color: #f85149 !important; }
+.crm-conv-arrow {
+  display: flex !important;
+  flex: 0 0 12px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #484f58 !important;
+  font-size: 12px !important;
+  padding-bottom: 8px !important;
+}
+
+.crm-funnel-group { width: 100% !important; margin-bottom: 8px !important; }
+.crm-funnel-group-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #8b949e !important;
+  margin: 12px 0 8px !important;
+  letter-spacing: 0.04em !important;
+}
+.crm-bar-row {
+  display: grid !important;
+  grid-template-columns: minmax(72px, 28%) 1fr minmax(36px, auto) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  width: 100% !important;
+}
+.crm-bar-label {
+  font-size: 0.78rem !important;
+  color: #c9d1d9 !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  word-break: keep-all !important;
+}
+.crm-bar-track {
+  height: 22px !important;
+  background: #21262d !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+}
+.crm-bar-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #1f6feb, #58a6ff) !important;
+  border-radius: 4px !important;
+  min-width: 4px !important;
+}
+.crm-bar-cnt {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-bar-rate {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  margin-left: 4px !important;
+}
+
+.crm-metric-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin: 6px 0 10px !important;
+  width: 100% !important;
+}
+.crm-metric-card {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
+  min-width: 0 !important;
+}
+.crm-metric-lbl {
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  color: #8b949e !important;
+  line-height: 1.2 !important;
+}
+.crm-metric-val {
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  color: #f0f6fc !important;
+  margin-top: 2px !important;
+  line-height: 1.15 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.crm-metric-delta {
+  font-size: 0.64rem !important;
+  font-weight: 600 !important;
+  color: #3fb950 !important;
+  margin-top: 2px !important;
+}
+.crm-metric-delta--warn { color: #f85149 !important; }
+
+@media (min-width: 769px) {
+  .crm-bar-row {
+    grid-template-columns: 110px 1fr 60px auto !important;
+    gap: 10px !important;
+  }
+}
+@media (max-width: 768px) {
+  .crm-glance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .crm-queue-card { flex: 1 1 100% !important; }
+  .crm-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .crm-conv-step { flex: 0 0 72px !important; min-width: 72px !important; }
+  .crm-root .crm-period-wrap [data-testid="stRadio"] label {
+    flex: 1 1 calc(50% - 6px) !important;
+  }
+}

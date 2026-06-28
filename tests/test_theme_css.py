@@ -63,3 +63,7 @@ def test_admin_theme_injected_before_auth_gate():
     gate_idx = app_src.find("_public_entry_gate(logo_data_uri())")
     inject_idx = app_src.find("if is_admin_route():")
     assert inject_idx > 0 and inject_idx < gate_idx
+    assert "is_landing_preview_route()" in app_src
+    assert "st.query_params.clear()" in app_src
+    assert "dgt-nav-bridge" in app_src
+    assert "_inject_landing_parent_nav_bridge" in app_src

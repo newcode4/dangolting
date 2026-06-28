@@ -8,63 +8,21 @@ import pandas as pd
 
 from utils.columns import parse_checkbox, parse_reject
 from utils.crm_events import demo_events, load_events, summarize_events
-from utils.date_filter import parse_ts
-from utils.landing_config import PARTICIPATION_FEE
-
-STAGE_LABELS: dict[str, str] = {
-    "refunded": "환불",
-    "matched": "매칭 완료",
-    "closed": "종료(거절 2회)",
-    "reject_1": "1차 거절 · 재매칭",
-    "matching": "매칭 진행",
-    "unpaid": "입금 대기",
-    "invalid": "—",
-}
-
-STAGE_ORDER = (
-    "unpaid",
-    "matching",
-    "reject_1",
-    "matched",
-    "closed",
-    "refunded",
+from utils.crm_truth import (
+    STAGE_LABELS,
+    STAGE_ORDER,
+    applicant_stage,
+    count_by_stage,
+    is_matched_row,
+    revenue_metrics,
 )
-
-
-def is_matched_row(row: pd.Series) -> bool:
-    return str(row.get("matched", "")).strip().upper() == "TRUE"
-
-
-def applicant_stage(row: pd.Series) -> str:
-    """신청자 1명의 CRM 파이프라인 단계."""
-    name = str(row.get("name", "")).strip()
-    if not name:
-        return "invalid"
-
-    if parse_checkbox(row.get("refund", False)):
-        return "refunded"
-    if is_matched_row(row):
-        return "matched"
-
-    reject_n = parse_reject(row.get("reject", 0))
-    if reject_n >= 2:
-        return "closed"
-    if reject_n == 1:
-        return "reject_1"
-    if parse_checkbox(row.get("paid", False)):
-        return "matching"
-    return "unpaid"
+from utils.date_filter import parse_ts
 
 
 def _pct(num: int, denom: int) -> float | None:
     if denom <= 0:
         return None
     return round(num / denom * 100, 1)
-
-
-def _fee_amount() -> int:
-    digits = "".join(c for c in PARTICIPATION_FEE if c.isdigit())
-    return int(digits) if digits else 0
 
 
 @dataclass
@@ -128,13 +86,9 @@ def build_crm_snapshot(raw: pd.DataFrame, *, events: list[dict] | None = None) -
     applicants = build_applicant_rows(raw)
     form_total = len(applicants)
 
-    stage_counts = {k: 0 for k in STAGE_LABELS}
-    for a in applicants:
-        key = a.get("stage_key", "invalid")
-        if key in stage_counts:
-            stage_counts[key] += 1
-
-    paid_n = sum(1 for a in applicants if a["입금"] == "✅" and a["환불"] != "✅")
+    stage_counts = count_by_stage(raw)
+    rev = revenue_metrics(raw)
+    paid_n = rev.paid_count
     matched_n = stage_counts.get("matched", 0)
     refund_n = stage_counts.get("refunded", 0)
     unpaid_n = stage_counts.get("unpaid", 0)
@@ -144,9 +98,9 @@ def build_crm_snapshot(raw: pd.DataFrame, *, events: list[dict] | None = None) -
     apply_u = ev_sum["unique"].get("apply_click", 0)
     apply_t = ev_sum["totals"].get("apply_click", 0)
 
-    fee = _fee_amount()
-    revenue_paid = paid_n * fee
-    revenue_refunded = refund_n * fee
+    fee = rev.fee
+    revenue_paid = rev.revenue_paid
+    revenue_refunded = rev.revenue_refunded
 
     daily_applicants: dict[str, int] = {}
     if not raw.empty and "ts" in raw.columns:

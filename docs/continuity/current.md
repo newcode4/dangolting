@@ -1,22 +1,23 @@
 ## 현재 진행 중인 계획:
-docs/exec-plans/active/2026-06-26-admin-dashboard.md
+docs/exec-plans/active/2026-06-28-crm-1억-로드맵.md — **Phase 1 완료 · Phase 2 시작**
 
 ## 마지막 완료 상태:
-단골팅 관리자 대시보드 초기 구축 완료
-- app.py (메인 Streamlit 앱: 카드 UI, 필터, 추천 알고리즘, 매칭/거절 처리)
-- utils/sheets.py (gspread 연동 + 데모 데이터)
-- utils/matching.py (점수 기반 TOP3 추천)
-- .streamlit/config.toml (다크 테마)
-- credentials_template.json, secrets.toml.template, README.md
+**Phase 1 (M1~M5) 완료**
+- crm_truth · crm_queue · crm_state · golden tests · metrics/state 문서
+
+**Phase 2 일부**
+- M6 타임라인 — 신청자 탭 행 선택 시 진행 이력
+- M7 기초 — `crm_config.py` (SLA·알림 시간 secrets)
+- 매칭/거절 상태 검증 + flash_error
+
+테스트 **98 passed**
 
 ## 다음 행동:
-1. pip install -r requirements.txt 실행
-2. 데모 모드로 streamlit run app.py 동작 확인
-3. 실제 구글 시트 연동 시: credentials.json 배치 + 시트 URL 입력
-4. 실제 시트 컬럼명 확인 후 utils/sheets.py COL 딕셔너리 조정
+1. **M7** 텔레그램 딥링크
+2. **M8** 설정 UI (SLA 표시)
+3. **M9** crm.css 분리
 
 ## 하지 않을 것:
-- credentials.json git 커밋 금지
-- DB 마이그레이션 없음 (구글 시트가 유일한 데이터 소스)
+- DB 마이그레이션 (Phase 3)
 
-_업데이트: 2026-06-26_
+_업데이트: 2026-06-28_

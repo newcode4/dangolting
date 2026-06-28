@@ -70,15 +70,21 @@ def test_visitor_metrics_return_visitors():
 
 
 def test_crm_mobile_styles_defined():
-    from utils import crm_ui
+    from pathlib import Path
 
-    css = crm_ui._CRM_STYLES
+    from utils import crm_ui
+    from utils.crm_styles import CRM_CSS_PATH, crm_css_inline
+
+    css = Path(CRM_CSS_PATH).read_text(encoding="utf-8")
     assert "crm-glance-grid" in css
     assert "repeat(4, minmax(0, 1fr))" in css
     assert "crm-toolbar" in css
     assert "crm-head-bar" in css
     assert "crm-alert-body" in css
-    assert "crm-metric-grid" in css
+    assert "crm-queue-grid" in css
+    assert "crm-bar-row" in css
+    assert "crm-root" in css
+    assert "crm rev:" in crm_css_inline()
     assert "_inject_crm_styles" in crm_ui.render_crm_tab.__code__.co_names
 
 
@@ -88,9 +94,10 @@ def test_crm_period_selector_single_row():
     from utils import crm_ui
 
     src = inspect.getsource(crm_ui._render_period_selector)
-    assert "st.columns(4" in src
-    assert "row2" not in src
-    assert "crm-toolbar" in src
+    assert "st.radio" in src
+    assert "horizontal=True" in src
+    assert "crm-period-wrap" in src
+    assert "st.columns(4" not in src
 
 
 def test_crm_alert_html_uses_horizontal_layout():
@@ -100,3 +107,13 @@ def test_crm_alert_html_uses_horizontal_layout():
 
     src = inspect.getsource(crm_ui._render_action_alerts)
     assert "crm-alert-body" in src
+
+
+def test_app_match_validates_state():
+    import inspect
+
+    from app import do_match, do_reject
+
+    assert "validate_match" in inspect.getsource(do_match)
+    assert "validate_reject_increment" in inspect.getsource(do_reject)
+    assert "flash_error" in inspect.getsource(do_match)

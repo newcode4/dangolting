@@ -79,15 +79,24 @@ def load_data(sheet_url: str, worksheet_name: str = DEFAULT_WORKSHEET) -> pd.Dat
     return load_data_raw(sheet_url, worksheet_name, apply_eligibility=True)
 
 
+@st.cache_data(show_spinner=False)
+def _sheet_values_cached(sheet_url: str, worksheet_name: str, cache_version: int) -> list[list]:
+    """시트 raw values — load_ver 변경 시 무효화."""
+    ws = _get_worksheet(sheet_url, worksheet_name)
+    return ws.get_all_values()
+
+
 def load_data_raw(
     sheet_url: str,
     worksheet_name: str = DEFAULT_WORKSHEET,
     *,
     apply_eligibility: bool = True,
+    cache_version: int = 0,
 ) -> pd.DataFrame:
     try:
-        ws = _get_worksheet(sheet_url, worksheet_name)
-        records = records_from_sheet_values(ws.get_all_values())
+        records = records_from_sheet_values(
+            _sheet_values_cached(sheet_url, worksheet_name, cache_version)
+        )
         df = pd.DataFrame(records)
         if df.empty:
             return df
@@ -155,8 +164,18 @@ def update_profile_fields(
 from utils.demo_data import DEMO_DATA
 
 
-def load_demo_data() -> pd.DataFrame:
+def _build_demo_dataframe() -> pd.DataFrame:
     df = pd.DataFrame(DEMO_DATA)
     df.index = df["_row"]
-    # 데모는 UI 확인용 — 입금/환불 eligibility 필터 적용하지 않음
     return normalize_dataframe(df, apply_eligibility=False)
+
+
+def load_demo_data() -> pd.DataFrame:
+    """데모 DataFrame (테스트·비-Streamlit 호출용)."""
+    return _build_demo_dataframe()
+
+
+@st.cache_data(show_spinner=False)
+def load_demo_data_cached() -> pd.DataFrame:
+    """데모 DataFrame — 세션 간 재사용."""
+    return _build_demo_dataframe()

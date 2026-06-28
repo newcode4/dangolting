@@ -284,12 +284,28 @@ def process_new_applicants(df: pd.DataFrame, sheet_url: str, ws_name: str) -> in
     return sent
 
 
-def run_applicant_watch(sheet_url: str, ws_name: str) -> int:
-    """시트 재조회 후 신규 신청 알림 (캐시 없음). 입금 대기도 알림 대상."""
+def run_applicant_watch(
+    sheet_url: str,
+    ws_name: str,
+    *,
+    df: "pd.DataFrame | None" = None,
+    force_refresh: bool = False,
+) -> int:
+    """신규 신청 알림. df가 있으면 재조회 생략(첫 로드). 폴링은 force_refresh=True."""
     if not telegram_enabled() or not sheet_url:
         return 0
     try:
-        df = load_data_raw(sheet_url, ws_name, apply_eligibility=False)
+        if df is None or force_refresh:
+            load_ver = 0
+            try:
+                import streamlit as st
+
+                load_ver = int(st.session_state.get("load_ver", 0))
+            except Exception:
+                pass
+            df = load_data_raw(
+                sheet_url, ws_name, apply_eligibility=False, cache_version=load_ver
+            )
         return process_new_applicants(df, sheet_url, ws_name)
     except Exception as exc:
         log_exception(exc, where="telegram.watch")

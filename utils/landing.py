@@ -43,11 +43,13 @@ def _landing_html(
     *,
     css_rev: str = "",
     admin_url: str = "/?p=dgt-manage",
+    admin_slug: str = "dgt-manage",
     shell_preview: bool = False,
 ) -> str:
     logo = html.escape(logo_uri)
     form = html.escape(form_url)
     admin = html.escape(admin_url)
+    slug = html.escape(admin_slug)
     fee = html.escape(PARTICIPATION_FEE)
     shell_js = json.dumps(shell_css)
     shell_preview_js = "true" if shell_preview else "false"
@@ -57,6 +59,7 @@ def _landing_html(
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="dgt-css-rev" content="{html.escape(css_rev)}"/>
 <meta name="dgt-admin-entry" content="{admin}"/>
+<meta name="dgt-admin-slug" content="{slug}"/>
 <style>{page_css}</style>
 <script>document.documentElement.setAttribute("data-hook-layout","desktop");</script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -540,7 +543,7 @@ def _landing_html(
       <button type="button" data-modal="refundModal">환불 규정</button>
       <button type="button" data-modal="privacyModal">개인정보처리방침</button>
       <a href="https://open.kakao.com/me/dangolgrow" data-external-raw="https://open.kakao.com/me/dangolgrow" class="footer-link-kakao">카카오로 문의하기</a>
-      <a href="#" class="footer-link-admin" data-admin-go="{admin}">관리자</a>
+      <a href="/?p={slug}" target="_blank" rel="noopener noreferrer" class="footer-link-admin" data-admin-go="{admin}">관리자</a>
     </nav>
   </footer>
 
@@ -1156,6 +1159,11 @@ def _landing_html(
       var meta = document.querySelector('meta[name="dgt-admin-entry"]');
       rel = meta ? meta.getAttribute("content") : "";
     }}
+    if (!rel) {{
+      var slugMeta = document.querySelector('meta[name="dgt-admin-slug"]');
+      var slug = slugMeta ? slugMeta.getAttribute("content") : "";
+      if (slug) rel = "/?p=" + slug;
+    }}
     if (!rel) return null;
     if (rel.indexOf("http://") === 0 || rel.indexOf("https://") === 0) return rel;
     try {{
@@ -1165,23 +1173,30 @@ def _landing_html(
     }}
   }}
 
-  document.querySelectorAll("[data-admin-go]").forEach(function (el) {{
-    var url = adminEntryUrl(el.getAttribute("data-admin-go"));
-    if (url) el.setAttribute("href", url);
+  document.querySelectorAll(".footer-link-admin").forEach(function (el) {{
+    var url = adminEntryUrl(el.getAttribute("data-admin-go") || el.getAttribute("href"));
+    if (url) {{
+      el.setAttribute("href", url);
+      el.setAttribute("target", "_blank");
+      el.setAttribute("rel", "noopener noreferrer");
+    }}
     el.addEventListener("click", function (e) {{
       e.preventDefault();
-      var target = adminEntryUrl(el.getAttribute("data-admin-go"));
+      var target = adminEntryUrl(el.getAttribute("data-admin-go") || el.getAttribute("href"));
       if (!target) return;
+      var bridgeReady = false;
       try {{
-        window.parent.scrollTo(0, 0);
-        var pel = window.parent.document.scrollingElement || window.parent.document.documentElement;
-        if (pel) pel.scrollTop = 0;
+        bridgeReady = !!window.parent.document.getElementById("dgt-nav-bridge");
       }} catch (err) {{}}
-      try {{
-        window.parent.location.assign(target);
-      }} catch (err) {{
-        window.location.assign(target);
+      if (bridgeReady) {{
+        try {{
+          window.parent.postMessage({{ type: "dgt-navigate", url: target }}, "*");
+          return;
+        }} catch (err2) {{}}
       }}
+      try {{
+        window.open(target, "_blank", "noopener,noreferrer");
+      }} catch (err3) {{}}
     }});
   }});
 
@@ -1253,13 +1268,12 @@ def _landing_html(
 
 
 def render_landing_page(logo_uri: str) -> None:
-    """공개 랜딩. 관리자 미리보기(?view=landing + 로그인)일 때만 하단 네비."""
-    from utils.admin_route import admin_entry_path, is_landing_preview_route
+    """공개 랜딩 (components.html iframe)."""
+    from utils.admin_route import admin_entry_path, admin_path_slug
 
     page_css = _read_css(_PAGE_CSS_PATH)
     shell_css = _read_css(_SHELL_CSS_PATH)
     css_rev = _css_revision()
-    preview = is_landing_preview_route() and bool(st.session_state.get("auth_user"))
 
     components.html(
         _landing_html(
@@ -1269,16 +1283,9 @@ def render_landing_page(logo_uri: str) -> None:
             shell_css,
             css_rev=css_rev,
             admin_url=admin_entry_path(),
-            shell_preview=preview,
+            admin_slug=admin_path_slug(),
+            shell_preview=False,
         ),
         height=LANDING_IFRAME_HEIGHT,
         scrolling=False,
     )
-
-    if not preview:
-        return
-
-    st.markdown('<div class="lnd-footer-nav lnd-footer-nav--preview">', unsafe_allow_html=True)
-    st.link_button("← 관리자 대시보드", admin_entry_path(), use_container_width=True)
-    st.caption("신청자에게 보이는 공개 페이지입니다.")
-    st.markdown("</div>", unsafe_allow_html=True)
