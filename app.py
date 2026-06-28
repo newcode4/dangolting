@@ -41,7 +41,6 @@ from utils.admin_route import admin_entry_path, is_admin_route, is_landing_previ
 from utils.error_log import setup_logging, install_excepthook, ui_error, tail_log, log_exception
 from utils.unpaid import unpaid_applicants
 from utils.crm_ui import render_crm_tab
-from utils.og_meta import inject_og_meta
 from utils.crm_state import validate_match, validate_reject_increment
 from utils.telegram_notify import (
     telegram_enabled,
@@ -182,8 +181,34 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# OG / SNS 메타 (Kakao·Facebook 크롤러 — JS 없이 읽히도록 정적 meta)
-inject_og_meta()
+# OG / SNS 메타태그 주입 (크롤러 대응)
+st.markdown("""
+<script>
+(function() {
+  var base = window.location.origin + (window.location.pathname || "/");
+  var imgUrl = base.replace(/\\/$/, "") + "/app/static/og.svg";
+  var metas = [
+    ["property", "og:type",        "website"],
+    ["property", "og:site_name",   "단골팅"],
+    ["property", "og:title",       "단골팅 — 비즈니스 파트너 매칭"],
+    ["property", "og:description", "내 사업을 같이 키울 파트너 한 명이면 됩니다. 운영진이 직접 찾아드립니다. 단돈 5만 원 · 소개 없으면 전액 환불."],
+    ["property", "og:image",       imgUrl],
+    ["property", "og:url",         window.location.href],
+    ["name",     "description",    "내 사업을 같이 키울 파트너 한 명이면 됩니다. 운영진이 직접 찾아드립니다. 단돈 5만 원."],
+    ["name",     "twitter:card",   "summary_large_image"],
+    ["name",     "twitter:title",  "단골팅 — 비즈니스 파트너 매칭"],
+    ["name",     "twitter:image",  imgUrl],
+  ];
+  metas.forEach(function(m) {
+    var el = document.head.querySelector('meta[' + m[0] + '="' + m[1] + '"]');
+    if (!el) { el = document.createElement("meta"); el.setAttribute(m[0], m[1]); document.head.appendChild(el); }
+    el.setAttribute("content", m[2]);
+  });
+  // 타이틀도 동기화
+  document.title = "단골팅 — 비즈니스 파트너 매칭";
+})();
+</script>
+""", unsafe_allow_html=True)
 
 
 def _crm_beacon_gate() -> None:
