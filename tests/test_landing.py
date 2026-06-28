@@ -25,6 +25,20 @@ def test_landing_hook_section():
     assert "hook-hero-glow" in html
 
 
+def test_landing_hides_streamlit_github_badge():
+    css = Path(__file__).resolve().parents[1].joinpath("assets", "landing.css").read_text(
+        encoding="utf-8"
+    )
+    assert "#GithubIcon" in css
+    assert 'a[href*="github.com"]' in css
+    assert "profileContainer" in css
+    landing_src = Path(__file__).resolve().parents[1].joinpath("utils", "landing.py").read_text(
+        encoding="utf-8"
+    )
+    assert "hideCloudBadges" in landing_src
+    assert "_inject_landing_parent_shell_early" in landing_src
+
+
 def test_landing_mobile_line_breaks():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "한 번 같이 일해보고<br/>" in html
@@ -35,6 +49,8 @@ def test_landing_mobile_line_breaks():
     )
     assert "br.br-sm" in css
 
+
+def test_landing_css_revision_meta():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "/*a*/", "", css_rev="123_456")
     assert 'name="dgt-css-rev" content="123_456"' in html
 
