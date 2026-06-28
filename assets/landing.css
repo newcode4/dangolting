@@ -20,13 +20,7 @@ body.dgt-landing #GithubIcon,
 body.dgt-landing [class*="GithubIcon"],
 body.dgt-landing a[href*="github.com"],
 body.dgt-landing a[href*="streamlit.io"][target="_blank"],
-body.dgt-landing [class*="profileContainer"],
-body.dgt-landing [class*="profilePreview"],
-body.dgt-landing [class*="profileImage"],
-body.dgt-landing [data-testid="appCreatorAvatar"],
-body.dgt-landing img[alt="App Creator Avatar"],
-body.dgt-landing a[href*="share.streamlit.io/user"],
-body.dgt-landing a[href*="avatars.githubusercontent.com"] {
+body.dgt-landing [class*="profileContainer"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
