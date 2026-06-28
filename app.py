@@ -88,8 +88,8 @@ def _theme_css_inline() -> str:
     return f"/* rev:{path.stat().st_mtime:.0f} */\n{css}"
 
 
-def _force_admin_full_width() -> None:
-    """Streamlit emotion CSS + React 재렌더 후에도 max-width 제거 유지."""
+def _strip_landing_shell_and_fix_admin_width() -> None:
+    """랜딩이 body에 남긴 dgt-landing·1080px shell CSS 제거 후 admin 전체 너비."""
     components.html(
         """<script>
         (function () {
@@ -97,39 +97,54 @@ def _force_admin_full_width() -> None:
             var pd = window.parent.document;
           } catch (e) { return; }
 
-          var SELS = [
+          pd.body.classList.remove("dgt-landing", "dgt-landing--preview");
+          pd.body.classList.add("dgt-admin");
+
+          var shellCss = pd.getElementById("dgt-landing-shell-css");
+          if (shellCss) shellCss.remove();
+
+          var WIDTH_SELS = [
+            '[data-testid="stAppViewBlockContainer"]',
             '[data-testid="stMainBlockContainer"]',
+            'section.main > div.block-container',
             '[data-testid="stMain"] > div.block-container',
-            'section.main > div.block-container'
+            '.main .block-container'
           ];
+          var CONTAINER_IDS = ["stAppViewContainer", "stMain", "stApp"];
 
           function fix() {
-            SELS.forEach(function (sel) {
+            WIDTH_SELS.forEach(function (sel) {
               pd.querySelectorAll(sel).forEach(function (el) {
-                el.style.setProperty('max-width', 'none', 'important');
-                el.style.setProperty('width',     '100%',  'important');
-                el.style.setProperty('box-sizing','border-box','important');
+                el.style.setProperty("max-width", "none", "important");
+                el.style.setProperty("width", "100%", "important");
+                el.style.setProperty("margin-left", "0", "important");
+                el.style.setProperty("margin-right", "0", "important");
+                el.style.setProperty("box-sizing", "border-box", "important");
+              });
+            });
+            CONTAINER_IDS.forEach(function (tid) {
+              pd.querySelectorAll('[data-testid="' + tid + '"]').forEach(function (el) {
+                el.style.setProperty("max-width", "none", "important");
+                el.style.setProperty("width", "100%", "important");
               });
             });
           }
 
           fix();
 
-          /* React가 style attribute를 덮어쓸 때마다 재적용 */
           function watchEl() {
             var el = pd.querySelector('[data-testid="stMainBlockContainer"]');
             if (!el) return;
             fix();
             new MutationObserver(fix).observe(el, {
               attributes: true,
-              attributeFilter: ['class', 'style']
+              attributeFilter: ["class", "style"]
             });
           }
-          [50, 200, 600, 1500, 3000].forEach(function (ms) {
+          [0, 50, 200, 600, 1500, 3000].forEach(function (ms) {
             setTimeout(watchEl, ms);
           });
 
-          /* 페이지 전체 리렌더(stApp class 변경) 감지 */
           var stApp = pd.querySelector('[data-testid="stApp"]') || pd.body;
           new MutationObserver(function () { fix(); watchEl(); })
             .observe(stApp, { childList: true, subtree: false });
@@ -212,8 +227,10 @@ _crm_beacon_gate()
 
 
 def _inject_admin_theme() -> None:
-    """관리자·로그인 — gate에서 st.stop() 되기 전 theme.css 주입."""
+    """관리자·로그인 — gate에서 st.stop() 되기 전 theme.css + shell 정리."""
+    st.markdown('<span class="dgt-admin-marker" aria-hidden="true"></span>', unsafe_allow_html=True)
     st.markdown(f"<style>{_theme_css_inline()}</style>", unsafe_allow_html=True)
+    _strip_landing_shell_and_fix_admin_width()
 
 
 if is_admin_route():
@@ -244,8 +261,6 @@ _public_entry_gate(logo_data_uri())
 from utils.scroll_top import reset_page_scroll
 
 reset_page_scroll()
-
-_force_admin_full_width()   # Streamlit emotion CSS max-width 강제 제거
 
 ensure_sidebar_visible()
 

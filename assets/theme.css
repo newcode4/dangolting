@@ -15,16 +15,32 @@ header[data-testid="stHeader"] {
   border-bottom: 1px solid #21262d;
 }
 
-/* ── 관리자 전체 너비 — 3단 체인으로 명시도 (0,3,0) 확보 ── */
+/* ── 관리자 전체 너비 — 랜딩 shell(1080px) 잔여 + Streamlit emotion 무력화 ── */
+body.dgt-admin [data-testid="stAppViewBlockContainer"],
+body.dgt-admin [data-testid="stMainBlockContainer"],
+body.dgt-admin section.main > div.block-container,
+body.dgt-admin .main .block-container,
+body:has(.dgt-admin-marker) [data-testid="stAppViewBlockContainer"],
+body:has(.dgt-admin-marker) [data-testid="stMainBlockContainer"],
+body:has(.dgt-admin-marker) section.main > div.block-container,
 [data-testid="stAppViewContainer"] [data-testid="stMain"] [data-testid="stMainBlockContainer"],
+[data-testid="stAppViewContainer"] [data-testid="stMain"] [data-testid="stAppViewBlockContainer"],
 [data-testid="stAppViewContainer"] section.main > div.block-container,
 [data-testid="stMainBlockContainer"],
+[data-testid="stAppViewBlockContainer"],
 .block-container {
   max-width: none !important;
   width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   box-sizing: border-box !important;
 }
 
+body.dgt-admin [data-testid="stAppViewContainer"],
+body.dgt-admin [data-testid="stMain"],
+body.dgt-admin [data-testid="stApp"],
+body:has(.dgt-admin-marker) [data-testid="stAppViewContainer"],
+body:has(.dgt-admin-marker) [data-testid="stMain"],
 [data-testid="stAppViewContainer"] > [data-testid="stMain"],
 [data-testid="stAppViewContainer"] > section.main {
   width: 100% !important;
@@ -40,6 +56,7 @@ section.main > div.block-container,
 
 @media (min-width: 769px) {
   [data-testid="stMainBlockContainer"],
+  [data-testid="stAppViewBlockContainer"],
   section.main > div.block-container {
     padding-left: 2rem !important;
     padding-right: 2.5rem !important;
