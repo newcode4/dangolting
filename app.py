@@ -42,6 +42,7 @@ from utils.error_log import setup_logging, install_excepthook, ui_error, tail_lo
 from utils.unpaid import unpaid_applicants
 from utils.crm_ui import render_crm_tab
 from utils.crm_state import validate_match, validate_reject_increment
+from utils.profile_ui import profile_hero_html, profile_sections_html
 from utils.telegram_notify import (
     telegram_enabled,
     telegram_config_status,
@@ -305,7 +306,7 @@ ensure_sidebar_visible()
 
 for k, v in [
     ("df", None), ("selected", []), ("demo_mode", False), ("load_ver", 0), ("flash", ""), ("flash_error", ""),
-    ("chip_filter", None), ("mob_view", "list"), ("focus_settings", False),
+    ("chip_filter", None), ("mob_view", "list"), ("focus_settings", False), ("admin_tab", "매칭 작업"),
     ("_df_source", None), ("_sheet_raw", None),
 ]:
     if k not in st.session_state:
@@ -1215,67 +1216,6 @@ def render_match_keywords(
                     st.rerun()
 
 
-def _meta_item(label: str, value: str) -> str:
-    v = html_lib.escape(str(value or "—"))
-    return (
-        f'<div class="meta-item"><span class="meta-lbl">{html_lib.escape(label)}</span>'
-        f'<span class="meta-val">{v}</span></div>'
-    )
-
-
-def profile_hero_html(row) -> str:
-    dday_raw = format_dday(row.get("dday", ""))
-    dday = html_lib.escape(dday_raw)
-    contact = html_lib.escape(fmt_contact(row.get("contact", "")))
-    extra_chips = ""
-    if is_matched(row):
-        ma = format_matched_at(row.get("matched_at"))
-        if ma:
-            extra_chips += f'<span class="chip chip-date">{html_lib.escape(ma)}</span>'
-        partner = str(row.get("matched_w", "")).strip()
-        if partner:
-            extra_chips += f'<span class="chip chip-g">↔ {html_lib.escape(partner)}</span>'
-    chips = (
-        f'<div class="profile-chips">{chip(row)}{extra_chips}'
-        f'<span class="chip">{html_lib.escape(str(row.get("gender", "")))}</span>'
-        f'<span class="chip">{html_lib.escape(str(row.get("region", "")))}</span>'
-        f'<span class="chip">{html_lib.escape(sjob(row.get("job", "")))}</span>'
-        f'<span class="chip">{html_lib.escape(syears(row.get("years", "")))}</span>'
-        f"</div>"
-    )
-    dday_badge = f'<span class="dday-badge">{dday}</span>' if dday_raw else ""
-    return (
-        f'<div class="profile-hero">'
-        f'<div class="profile-top">'
-        f'<div><h2 class="profile-name">{html_lib.escape(str(row.get("name", "")))}</h2>'
-        f'<div class="profile-contact">{contact}</div></div>'
-        f'{dday_badge}</div>'
-        f"{chips}</div>"
-    )
-
-
-def profile_sections_html(row) -> str:
-    want_txt = html_lib.escape(str(row.get("want", "—")))
-    have_txt = html_lib.escape(str(row.get("have", "—")))
-    return (
-        f'<div class="section-card want">'
-        f'<div class="section-title"><span class="ico">□</span> 원하는 것 요약</div>'
-        f'<div class="meta-grid">'
-        f'{_meta_item("희망 직군", sjob(str(row.get("w_job", ""))))}'
-        f'{_meta_item("희망 지역", row.get("w_region", "무관"))}'
-        f'{_meta_item("희망 연차", row.get("w_years", "무관"))}'
-        f'{_meta_item("희망 성별", row.get("w_gender", "무관"))}'
-        f'{_meta_item("협업 깊이", _theme(str(row.get("depth", ""))))}'
-        f'{_meta_item("가치관", _theme(str(row.get("values", ""))))}'
-        f"</div>"
-        f'<div class="text-block"><span class="meta-lbl">원하는 것</span>'
-        f'<p class="text-body">{want_txt}</p></div></div>'
-        f'<div class="section-card have">'
-        f'<div class="section-title have-ico"><span class="ico">◇</span> 제공 가치</div>'
-        f'<p class="text-body">{have_txt}</p></div>'
-    )
-
-
 def _rec_meta_html(row) -> str:
     parts = [
         str(row.get("region", "")),
@@ -1333,7 +1273,15 @@ def render_person(idx: int, slot: int, show_recommend: bool = True, *, include_b
     st.markdown('<div class="detail-panel">', unsafe_allow_html=True)
     render_detail_toolbar(idx, slot, include_back=include_back)
 
-    st.markdown(profile_hero_html(row), unsafe_allow_html=True)
+    st.markdown(
+        profile_hero_html(
+            row,
+            format_dday=format_dday,
+            status_chip_html=chip(row),
+            fmt_contact=fmt_contact,
+        ),
+        unsafe_allow_html=True,
+    )
 
     if is_matched(row):
         ma = format_matched_at(row.get("matched_at"))
@@ -1345,7 +1293,7 @@ def render_person(idx: int, slot: int, show_recommend: bool = True, *, include_b
     elif is_closed(row):
         st.error("매칭 종료 (거절 2회)")
 
-    st.markdown(profile_sections_html(row), unsafe_allow_html=True)
+    st.markdown(profile_sections_html(row, format_dday=format_dday), unsafe_allow_html=True)
     render_profile_editor(idx, slot)
 
     if show_recommend and not is_matched(row) and not is_closed(row):
@@ -1501,8 +1449,6 @@ w = int((~df["matched"].astype(str).str.upper().eq("TRUE") & df["reject"].apply(
 
 _logo = logo_data_uri()
 render_mobile_action_bar(has_selection=bool(st.session_state.get("selected")))
-if st.session_state.get("focus_settings"):
-    st.info("**설정 · 알림** 탭에서 데모/시트 연동 · **텔레그램 알림 테스트**를 할 수 있습니다.")
 st.markdown(
     f'<div class="topbar">'
     f'<div class="topbar-brand">'
@@ -1528,12 +1474,21 @@ if st.session_state.get("flash"):
     st.success(st.session_state["flash"])
     st.session_state["flash"] = ""
 
-tab_crm, tab1, tab2, tab3, tab4 = st.tabs(["CRM · 퍼널", "매칭 작업", "완료 목록", "원본 데이터", "설정 · 알림"])
+_ADMIN_TABS = ("매칭 작업", "완료 목록", "원본 데이터", "설정 · 알림", "CRM · 퍼널")
 
-with tab_crm:
-    render_crm_tab(raw_df=crm_raw, demo_mode=demo_mode)
+if st.session_state.pop("focus_settings", False):
+    st.session_state["admin_tab"] = "설정 · 알림"
 
-with tab1:
+st.markdown('<span class="admin-main-tabs-anchor"></span>', unsafe_allow_html=True)
+active_tab = st.radio(
+    "관리자 메뉴",
+    _ADMIN_TABS,
+    horizontal=True,
+    key="admin_tab",
+    label_visibility="collapsed",
+)
+
+if active_tab == "매칭 작업":
     if df_empty:
         st.info("입금 확인된 신청이 없습니다. **CRM · 퍼널** 탭에서 입금 대기 목록을 확인하세요.")
     else:
@@ -1625,7 +1580,7 @@ with tab1:
                         st.markdown('<span class="mob-detail-open"></span>', unsafe_allow_html=True)
                     render_compare_panel(selected[0], selected[1])
 
-with tab2:
+elif active_tab == "완료 목록":
     if df_empty:
         st.info("완료 매칭 목록이 없습니다.")
     else:
@@ -1652,7 +1607,7 @@ with tab2:
             cards = "".join(render_done_card(p) for p in pairs)
             st.markdown(f'<div class="done-grid">{cards}</div>', unsafe_allow_html=True)
 
-with tab3:
+elif active_tab == "원본 데이터":
     src = crm_raw if df_empty else df
     labels = {
         "name": "성함", "gender": "성별", "job": "직군", "region": "지역",
@@ -1665,7 +1620,7 @@ with tab3:
     else:
         st.dataframe(src[cols].rename(columns=labels), use_container_width=True, height=320)
 
-with tab4:
+elif active_tab == "설정 · 알림":
     st.markdown("#### 연동 · 알림")
     st.caption(
         "왼쪽 Streamlit 사이드바가 안 보이면 **화면 왼쪽 가장자리 ▶** 를 눌러 펼치세요. "
@@ -1676,3 +1631,6 @@ with tab4:
     render_unpaid_panel(sheet_url=sheet_url, ws_name=ws_name, demo_mode=demo_mode)
     st.divider()
     render_apps_script_guide()
+
+else:
+    render_crm_tab(raw_df=crm_raw, demo_mode=demo_mode)

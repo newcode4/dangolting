@@ -200,6 +200,33 @@ div[data-testid="stButton"] > button[kind="primary"] {
   gap: 24px !important;
 }
 
+/* 관리자 메인 메뉴 — st.radio (탭 전환 시 CRM으로 튀는 현상 방지) */
+body.dgt-admin .admin-main-tabs-anchor + [data-testid="stVerticalBlock"] [data-testid="stRadio"] {
+  margin-bottom: 4px;
+}
+body.dgt-admin .admin-main-tabs-anchor + [data-testid="stVerticalBlock"] [data-testid="stRadio"] [role="radiogroup"] {
+  gap: 4px;
+  border-bottom: 1px solid #21262d;
+  flex-wrap: wrap;
+}
+body.dgt-admin .admin-main-tabs-anchor + [data-testid="stVerticalBlock"] [data-testid="stRadio"] label {
+  padding: 8px 16px !important;
+  font-size: 0.82rem !important;
+  color: #8b949e !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+body.dgt-admin .admin-main-tabs-anchor + [data-testid="stVerticalBlock"] [data-testid="stRadio"] label:has(input:checked) {
+  color: #58a6ff !important;
+  border-bottom-color: #2563eb !important;
+}
+body.dgt-admin .admin-main-tabs-anchor + [data-testid="stVerticalBlock"] [data-testid="stRadio"] label [data-testid="stMarkdownContainer"] p {
+  margin: 0 !important;
+}
+
 /* ── 레이아웃 ── */
 div[data-testid="stHorizontalBlock"] { gap: 16px !important; align-items: flex-start !important; }
 
@@ -521,6 +548,27 @@ div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child
 }
 .meta-lbl { display: block; font-size: 0.62rem; color: #8b949e; margin-bottom: 4px; font-weight: 600; }
 .meta-val { display: block; font-size: 0.8rem; color: #e6edf3; line-height: 1.45; }
+.meta-val.is-empty { color: #484f58; font-style: italic; }
+.meta-item-long { grid-column: 1 / -1; }
+.meta-val-long {
+  font-size: 0.84rem; line-height: 1.7; color: #c9d1d9;
+  white-space: pre-wrap; word-break: break-word;
+}
+.profile-long-stack { display: flex; flex-direction: column; gap: 10px; }
+.profile-ts {
+  font-size: 0.72rem; color: #8b949e; margin-top: 4px;
+}
+.section-card.have .section-title .ico { color: #3fb950; }
+.section-card.admin {
+  background: rgba(88,166,255,.04);
+  border-color: rgba(88,166,255,.15);
+}
+.section-card.admin .section-title .ico { color: #58a6ff; }
+.profile-link {
+  color: #58a6ff; text-decoration: underline;
+  word-break: break-all;
+}
+.profile-link:hover { color: #79b8ff; }
 .text-block { padding-top: 12px; border-top: 1px solid #30363d; margin-top: 4px; }
 .text-body { font-size: 0.82rem; color: #8b949e; line-height: 1.65; margin: 6px 0 0; }
 
