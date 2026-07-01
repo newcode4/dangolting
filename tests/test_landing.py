@@ -25,6 +25,13 @@ def test_landing_hook_section():
     assert "hook-hero-glow" in html
 
 
+def test_landing_filter_copy():
+    html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
+    assert "일방적인 영업 목적인 분" in html
+    assert "제 제품 팔러 왔어요" in html
+    assert "실질적인 순수 가치" in html
+
+
 def test_landing_mobile_line_breaks():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
     assert "한 번 같이 일해보고<br/>" in html
@@ -35,6 +42,8 @@ def test_landing_mobile_line_breaks():
     )
     assert "br.br-sm" in css
 
+
+def test_landing_css_revision_meta():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "/*a*/", "", css_rev="123_456")
     assert 'name="dgt-css-rev" content="123_456"' in html
 

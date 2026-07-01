@@ -328,9 +328,9 @@ def _landing_html(
         <span class="target-icon">🎯</span>
         <span>특정 업종에서 레퍼럴 파트너가 필요한 분</span>
       </div>
-      <div class="target-chip target-chip--no" aria-label="해당 없음: 단순 친목·소개팅·일상적 친구 찾기">
+      <div class="target-chip target-chip--no" aria-label="해당 없음: 단순 친목·소개팅·일방적 영업 목적">
         <span class="target-no-badge" aria-hidden="true">아닙니다</span>
-        <span class="target-no-text">단순 친목·소개팅·일상적 친구 찾기</span>
+        <span class="target-no-text">단순 친목 · 소개팅 · 내 서비스/제품을 판매하려는 일방적인 영업 목적인 분</span>
       </div>
     </div>
   </section>
@@ -345,7 +345,7 @@ def _landing_html(
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="num">01</div>
         <h3>상대에게 줄 수 있는 게 명확한 사람</h3>
-        <p>"인맥 넓히고 싶어요"는 거릅니다. 내가 상대에게 줄 수 있는 실질적 가치가 있어야 연결합니다.</p>
+        <p>"인맥 넓히고 싶어요" 혹은 "제 제품 팔러 왔어요"는 거릅니다. 내가 상대에게 줄 수 있는 실질적인 순수 가치가 있어야 연결합니다.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
