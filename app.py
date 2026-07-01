@@ -687,7 +687,15 @@ def syears(y: str) -> str:
     return str(y or "").replace("연차 ", "")
 
 
-def parse_dday(val) -> int:
+def format_dday(val) -> str:
+    """시트 #REF! 등 오류 값은 UI에 노출하지 않음."""
+    s = str(val or "").strip()
+    if not s or s.upper() in ("#REF!", "#N/A", "#VALUE!", "#NAME?", "NAN", "NONE"):
+        return ""
+    return s
+
+
+def parse_dday_number(val) -> int:
     """D-14 → 14. 값이 없으면 맨 뒤."""
     s = str(val or "").strip().upper()
     m = re.search(r"D\s*-?\s*(\d+)", s)
@@ -698,10 +706,10 @@ def sort_list_df(frame: pd.DataFrame, sort_by: str) -> pd.DataFrame:
     if frame.empty or "dday" not in frame.columns:
         return frame
     if sort_by == "D-day 임박순":
-        return frame.assign(_d=frame["dday"].map(parse_dday)).sort_values("_d", kind="stable").drop(columns="_d")
+        return frame.assign(_d=frame["dday"].map(parse_dday_number)).sort_values("_d", kind="stable").drop(columns="_d")
     if sort_by == "D-day 여유순":
         return (
-            frame.assign(_d=frame["dday"].map(parse_dday))
+            frame.assign(_d=frame["dday"].map(parse_dday_number))
             .sort_values("_d", ascending=False, kind="stable")
             .drop(columns="_d")
         )
@@ -1124,12 +1132,14 @@ def build_list_blocks(frame: pd.DataFrame) -> list[tuple]:
 def _list_row_meta_html(row, *, in_pair: bool = False) -> str:
     region = html_lib.escape(str(row.get("region", "")))
     job = html_lib.escape(sjob(row.get("job", "")))
-    dday = html_lib.escape(str(row.get("dday", "")))
+    dday_raw = format_dday(row.get("dday", ""))
+    dday = html_lib.escape(dday_raw)
     status = "" if (in_pair and is_matched(row)) else chip(row)
+    dday_chip = f'<span class="chip chip-r">{dday}</span>' if dday_raw else ""
     return (
         f'<div class="list-row-inner">'
         f'<div class="list-row-tags">{status}'
-        f'<span class="chip chip-r">{dday}</span></div>'
+        f'{dday_chip}</div>'
         f'<div class="list-row-meta">{region} · {job}</div>'
         f"</div>"
     )
@@ -1214,7 +1224,8 @@ def _meta_item(label: str, value: str) -> str:
 
 
 def profile_hero_html(row) -> str:
-    dday = html_lib.escape(str(row.get("dday", "")))
+    dday_raw = format_dday(row.get("dday", ""))
+    dday = html_lib.escape(dday_raw)
     contact = html_lib.escape(fmt_contact(row.get("contact", "")))
     extra_chips = ""
     if is_matched(row):
@@ -1232,12 +1243,13 @@ def profile_hero_html(row) -> str:
         f'<span class="chip">{html_lib.escape(syears(row.get("years", "")))}</span>'
         f"</div>"
     )
+    dday_badge = f'<span class="dday-badge">{dday}</span>' if dday_raw else ""
     return (
         f'<div class="profile-hero">'
         f'<div class="profile-top">'
         f'<div><h2 class="profile-name">{html_lib.escape(str(row.get("name", "")))}</h2>'
         f'<div class="profile-contact">{contact}</div></div>'
-        f'<span class="dday-badge">{dday}</span></div>'
+        f'{dday_badge}</div>'
         f"{chips}</div>"
     )
 
