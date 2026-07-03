@@ -81,105 +81,120 @@ def _landing_html(
     <div class="hero-glow"></div>
     <div class="hero-stars"></div>
     <div class="hero-inner">
-      <span class="eyebrow">서로 이익이 되는 비즈니스 파트너 매칭 · 1기 한정 · 5만 원</span>
+      <span class="eyebrow">명함 백 장 돌려봐야 내 일감은 안 늘어납니다.</span>
       <h1>서로에게 <em>진짜 도움이 되는</em><br/>비즈니스 파트너, 한 명이면 충분합니다</h1>
       <p class="lead">
-        모임에 수십 번 나가도 —<br class="br-sm"/>
-        이해관계가 맞고, 결이 통하는 사람은 잘 안 생깁니다.<br/>
+        모임에 수십 번 나가도 — 이해관계가 맞고, 결이 통하는 사람은 잘 안 생깁니다.
         운영진이 직접 나서서, 딱 맞는 파트너를 찾아 연결합니다.
       </p>
+      <p class="price-line" style="margin-bottom:20px">1기 한정 제안: {fee}</p>
       <div class="hero-cta">
         <a href="#" data-external="{form}" class="btn btn-primary">
-          <span>지금 내 파트너 찾기</span>
+          <span>파트너 찾기</span>
           <span class="arrow">&rarr;</span>
         </a>
-        <a href="#offer" data-scroll-to="offer" class="btn btn-outline">5만 원에 뭘 받나요?</a>
+        <a href="#offer" data-scroll-to="offer" class="btn btn-outline">1기 한정 제안 보기</a>
       </div>
-      <p class="price-line">운영진이 못 찾으면 한 푼도 안 냅니다 · 1기 가격은 지금이 마지막</p>
+      <p class="price-line">리스크 제로 보장: 운영진이 못 찾으면 한 푼도 안 냅니다. (100% 전액 환불)</p>
     </div>
-    <button class="hero-scroll-hint" data-scroll-to="hook-section" aria-label="아래로 스크롤">
+    <button class="hero-scroll-hint" data-scroll-to="value-prop" aria-label="아래로 스크롤">
       <span class="hero-scroll-label">아래로</span>
       <span class="hero-scroll-arrow">↓</span>
     </button>
   </section>
 
-  <div class="trust-strip reveal-item" id="hook-section">
-    <strong>이해관계 중심 파트너 매칭</strong><span class="dot"></span>
-    <span>운영진이 1:1로 직접 탐색</span><span class="dot"></span>
-    <span>익명 프로필 보고 내가 결정</span><span class="dot"></span>
-    <span>최대 2회 소개 제공 · 소개 없으면 전액 환불</span>
-  </div>
+  <section class="section reveal" id="value-prop">
+    <div class="section-head reveal-item">
+      <h2>핵심 가치 제안</h2>
+      <p>뜬구름 잡는 인맥 관리 말고, 철저한 &lsquo;이해관계 중심&rsquo; 매칭</p>
+    </div>
+    <div class="card-grid-3">
+      <div class="value-card reveal-item">
+        <div class="num">01</div>
+        <h3>운영진 1:1 직접 탐색</h3>
+        <p>기계적 매칭이 아닙니다. 기술·제품의 강점과 세일즈 병목을 직접 분석합니다.</p>
+      </div>
+      <div class="value-card reveal-item">
+        <div class="num">02</div>
+        <h3>익명 프로필 사전 조율</h3>
+        <p>익명 제안 카드를 먼저 확인하고, 매칭 동의 여부를 신청자가 직접 결정합니다.</p>
+      </div>
+      <div class="value-card reveal-item">
+        <div class="num">03</div>
+        <h3>매출 연결형 파트너 매칭</h3>
+        <p>최대 2회 엄선 소개. 조건에 맞는 파트너가 없으면 전액 환불합니다.</p>
+      </div>
+    </div>
+  </section>
 
   <section class="dangol-def-section reveal">
     <div class="dangol-def-inner reveal-item">
-      <p class="dangol-def-kicker">단골팅이 말하는 단골</p>
+      <p class="dangol-def-kicker">단골팅이 정의하는 &lsquo;진짜 단골&rsquo;</p>
       <h2 class="dangol-def-title">
-        한 번 같이 일해보고<br/>
-        <em>말 안 해도 또 부르게 되는</em> 관계
+        한 번 같이 일해보고, <em>말 안 해도 또 부르게 되는</em> 관계
       </h2>
       <p class="dangol-def-desc">
-        명함을 주고받은 사이가 아닙니다.<br class="br-sm"/>
-        이해관계가 맞고, 결이 통해서 —<br class="br-sm"/>
-        고민 없이 일을 맡기고,<br class="br-sm"/>
-        자연스럽게 의뢰가 오가는 관계입니다.
+        명함을 주고받은 어설픈 사이가 아닙니다.
+        이해관계가 정확히 맞고 일하는 결이 통해서,
+        고민 없이 일을 맡기고 자연스럽게 의뢰가 오가는 끈끈한 비즈니스 동반자입니다.
       </p>
       <div class="dangol-def-pillars">
         <div class="dangol-pillar">
           <div class="dangol-pillar-icon" aria-hidden="true">01</div>
           <h3>이해관계가 명확하다</h3>
-          <p>내가 줄 수 있는 것과 상대가 줄 수 있는 것이 분명합니다. 눈치 볼 필요가 없습니다.</p>
+          <p>보유 기술·제품이 상대의 결핍과 분명하게 맞물립니다. 억지 영업 없이도 거래가 시작됩니다.</p>
         </div>
         <div class="dangol-pillar">
           <div class="dangol-pillar-icon" aria-hidden="true">02</div>
-          <h3>결이 서로 통한다</h3>
-          <p>일하는 방식, 생각하는 방향이 비슷합니다. 긴 설명 없이도 빠르게 맞아떨어집니다.</p>
+          <h3>비즈니스 결이 통한다</h3>
+          <p>일하는 방식과 판단 기준이 비슷합니다. 긴 설명 없이도 대화가 빠르게 맞아떨어집니다.</p>
         </div>
         <div class="dangol-pillar">
           <div class="dangol-pillar-icon" aria-hidden="true">03</div>
           <h3>고민 없이 또 부른다</h3>
-          <p>신뢰가 쌓이면 다음 의뢰는 고민이 아닙니다. 그냥 연락합니다. 그게 단골입니다.</p>
+          <p>첫 거래에서 신뢰가 확인되면, 다음 의뢰는 고민 없이 바로 이어집니다. 그게 진짜 단골입니다.</p>
         </div>
       </div>
-      <p class="dangol-def-invite">이런 관계를 원한다면 — 단골팅이 찾아드립니다.</p>
+      <p class="dangol-def-invite">이런 관계를 원한다면, 단골팅이 중간에서 판을 짜드립니다.</p>
     </div>
   </section>
 
-  <section class="hook-panel section--alt reveal">
+  <section class="hook-panel section--alt reveal" id="hook-section">
     <div class="hook-head reveal-item">
-      <span class="hook-kicker">잠깐, 이 숫자를 보세요 ↓</span>
-      <h2>아는 사람은 많아도, <em>서로 고민 없이 일을 맡길</em> 수 있는 사람은 드뭅니다</h2>
-      <p>이해관계가 맞고, 신뢰가 쌓인 파트너는 <strong>손에 꼽습니다</strong>.<br/>
-      그런 사람 한 명이 생기는 순간, 성장 속도는 <strong>완전히 다른 레벨</strong>로 올라갑니다.</p>
+      <span class="hook-kicker">데이터 &amp; 임팩트</span>
+      <h2>아는 사람은 많아도, <em>내 제품을 믿고 사줄</em> 사람은 드뭅니다</h2>
+      <p>기술·제품을 알아봐 주는 파트너는 <strong>손에 꼽습니다</strong>.
+      그런 파트너 단 한 명이 생기는 순간, 비즈니스 성장 속도는 <strong>완전히 다른 레벨</strong>로 올라갑니다.</p>
     </div>
 
     <div class="hook-climax reveal-item">
       <div class="hook-climax-band">
         <div class="hook-band-chip">
           <span class="hook-band-num"><span class="count" data-count="10" data-prefix="~" data-suffix="명">0</span></span>
-          <span class="hook-band-txt">아는 비즈니스 지인</span>
+          <span class="hook-band-txt">스쳐 지나가는 비즈니스 지인</span>
         </div>
         <span class="hook-band-arrow" aria-hidden="true">→</span>
         <div class="hook-band-chip hook-band-chip--lit">
           <span class="hook-band-num"><span class="count" data-count="1" data-prefix="~" data-suffix="명">0</span></span>
-          <span class="hook-band-txt">진짜로 의뢰를 주고받는 파트너</span>
+          <span class="hook-band-txt">서로 확실하게 의뢰를 주고받는 진짜 파트너</span>
         </div>
       </div>
       <div class="hook-climax-body">
         <div class="hook-climax-left">
-          <span class="hook-climax-tag">혼자 버티면</span>
-          <div class="hook-climax-num hook-climax-num--dim">×1</div>
-          <p class="hook-climax-desc">6개월 뒤에도 비슷한 속도</p>
+          <span class="hook-climax-tag">기존 방식</span>
+          <div class="hook-climax-num hook-climax-num--dim">0원</div>
+          <p class="hook-climax-desc">의미 없이 스쳐 지나가는 지인 10명 → 남는 매출 0원</p>
         </div>
         <div class="hook-climax-divider" aria-hidden="true"><span>VS</span></div>
         <div class="hook-climax-right">
-          <span class="hook-climax-tag hook-climax-tag--hot">이익이 맞는 파트너 1명 이후</span>
+          <span class="hook-climax-tag hook-climax-tag--hot">단골팅 방식</span>
           <div class="hook-hero-stack">
             <div class="hook-hero-glow" aria-hidden="true"></div>
             <div class="hook-climax-num hook-climax-num--hero">
               <span class="count" data-count="10" data-suffix="배+">0</span>
             </div>
           </div>
-          <p class="hook-climax-desc hook-climax-desc--hot">성장 속도, 완전히 다른 레벨</p>
+          <p class="hook-climax-desc hook-climax-desc--hot">진짜 파트너 1명 → 성장 속도 10배 이상</p>
         </div>
       </div>
     </div>
@@ -231,7 +246,7 @@ def _landing_html(
     </div>
 
     <a href="#offer" data-scroll-to="offer" class="hook-cta reveal-item" style="margin-top:32px">
-      <span>그래서, 5만 원에 뭘 받나요?</span>
+      <span>1기 한정 제안 보러 가기</span>
       <span class="hook-cta-arrow">→</span>
     </a>
   </section>
@@ -240,26 +255,27 @@ def _landing_html(
     <div class="founder-card reveal-item">
       <div class="founder-quote-mark" aria-hidden="true">&ldquo;</div>
       <div class="founder-body">
-        <p class="founder-story">
-          저도 오프라인 모임을 수십 번 나갔습니다.<br/>
-          목적은 하나였어요. <em>&ldquo;나랑 이해관계가 맞고, 서로 일을 주고받을 수 있는 사람을 만날 수 있을까?&rdquo;</em>
+        <p class="founder-story founder-story--highlight">
+          &ldquo;좋은 무기를 가지고도 파는 법을 몰라 묻혀 있는 분들을 위해&rdquo;
         </p>
         <p class="founder-story">
-          하지만 대부분은 명함만 바꾸고 끝났습니다.<br/>
-          가끔 괜찮아 보이는 분을 만나도 — 서로 뭘 원하는지 확인하고, 이해관계가 맞는지 검증하고,<br/>
-          실제로 도움이 되는지 확인하는 과정이 너무 피곤했어요.
+          저 역시 오프라인 비즈니스 모임을 수십 번 나갔습니다. 낯선 자리에서 사람들을 마주하며 내가 가진 것을 소개하고, 서로 뭘 원하는지 검증하는 과정이 얼마나 피로한지 누구보다 잘 압니다.
+        </p>
+        <p class="founder-story">
+          특히 뛰어난 기술이나 좋은 서비스를 만들어놓고도, 세일즈나 홍보가 막막해서 겉도는 1인 사업가분들을 볼 때 가장 안타까웠습니다.
+        </p>
+        <p class="founder-story">
+          그런데 저는 그 피로한 네트워킹 과정 속에서 사람들의 비즈니스 맥락을 읽고, 누가 누구에게 실질적인 매출과 가치를 안겨줄 수 있는지 찾아내는 것이 하나의 놀이처럼 재밌었습니다.
         </p>
         <p class="founder-story founder-story--highlight">
-          그런데 저는 그 과정이 <strong>재밌었습니다.</strong><br/>
-          사람을 읽고, 비즈니스 맥락을 파악하고, 누가 누구에게 어떤 가치를 줄 수 있는지 <span class="founder-keep">찾는 게 — 저한테는 놀이예요.</span>
-        </p>
-        <p class="founder-story">
-          &ldquo;남들이 힘들어하는 걸 내가 즐긴다면 — 내가 하면 되잖아.&rdquo;<br/>
+          &ldquo;남들이 가장 힘들어하는 걸 내가 즐긴다면, 내가 대신 판을 짜주면 되잖아.&rdquo;
           그래서 단골팅을 만들었습니다.
         </p>
         <p class="founder-story">
-          저는 이해관계를 읽고 비즈니스 관계를 연결하는 눈이 쌓여 있습니다.<br/>
-          당신의 상황과 필요를 파악해, 고민 없이 일을 맡길 수 있는 파트너를 제가 직접 찾겠습니다.
+          단골팅은 단순히 사람을 소개해 주는 플랫폼이 아닙니다. 신청서에 적힌 기술·제품의 강점과, 지금 막힌 세일즈 구간을 철저하게 파악합니다.
+        </p>
+        <p class="founder-story">
+          그리고 조율 능력을 총동원해, 서로 매출을 일으킬 수 있는 최적의 파트너를 직접 찾아냅니다. 제품과 기술 개발에만 집중하시면 됩니다. 세일즈 경로 연결은 큐레이터가 맡습니다.
         </p>
         <div class="founder-sig">
           <div class="founder-sig-name">이주환</div>
@@ -271,36 +287,36 @@ def _landing_html(
 
   <section class="section reveal">
     <div class="section-head reveal-item">
-      <h2>어떤 파트너를 만나나요?</h2>
-      <p>직업이 같을 필요 없습니다. <strong>이해관계가 맞고, 서로 일을 주고받을 수 있으면</strong> 됩니다</p>
+      <h2>매칭 파트너 유형</h2>
+      <p>직업이 같을 필요는 없습니다. <strong>이해관계가 맞고, 서로 매출을 일으켜줄 수 있다면</strong> 충분합니다</p>
     </div>
     <div class="meet-grid">
       <div class="meet-card reveal-item">
-        <span class="icon-chip">협</span>
+        <span class="icon-chip">🤝</span>
         <div>
-          <h3>서로 일을 맡기는 협업 파트너</h3>
-          <p>내가 잘하는 것과 상대가 잘하는 것이 맞물려, 고민 없이 의뢰를 주고받는 사이.</p>
+          <h3>협업 파트너 (기술·제품 × 상대의 결핍)</h3>
+          <p>각자 잘하는 영역이 맞물려, 고민 없이 외주와 일감을 주고받는 관계.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
-        <span class="icon-chip">피</span>
+        <span class="icon-chip">🎯</span>
         <div>
-          <h3>솔직한 비즈니스 피드백 파트너</h3>
-          <p>"좋아요" 대신 "이건 왜 이렇게 했어요?"를 물어봐 줄, 성장에 직접 도움이 되는 관점.</p>
+          <h3>레퍼럴 파트너 (서로의 고객 공유)</h3>
+          <p>양쪽 고객층이 서로에게 필요할 때, 이익이 맞춰 서로 고객을 소개해 주는 관계.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
-        <span class="icon-chip">멘</span>
+        <span class="icon-chip">👁️</span>
         <div>
-          <h3>먼저 가 본 멘토 혹은 멘티</h3>
-          <p>내가 막힌 길을 이미 지나온 사람. 또는 내 경험이 필요한 사람. 이해관계가 명확합니다.</p>
+          <h3>매운맛 피드백 파트너 (첫 타겟팅 검증)</h3>
+          <p>빈말 대신 날카로운 질문으로 제품·서비스의 시장성을 함께 검증하는 관점 공유.</p>
         </div>
       </div>
       <div class="meet-card reveal-item">
-        <span class="icon-chip">레</span>
+        <span class="icon-chip">🚀</span>
         <div>
-          <h3>서로 고객을 소개하는 레퍼럴</h3>
-          <p>내 고객이 상대에게 필요하고, 상대 고객이 나에게 필요한 — 이익이 일치하는 관계.</p>
+          <h3>성장 지향 멘토/멘티</h3>
+          <p>세일즈 병목을 이미 넘긴 선배, 또는 전문 기술이 절실한 후배와의 정교한 연결.</p>
         </div>
       </div>
     </div>
@@ -308,103 +324,103 @@ def _landing_html(
 
   <section class="target-section reveal">
     <div class="section-head reveal-item">
-      <h2>이런 분께 맞습니다</h2>
-      <p>비즈니스 목적이 분명한 분만 신청해 주세요</p>
+      <h2>타겟 필터링</h2>
+      <p>이런 분만 신청해 주세요. <strong>비즈니스 목적이 분명한 분</strong>만 받습니다</p>
     </div>
     <div class="target-grid reveal-item">
       <div class="target-chip">
         <span class="target-icon">💼</span>
-        <span>프리랜서 · 1인 사업자</span>
+        <span><b>프리랜서 · 1인 사업자</b> — 확실한 전문 기술이 있지만 첫 타겟 세일즈가 막막한 분</span>
       </div>
       <div class="target-chip">
         <span class="target-icon">🚀</span>
-        <span>스타트업 창업자 · 사이드프로젝트 운영자</span>
+        <span><b>초기 창업가 · 개발사 대표</b> — 제품은 나왔는데 어디서 누구한테 팔아야 할지 미치겠는 분</span>
       </div>
       <div class="target-chip">
         <span class="target-icon">📈</span>
-        <span>직장인이지만 부업·외부 협업 원하는 분</span>
+        <span><b>사이드 프로젝트 운영자</b> — 내 아이디어를 알아봐 주고 비즈니스 시너지를 낼 파트너가 필요한 분</span>
       </div>
-      <div class="target-chip">
-        <span class="target-icon">🎯</span>
-        <span>특정 업종에서 레퍼럴 파트너가 필요한 분</span>
+      <div class="target-chip target-chip--no" aria-label="해당 없음: 단순 친목·소개팅">
+        <span class="target-no-badge" aria-hidden="true">거절</span>
+        <span class="target-no-text">단순 인맥 쌓기나 친목 도모, 소개팅 목적이신 분</span>
       </div>
-      <div class="target-chip target-chip--no" aria-label="해당 없음: 단순 친목·소개팅·일방적 영업 목적">
-        <span class="target-no-badge" aria-hidden="true">아닙니다</span>
-        <span class="target-no-text">단순 친목 · 소개팅 · 내 서비스/제품을 판매하려는 일방적인 영업 목적인 분</span>
+      <div class="target-chip target-chip--no" aria-label="해당 없음: 일방적 홍보">
+        <span class="target-no-badge" aria-hidden="true">거절</span>
+        <span class="target-no-text">상대에게 줄 수 있는 가치는 없으면서, 일방적으로 내 제품만 홍보하고 팔러 오시는 분</span>
       </div>
     </div>
   </section>
 
   <section class="section section--alt reveal">
     <div class="section-head reveal-item">
-      <h2>아무나 연결하지 않습니다</h2>
-      <p>이해관계가 맞아야 하니까 — 운영진이 세 가지를 먼저 봅니다</p>
+      <h2>운영 원칙</h2>
+      <p>아무나 연결하지 않습니다. 운영진이 <strong>딱 세 가지</strong>를 먼저 검증합니다</p>
     </div>
     <div class="card-grid-3">
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="num">01</div>
-        <h3>상대에게 줄 수 있는 게 명확한 사람</h3>
-        <p>"인맥 넓히고 싶어요" 혹은 "제 제품 팔러 왔어요"는 거릅니다. 내가 상대에게 줄 수 있는 실질적인 순수 가치가 있어야 연결합니다.</p>
+        <h3>상대에게 제공할 &lsquo;순수 가치&rsquo;가 명확한가</h3>
+        <p>&ldquo;인맥 넓히러 왔어요&rdquo;는 가차 없이 거릅니다. 상대 비즈니스에 실질적으로 기여할 기술·제품이 있는 분만 연결합니다.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
         <div class="num">02</div>
-        <h3>지금 뭐가 필요한지 또렷한 사람</h3>
-        <p>막연히 "좋은 사람"이 아니라, 어떤 협업·피드백·레퍼럴이 필요한지 구체적으로 아는 분.</p>
+        <h3>지금 비즈니스에 뭐가 필요한지 또렷한가</h3>
+        <p>막연히 &ldquo;좋은 사람&rdquo;을 찾는 게 아니라, 어떤 협업과 세일즈 경로가 부족한지 스스로 구체적으로 아는 분만 받습니다.</p>
       </div>
       <div class="value-card reveal-item">
         <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <div class="num">03</div>
-        <h3>한 번 거래가 아니라, 계속 일을 주고받을 사람</h3>
-        <p>서로 신뢰가 쌓이면 고민 없이 의뢰가 오갑니다. 그런 관계를 원하는 분만 연결합니다.</p>
+        <h3>계속해서 일을 주고받을 진정성이 있는가</h3>
+        <p>단발성 거래가 아니라, 신뢰를 바탕으로 장기적인 단골 관계를 형성할 준비가 된 분만 연결합니다.</p>
       </div>
     </div>
   </section>
 
   <section class="section reveal" id="process">
     <div class="section-head reveal-item">
-      <h2>신청하면, 이렇게 진행됩니다</h2>
-      <p>복잡한 거 없습니다. 신청서만 쓰면 나머지는 운영진이 합니다</p>
+      <h2>프로세스 가이드</h2>
+      <p>신청서만 진실하게 작성해 주세요. <strong>나머지는 큐레이터가 전부 전담</strong>합니다</p>
     </div>
     <div class="timeline">
       <div class="timeline-step reveal-item">
         <div class="circle">01</div>
-        <div class="step-content"><b class="step-label">신청서 작성</b><span class="step-sub">5분이면 충분, 솔직하게만</span></div>
+        <div class="step-content"><b class="step-label">신청서 작성 (5분)</b><span class="step-sub">보유 기술·제품과 지금 막힌 세일즈 구간을 솔직하게 기록</span></div>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">02</div>
-        <div class="step-content"><b class="step-label">운영진이 직접 찾기</b><span class="step-sub">나와 맞는 사람 탐색 · 14일</span></div>
+        <div class="step-content"><b class="step-label">큐레이터의 1:1 밀착 탐색 (14일)</b><span class="step-sub">비즈니스 맥락 분석 후 서로 돈이 될 수 있는 최적의 파트너 직접 찾기·조율</span></div>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">03</div>
-        <div class="step-content"><b class="step-label">프로필 먼저 확인</b><span class="step-sub">익명 카드 보고 내가 결정</span></div>
+        <div class="step-content"><b class="step-label">익명 프로필 카드 확인</b><span class="step-sub">상대방의 무기와 제안이 담긴 익명 카드 확인 후 매칭 진행 여부 직접 결정</span></div>
       </div>
       <div class="timeline-step reveal-item">
         <div class="circle">04</div>
-        <div class="step-content"><b class="step-label">1:1 단톡 연결</b><span class="step-sub">서로 좋으면 바로 대화 시작</span></div>
+        <div class="step-content"><b class="step-label">1:1 단톡방 개설</b><span class="step-sub">서로 동의하면 즉시 매칭 완료, 곧바로 본론부터 비즈니스 시작</span></div>
       </div>
     </div>
   </section>
 
   <section class="section section--alt reveal">
     <div class="section-head reveal-item">
-      <h2>모임만 나가선 원하는 사람 못 만납니다</h2>
-      <p>그 시간에 매칭이 되면 훨씬 낫습니다</p>
+      <h2>비교 섹션</h2>
+      <p>모임만 나가선 원하는 사람 못 만납니다. 그 시간에 매칭이 되면 훨씬 낫습니다</p>
     </div>
     <div class="vs-table reveal-item">
       <div class="vs-col vs-col--old">
         <div class="vs-col-head">
-          <span class="vs-badge vs-badge--old">일반 모임·네트워킹</span>
+          <span class="vs-badge vs-badge--old">일반 비즈니스 모임 · 네트워킹</span>
         </div>
         <ul class="vs-list">
           <li>
             <span class="vs-icon vs-icon--bad">✗</span>
-            <div><strong>직접 찾아다녀야</strong><span>시간 내서 가고, 사람 걸러내고, 또 가고</span></div>
+            <div><strong>직접 돌아다니며 명함 돌리기</strong><span>시간 내서 가고, 사람 걸러내고, 또 가고</span></div>
           </li>
           <li>
             <span class="vs-icon vs-icon--bad">✗</span>
-            <div><strong>만나도 아이스브레이킹에 1시간</strong><span>뭘 원하는지조차 모르고 헤어짐</span></div>
+            <div><strong>대화의 물꼬를 트는 데만 1시간</strong><span>뭘 원하는지조차 모르고 헤어짐</span></div>
           </li>
           <li>
             <span class="vs-icon vs-icon--bad">✗</span>
@@ -412,31 +428,31 @@ def _landing_html(
           </li>
           <li>
             <span class="vs-icon vs-icon--bad">✗</span>
-            <div><strong>돈·시간 둘 다 날림</strong><span>참가비에 교통비, 매번 쓰는데 뭐가 남나요</span></div>
+            <div><strong>참가비·교통비 쓰고 영혼까지 털림</strong><span>매번 쓰는데 남는 매출은 없음</span></div>
           </li>
         </ul>
       </div>
       <div class="vs-divider" aria-hidden="true"><span>VS</span></div>
       <div class="vs-col vs-col--new">
         <div class="vs-col-head">
-          <span class="vs-badge vs-badge--new">단골팅</span>
+          <span class="vs-badge vs-badge--new">단골팅 (1:1 비즈니스 조율)</span>
         </div>
         <ul class="vs-list">
           <li>
             <span class="vs-icon vs-icon--ok">✓</span>
-            <div><strong>운영진이 대신 찾아줌</strong><span>신청서만 쓰면, 맞는 사람이 연결됨</span></div>
+            <div><strong>신청서만 쓰면 큐레이터가 대행</strong><span>맞는 사람을 운영진이 직접 찾아 연결</span></div>
           </li>
           <li>
             <span class="vs-icon vs-icon--ok">✓</span>
-            <div><strong>첫 대화부터 본론</strong><span>서로 뭘 원하는지 알고 만나니 깊어짐</span></div>
+            <div><strong>서로 원하는 걸 알고 만나니 바로 본론</strong><span>뜬구름 잡는 인사 대신 깊은 대화부터</span></div>
           </li>
           <li>
             <span class="vs-icon vs-icon--ok">✓</span>
-            <div><strong>딱 한 명, 정확하게</strong><span>100명 스치지 않아도 됩니다</span></div>
+            <div><strong>뜬구름 잡는 100명보다 매출 낼 파트너 1명</strong><span>정확하게, 딱 한 명</span></div>
           </li>
           <li>
             <span class="vs-icon vs-icon--ok">✓</span>
-            <div><strong>소개 없으면 전액 환불</strong><span>1회도 못 소개하면 5만 원 그대로</span></div>
+            <div><strong>파트너 매칭 실패 시 5만 원 100% 전액 환불</strong><span>소개 없으면 한 푼도 안 냄</span></div>
           </li>
         </ul>
       </div>
@@ -445,51 +461,29 @@ def _landing_html(
 
   <section class="section reveal" id="offer">
     <div class="offer-box reveal-item">
-      <div class="offer-badge">1기 한정 제안</div>
-      <h2 class="offer-title">단돈 <em>5만 원</em>에,<br/>이해관계가 맞는 파트너 한 명</h2>
-      <p class="offer-sub">고민 없이 일을 맡길 수 있는 사람 — 못 만나면 한 푼도 안 냅니다.</p>
+      <div class="offer-badge">1기 한정 특별 제안</div>
+      <h2 class="offer-title">단돈 <em>5만 원</em>으로, 10배 성장을 함께할 파트너를 만나세요</h2>
+      <p class="offer-sub">못 만나면 한 푼도 받지 않습니다. 1기 가격은 지금 이 순간이 마지막입니다.</p>
 
       <ul class="offer-list">
-        <li><span class="offer-check">✓</span><span>운영진이 <b>직접</b> 신청서 읽고 맞는 사람 찾기 (14일 밀착)</span></li>
-        <li><span class="offer-check">✓</span><span>상대 <b>익명 프로필 카드</b> 먼저 확인 후 내가 결정</span></li>
-        <li><span class="offer-check">✓</span><span>최대 <b>2회 소개</b> 제공 — 1회씩 단계 진행</span></li>
-        <li><span class="offer-check">✓</span><span>서로 좋으면 <b>1:1 단톡방</b> 바로 개설·연결</span></li>
-        <li><span class="offer-check">✓</span><span>소개 1회도 못 받으면 <b>5만 원 전액 환불</b></span></li>
+        <li><span class="offer-check">✓</span><span>큐레이터가 <b>직접</b> 신청서를 정독하고 서로 매출을 만들어줄 파트너 밀착 탐색 (14일)</span></li>
+        <li><span class="offer-check">✓</span><span>상대방 <b>익명 프로필 카드</b> 사전 확인 후 매칭 결정 권한 부여</span></li>
+        <li><span class="offer-check">✓</span><span>최대 <b>2회</b> 엄선된 소개 제공 (1회씩 단계별 진행)</span></li>
+        <li><span class="offer-check">✓</span><span>상호 매칭 동의 시 <b>1:1 전용 단톡방</b> 즉시 개설</span></li>
+        <li><span class="offer-check">✓</span><span>소개 조건을 만족하지 못할 시 <b>5만 원 전액 환불</b></span></li>
       </ul>
 
       <div class="offer-price">
-        <span class="offer-price-old">보통 이런 1:1 큐레이션은 수십만 원</span>
+        <span class="offer-price-old">보통 이러한 비즈니스 1:1 큐레이션 및 조율 서비스는 수십만 원을 호가합니다</span>
         <span class="offer-price-now">1기는 단돈 <b>{fee}</b></span>
-        <span class="offer-price-risk">못 만나면 → <b>0원</b></span>
+        <span class="offer-price-risk">파트너를 만나면 폭풍 성장, 못 만나면 → <b>0원</b></span>
       </div>
 
       <a href="#" data-external="{form}" class="btn btn-primary offer-cta">
-        <span>지금 신청하고 내 파트너 찾기</span>
+        <span>지금 신청하고 파트너 찾기</span>
         <span class="arrow">&rarr;</span>
       </a>
-      <p class="offer-fine">잃을 게 없습니다. 파트너를 만나면 성장, 못 만나면 전액 환불.</p>
-    </div>
-  </section>
-
-  <section class="section reveal">
-    <div class="section-head reveal-item">
-      <h2>먼저 연결된 사람들</h2>
-      <p>1기 참가자들이 직접 남긴 이야기</p>
-    </div>
-    <div class="review-grid">
-      <div class="review-card reveal-item">
-        <div class="review-meta">2026.06 · 마케팅 디렉터</div>
-        <p>&ldquo;첫 만남부터 바로 실무 이야기로 들어갔어요. 서로 뭘 줄 수 있는지 이미 알고 만나니 명함만 주고받던 모임이랑은 아예 달랐습니다.&rdquo;</p>
-        <div class="stars">★★★★★</div>
-      </div>
-      <div class="review-card reveal-item">
-        <div class="review-meta">2026.06 · 프리랜서 디자이너</div>
-        <p>&ldquo;이해관계가 딱 맞는 사람을 찾아 주셔서, 시간 낭비 없이 깊은 얘기까지 갔고 결국 같이 일하게 됐어요.&rdquo;</p>
-        <div class="stars">★★★★★</div>
-      </div>
-    </div>
-    <div class="review-more">
-      <a href="#" class="btn btn-outline" data-external="{form}">후기 더보기</a>
+      <p class="offer-fine">잃을 것은 없습니다. 파트너를 만나면 비즈니스 폭풍 성장, 못 만나면 전액 환불입니다.</p>
     </div>
   </section>
 
@@ -500,20 +494,20 @@ def _landing_html(
     </div>
     <div class="faq-list">
       <details class="faq reveal-item">
-        <summary>외모나 나이도 보나요?</summary>
-        <p>아닙니다. <strong>지금 뭐가 필요한지, 서로 뭘 주고받을 수 있는지</strong>만 봅니다. 진지하게 내 사람을 찾는 분만 받습니다.</p>
+        <summary>어떤 기준을 가장 중요하게 보나요?</summary>
+        <p>나이나 외모, 스펙은 보지 않습니다. 오직 <strong>[지금 필요한 것]</strong>과 <strong>[상대에게 줄 수 있는 가치]</strong> 이 두 가지의 비즈니스 핏(Fit)만 철저하게 분석합니다.</p>
       </details>
       <details class="faq reveal-item">
-        <summary>환불은 어떻게 되나요?</summary>
-        <p>운영진은 최대 <strong>2회 소개</strong>를 제공합니다. <strong>소개를 1회도 못 받으면 전액 환불</strong>, 1회 소개받으면 <strong>50% 환불</strong>, 2회 소개 모두 받으면 환불 없음입니다. (자세한 내용은 아래 환불 규정 확인)</p>
+        <summary>환불 규정은 어떻게 되나요?</summary>
+        <p>단골팅 운영진은 최대 <strong>2회</strong>의 정교한 소개를 제공합니다. 운영진의 판단하에 조건에 맞는 사람을 1회도 소개해 드리지 못하면 <strong>100% 전액 환불</strong>해 드립니다. (1회 소개 진행 시 50% 환불, 2회 소개를 모두 제공받으신 경우 환불 금액은 없습니다.)</p>
       </details>
       <details class="faq reveal-item">
-        <summary>신청서는 어떻게 쓰나요?</summary>
-        <p><strong>[지금 내 상황] + [받고 싶은 것] + [내가 줄 수 있는 것]</strong>, 이 세 가지만 솔직하게 적으면 됩니다. 구체적일수록 더 잘 맞는 사람을 만납니다.</p>
+        <summary>신청서는 어떻게 작성해야 하나요?</summary>
+        <p><strong>[보유 기술·제품]</strong> + <strong>[지금 막힌 세일즈 구간]</strong> + <strong>[상대에게 줄 수 있는 가치]</strong>를 구체적으로 적을수록, 더 정교한 매칭 카드가 만들어집니다.</p>
       </details>
       <details class="faq reveal-item">
-        <summary>세금계산서 발행되나요?</summary>
-        <p>1기는 매칭 로직 검증용 데모 기수입니다. 환불 가능 구조상 <strong>세금계산서 · 현금영수증 발행은 어렵습니다.</strong></p>
+        <summary>세금계산서 발행이 가능한가요?</summary>
+        <p>1기는 매칭 시스템과 시장성을 검증하기 위한 데모 기수입니다. 리스크 제로를 위해 도입한 &lsquo;조건 미달 시 전액 환불 구조&rsquo;의 특성상, 1기 한정으로 <strong>세금계산서 및 현금영수증 발행은 어렵습니다.</strong></p>
       </details>
     </div>
     <div class="rule-links">
@@ -529,10 +523,10 @@ def _landing_html(
       못 만나면 돌려받고, 만나면 오래갑니다. <strong style="color:#f1f5f9">1기 가격은 지금이 마지막</strong>입니다.
     </p>
     <a href="#" data-external="{form}" class="btn btn-primary reveal-item">
-      <span>지금 신청하고 내 파트너 찾기</span>
+      <span>지금 신청하고 파트너 찾기</span>
       <span class="arrow">&rarr;</span>
     </a>
-    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 소개 없으면 전액 환불</p>
+    <p class="price-line" style="margin-top:16px">1기 한정 {fee} · 파트너 미소개 시 전액 환불 보장</p>
   </section>
 
   <footer class="site-footer">

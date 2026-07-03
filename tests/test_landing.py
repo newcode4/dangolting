@@ -17,7 +17,7 @@ def test_landing_hook_section():
     assert "hook-panel" in html
     assert 'data-count="10"' in html
     assert 'data-suffix="배+"' in html
-    assert "의뢰를 주고받는 파트너" in html
+    assert "진짜 파트너" in html
     assert "initHookCounters" in html
     assert "syncHookLayout" in html
     assert "data-hook-layout" in html
@@ -27,20 +27,29 @@ def test_landing_hook_section():
 
 def test_landing_filter_copy():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
-    assert "일방적인 영업 목적인 분" in html
-    assert "제 제품 팔러 왔어요" in html
-    assert "실질적인 순수 가치" in html
+    assert "일방적으로 내 제품만 홍보하고 팔러 오시는 분" in html
+    assert "인맥 넓히러 왔어요" in html
+    assert "기술·제품" in html
+    assert "너는 제품" not in html
+    assert "당신이" not in html
 
 
 def test_landing_mobile_line_breaks():
     html = _landing_html("logo.png", APPLICATION_FORM_URL, "", "", shell_preview=False)
-    assert "한 번 같이 일해보고<br/>" in html
-    assert "모임에 수십 번 나가도 —<br class=\"br-sm\"/>" in html
-    assert "고민 없이 일을 맡기고,<br class=\"br-sm\"/>" in html
+    assert "한 번 같이 일해보고," in html
+    assert "br-sm" not in html
+    assert "모임에 수십 번 나가도" in html
+    assert "운영진이 직접 나서서" in html
     css = Path(__file__).resolve().parents[1].joinpath("assets", "landing-page.css").read_text(
         encoding="utf-8"
     )
-    assert "br.br-sm" in css
+    assert "text-wrap: pretty" in css
+
+
+def test_landing_css_card_grid():
+    css = (Path(__file__).resolve().parents[1] / "assets" / "landing-page.css").read_text(encoding="utf-8")
+    assert ".card-grid-3 {" in css
+    assert "grid-template-columns: repeat(3, 1fr)" in css.split(".card-grid-3 {")[1].split("}")[0]
 
 
 def test_landing_css_revision_meta():
@@ -162,6 +171,8 @@ def test_landing_business_positioning():
     assert "이해관계" in html
     assert "target-grid" in html
     assert "레퍼럴" in html
+    assert "핵심 가치 제안" in html
+    assert "명함 백 장 돌려봐야" in html
 
 
 def test_landing_refund_policy_accurate():

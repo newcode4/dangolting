@@ -240,9 +240,10 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-muted);
   line-height: 1.8;
   margin-bottom: 32px;
-  max-width: 520px;
+  max-width: 560px;
   margin-left: auto;
   margin-right: auto;
+  text-wrap: pretty;
 }
 
 
@@ -505,7 +506,17 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.6;
 }
 
-/* ── 3 Cards (찐) ── */
+.section-head > p,
+.dangol-def-desc,
+.dangol-pillar p,
+.hook-head > p,
+.founder-story,
+.meet-card p,
+.cta-band > p {
+  text-wrap: pretty;
+}
+
+/* ── 3 Cards ── */
 .card-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -559,6 +570,10 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   color: var(--text-muted);
   line-height: 1.65;
+  text-wrap: pretty;
+  max-width: 28ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ── Process Timeline ── */
